@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { 
   Check, Copy, Trash, AlertCircle, Edit, ArrowUpCircle, 
-  Plus, Image, Palette, Tag, Save, X 
+  Plus, Image, Palette, Tag, Save, X, MoveUp, MoveDown
 } from 'lucide-react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { NavButton, GradientPreset } from '@/types';
@@ -137,6 +138,29 @@ export const SiteSettingsPanel = () => {
       toast({
         title: "Button Deleted",
         description: "Navigation button has been removed successfully.",
+      });
+    }
+  };
+
+  const handleMoveButton = (button: NavButton, direction: 'up' | 'down') => {
+    const buttons = [...settings.navBar.buttons];
+    const index = buttons.findIndex(btn => btn.id === button.id);
+    
+    if (direction === 'up' && index > 0) {
+      // Swap with previous button
+      [buttons[index], buttons[index - 1]] = [buttons[index - 1], buttons[index]];
+      updateNavButtons(buttons);
+      toast({
+        title: "Button Moved",
+        description: "Navigation button has been moved up.",
+      });
+    } else if (direction === 'down' && index < buttons.length - 1) {
+      // Swap with next button
+      [buttons[index], buttons[index + 1]] = [buttons[index + 1], buttons[index]];
+      updateNavButtons(buttons);
+      toast({
+        title: "Button Moved",
+        description: "Navigation button has been moved down.",
       });
     }
   };
@@ -366,7 +390,7 @@ export const SiteSettingsPanel = () => {
                       No navigation buttons added yet
                     </div>
                   ) : (
-                    settings.navBar.buttons.map((button) => (
+                    settings.navBar.buttons.map((button, index) => (
                       <div key={button.id} className="flex items-center justify-between p-3">
                         <div className="flex flex-col">
                           <span className="font-medium">{button.label}</span>
@@ -382,6 +406,22 @@ export const SiteSettingsPanel = () => {
                               updateNavButtons(updatedButtons);
                             }} 
                           />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleMoveButton(button, 'up')}
+                            disabled={index === 0}
+                          >
+                            <MoveUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleMoveButton(button, 'down')}
+                            disabled={index === settings.navBar.buttons.length - 1}
+                          >
+                            <MoveDown className="h-4 w-4" />
+                          </Button>
                           <Button variant="ghost" size="icon" onClick={() => handleEditButton(button)}>
                             <Edit className="h-4 w-4" />
                           </Button>
