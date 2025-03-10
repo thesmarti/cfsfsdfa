@@ -23,6 +23,7 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
     
     if (email === storedEmail && password === storedPassword) {
       const user: User = {
+        id: 'admin-user', // Adding the required id property
         email: storedEmail,
         role: 'admin'
       };
