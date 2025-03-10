@@ -36,7 +36,7 @@ const defaultCoupons: Coupon[] = [
     createdAt: '2023-05-10',
     updatedAt: '2023-06-20',
     redirectUrl: 'https://bestbuy.com',
-    image: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1546868871-7041f2a55e38?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
     rating: 4.0,
     usedCount: 412
   },
@@ -250,22 +250,14 @@ export const useCoupons = () => {
     try {
       setLoading(true);
       
-      // If rating is not provided, set a default rating
-      if (!coupon.rating) {
-        coupon.rating = Math.floor(Math.random() * 2) + 3 + Math.random() * 0.5;
-      }
-      
-      // If usedCount is not provided, set a random default
-      if (!coupon.usedCount) {
-        coupon.usedCount = Math.floor(Math.random() * 900) + 100;
-      }
-      
-      const now = new Date().toISOString();
+      // Only set defaults if values are not provided
       const newCoupon: Coupon = {
         ...coupon,
         id: Date.now().toString(),
-        createdAt: now,
-        updatedAt: now
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        rating: coupon.rating ?? (Math.floor(Math.random() * 2) + 3 + Math.random() * 0.5),
+        usedCount: coupon.usedCount ?? Math.floor(Math.random() * 900) + 100
       };
       
       // Update our "database"

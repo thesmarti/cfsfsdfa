@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
@@ -36,10 +35,9 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
     image: '',
     contentLockerLinkId: undefined,
     rating: 4.5,
-    usedCount: Math.floor(Math.random() * 900) + 100 // Random between 100-999
+    usedCount: undefined
   });
   
-  // For new content locker link functionality
   const [showNewLinkDialog, setShowNewLinkDialog] = useState(false);
   const [newLink, setNewLink] = useState<Omit<ContentLockerLink, 'id' | 'createdAt'>>({
     name: '',
@@ -47,7 +45,6 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
     active: true
   });
   
-  // If we're editing a coupon, populate the form with its data
   useEffect(() => {
     if (editCoupon) {
       const { id, createdAt, updatedAt, ...rest } = editCoupon;
@@ -90,12 +87,10 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
     reader.readAsDataURL(file);
   };
   
-  // Handle rating change
   const handleRatingChange = (value: number[]) => {
     setFormData(prev => ({ ...prev, rating: value[0] }));
   };
   
-  // Handle used count change
   const handleUsedCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
     if (!isNaN(value) && value >= 0) {
@@ -103,13 +98,11 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
     }
   };
   
-  // Handle new link form changes
   const handleNewLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewLink(prev => ({ ...prev, [name]: value }));
   };
   
-  // Handle creating a new content locker link
   const handleCreateLink = async () => {
     if (!newLink.name || !newLink.url) {
       toast({
@@ -136,7 +129,6 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate form
     if (!formData.store || !formData.code || !formData.description || !formData.discount || !formData.expiryDate || !formData.category) {
       toast({
         title: "Validation Error",
@@ -149,7 +141,6 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
     onSubmit(formData);
   };
   
-  // Filter only active content locker links
   const activeLinks = links.filter(link => link.active);
   
   return (
@@ -408,7 +399,6 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
         </div>
       </form>
 
-      {/* Dialog for adding a new content locker link */}
       <Dialog open={showNewLinkDialog} onOpenChange={setShowNewLinkDialog}>
         <DialogContent>
           <DialogHeader>
