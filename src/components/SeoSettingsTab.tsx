@@ -1,25 +1,38 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useToast } from "@/components/ui/use-toast";
-import { Image, ArrowUpCircle } from 'lucide-react';
+import { Image, ArrowUpCircle, Save } from 'lucide-react';
 
 export const SeoSettingsTab = () => {
   const { settings, updateSeoSettings, uploadFavicon } = useSiteSettings();
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
+  const [seoSettings, setSeoSettings] = useState({
+    title: settings.seo?.title || '',
+    description: settings.seo?.description || '',
+    favicon: settings.seo?.favicon || ''
+  });
+  
+  useEffect(() => {
+    setSeoSettings({
+      title: settings.seo?.title || '',
+      description: settings.seo?.description || '',
+      favicon: settings.seo?.favicon || ''
+    });
+  }, [settings.seo]);
   
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateSeoSettings({ title: e.target.value });
+    setSeoSettings({...seoSettings, title: e.target.value});
   };
   
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    updateSeoSettings({ description: e.target.value });
+    setSeoSettings({...seoSettings, description: e.target.value});
   };
   
   const handleFaviconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,6 +58,17 @@ export const SeoSettingsTab = () => {
     }
   };
   
+  const handleSaveSeoSettings = () => {
+    updateSeoSettings({
+      title: seoSettings.title,
+      description: seoSettings.description
+    });
+    toast({
+      title: "SEO Settings Saved",
+      description: "Your SEO settings have been updated successfully",
+    });
+  };
+  
   return (
     <div className="space-y-6">
       <Card>
@@ -55,7 +79,7 @@ export const SeoSettingsTab = () => {
               <Input
                 id="seo-title"
                 placeholder="Site Title for SEO"
-                value={settings.seo?.title || ''}
+                value={seoSettings.title}
                 onChange={handleTitleChange}
               />
               <p className="text-xs text-muted-foreground">
@@ -68,7 +92,7 @@ export const SeoSettingsTab = () => {
               <Textarea
                 id="seo-description"
                 placeholder="Enter a description for search engines"
-                value={settings.seo?.description || ''}
+                value={seoSettings.description}
                 onChange={handleDescriptionChange}
                 rows={3}
               />
@@ -119,6 +143,12 @@ export const SeoSettingsTab = () => {
             </div>
           </div>
         </CardContent>
+        <CardFooter className="flex justify-end">
+          <Button onClick={handleSaveSeoSettings} className="gap-2">
+            <Save size={16} />
+            Save SEO Settings
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   );

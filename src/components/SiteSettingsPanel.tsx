@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -5,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { Check, Copy, Trash, AlertCircle, Edit, ArrowUpCircle, Plus, Image, Palette, Tag } from 'lucide-react';
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Check, Copy, Trash, AlertCircle, Edit, ArrowUpCircle, Plus, Image, Palette, Tag, Save } from 'lucide-react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { NavButton, GradientPreset } from '@/types';
 import { useToast } from "@/components/ui/use-toast";
@@ -20,42 +21,53 @@ export const SiteSettingsPanel = () => {
   const [newButtonPath, setNewButtonPath] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   
+  // Add state to track changes for each section
+  const [navbarSettings, setNavbarSettings] = useState({ ...settings.navBar });
+  const [colorSettings, setColorSettings] = useState({ ...settings.colors });
+  const [generalSettings, setGeneralSettings] = useState({ ...settings.general });
+  
   useEffect(() => {
     if (!settings.colors.gradientPresets) {
       updateColorSettings({ gradientPresets: [] });
     }
   }, [settings.colors]);
 
+  useEffect(() => {
+    setNavbarSettings({ ...settings.navBar });
+    setColorSettings({ ...settings.colors });
+    setGeneralSettings({ ...settings.general });
+  }, [settings]);
+
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateNavBarSettings({ showLogo: e.target.checked });
+    setNavbarSettings({ ...navbarSettings, showLogo: e.target.checked });
   };
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateNavBarSettings({ showText: e.target.checked });
+    setNavbarSettings({ ...navbarSettings, showText: e.target.checked });
   };
 
   const handleSiteTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateNavBarSettings({ siteTitle: e.target.value });
+    setNavbarSettings({ ...navbarSettings, siteTitle: e.target.value });
   };
 
   const handlePrimaryColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateColorSettings({ primary: e.target.value });
+    setColorSettings({ ...colorSettings, primary: e.target.value });
   };
 
   const handleSecondaryColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateColorSettings({ secondary: e.target.value });
+    setColorSettings({ ...colorSettings, secondary: e.target.value });
   };
 
   const handleAccentColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateColorSettings({ accent: e.target.value });
+    setColorSettings({ ...colorSettings, accent: e.target.value });
   };
 
   const handleSiteDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    updateGeneralSettings({ siteDescription: e.target.value });
+    setGeneralSettings({ ...generalSettings, siteDescription: e.target.value });
   };
 
   const handleFooterTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateGeneralSettings({ footerText: e.target.value });
+    setGeneralSettings({ ...generalSettings, footerText: e.target.value });
   };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,6 +115,30 @@ export const SiteSettingsPanel = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleSaveNavbarSettings = () => {
+    updateNavBarSettings(navbarSettings);
+    toast({
+      title: "Navbar Settings Saved",
+      description: "Your navbar settings have been updated successfully.",
+    });
+  };
+
+  const handleSaveColorSettings = () => {
+    updateColorSettings(colorSettings);
+    toast({
+      title: "Color Settings Saved",
+      description: "Your color settings have been updated successfully.",
+    });
+  };
+
+  const handleSaveGeneralSettings = () => {
+    updateGeneralSettings(generalSettings);
+    toast({
+      title: "General Settings Saved",
+      description: "Your general settings have been updated successfully.",
+    });
   };
 
   const handleGradientPresetSelect = (preset: GradientPreset) => {
@@ -163,6 +199,13 @@ export const SiteSettingsPanel = () => {
     ) || [];
   };
 
+  const handleUseCustomGradients = (checked: boolean) => {
+    setColorSettings({
+      ...colorSettings,
+      useCustomGradients: checked
+    });
+  };
+
   return (
     <Card className="glass-card">
       <CardContent className="pt-6">
@@ -178,7 +221,7 @@ export const SiteSettingsPanel = () => {
             <div className="grid gap-6">
               <div className="grid grid-cols-2 items-center gap-4">
                 <Label htmlFor="show-logo">Show Logo</Label>
-                <Switch id="show-logo" checked={settings.navBar.showLogo} onCheckedChange={(checked) => updateNavBarSettings({ showLogo: checked })} />
+                <Switch id="show-logo" checked={navbarSettings.showLogo} onCheckedChange={(checked) => setNavbarSettings({...navbarSettings, showLogo: checked})} />
               </div>
               
               <div className="grid gap-3">
@@ -223,19 +266,19 @@ export const SiteSettingsPanel = () => {
               
               <div className="grid grid-cols-2 items-center gap-4">
                 <Label htmlFor="show-text">Show Text</Label>
-                <Switch id="show-text" checked={settings.navBar.showText} onCheckedChange={(checked) => updateNavBarSettings({ showText: checked })} />
+                <Switch id="show-text" checked={navbarSettings.showText} onCheckedChange={(checked) => setNavbarSettings({...navbarSettings, showText: checked})} />
               </div>
               
               <div className="grid gap-2">
                 <Label htmlFor="site-title">Site Title</Label>
-                <Input id="site-title" value={settings.navBar.siteTitle} onChange={handleSiteTitleChange} />
+                <Input id="site-title" value={navbarSettings.siteTitle} onChange={handleSiteTitleChange} />
               </div>
               
               <div className="mt-4">
                 <Label className="mb-2 block">Navbar Preview</Label>
                 <div className="border rounded-lg p-4 bg-background shadow-sm">
                   <div className="flex items-center space-x-2">
-                    {settings.navBar.showLogo && (
+                    {navbarSettings.showLogo && (
                       <div className="h-8 w-8 flex-shrink-0">
                         {settings.navBar.logoUrl ? (
                           <img 
@@ -253,12 +296,12 @@ export const SiteSettingsPanel = () => {
                         )}
                       </div>
                     )}
-                    {settings.navBar.showText && (
+                    {navbarSettings.showText && (
                       <span className={`font-display font-semibold text-lg bg-clip-text text-transparent ${settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600'}`}>
-                        {settings.navBar.siteTitle || 'Site Title'}
+                        {navbarSettings.siteTitle || 'Site Title'}
                       </span>
                     )}
-                    {!settings.navBar.showLogo && !settings.navBar.showText && (
+                    {!navbarSettings.showLogo && !navbarSettings.showText && (
                       <div className="text-sm text-muted-foreground italic">
                         Please enable logo or text to show navbar content
                       </div>
@@ -307,6 +350,12 @@ export const SiteSettingsPanel = () => {
                 </div>
               </div>
             </div>
+            <div className="flex justify-end pt-6">
+              <Button onClick={handleSaveNavbarSettings} className="gap-2">
+                <Save size={16} />
+                Save Navbar Settings
+              </Button>
+            </div>
           </TabsContent>
           
           <TabsContent value="colors" className="mt-6">
@@ -316,10 +365,10 @@ export const SiteSettingsPanel = () => {
                 <Input 
                   type="color" 
                   id="primary-color" 
-                  value={settings.colors.primary} 
-                  onChange={(e) => updateColorSettings({ primary: e.target.value })}
-                  disabled={settings.colors.useCustomGradients}
-                  className={settings.colors.useCustomGradients ? 'opacity-50 cursor-not-allowed' : ''}
+                  value={colorSettings.primary} 
+                  onChange={handlePrimaryColorChange}
+                  disabled={colorSettings.useCustomGradients}
+                  className={colorSettings.useCustomGradients ? 'opacity-50 cursor-not-allowed' : ''}
                 />
               </div>
               <div className="grid gap-2">
@@ -327,10 +376,10 @@ export const SiteSettingsPanel = () => {
                 <Input 
                   type="color" 
                   id="secondary-color" 
-                  value={settings.colors.secondary} 
-                  onChange={(e) => updateColorSettings({ secondary: e.target.value })}
-                  disabled={settings.colors.useCustomGradients}
-                  className={settings.colors.useCustomGradients ? 'opacity-50 cursor-not-allowed' : ''}
+                  value={colorSettings.secondary} 
+                  onChange={handleSecondaryColorChange}
+                  disabled={colorSettings.useCustomGradients}
+                  className={colorSettings.useCustomGradients ? 'opacity-50 cursor-not-allowed' : ''}
                 />
               </div>
               <div className="grid gap-2">
@@ -338,10 +387,10 @@ export const SiteSettingsPanel = () => {
                 <Input 
                   type="color" 
                   id="accent-color" 
-                  value={settings.colors.accent} 
-                  onChange={(e) => updateColorSettings({ accent: e.target.value })}
-                  disabled={settings.colors.useCustomGradients}
-                  className={settings.colors.useCustomGradients ? 'opacity-50 cursor-not-allowed' : ''}
+                  value={colorSettings.accent} 
+                  onChange={handleAccentColorChange}
+                  disabled={colorSettings.useCustomGradients}
+                  className={colorSettings.useCustomGradients ? 'opacity-50 cursor-not-allowed' : ''}
                 />
               </div>
               
@@ -350,12 +399,12 @@ export const SiteSettingsPanel = () => {
                   <Label htmlFor="use-custom-gradients" className="font-medium">Use Custom Gradients</Label>
                   <Switch 
                     id="use-custom-gradients" 
-                    checked={settings.colors.useCustomGradients} 
-                    onCheckedChange={(checked) => updateColorSettings({ useCustomGradients: checked })} 
+                    checked={colorSettings.useCustomGradients}
+                    onCheckedChange={handleUseCustomGradients}
                   />
                 </div>
                 
-                {settings.colors.useCustomGradients && (
+                {colorSettings.useCustomGradients && (
                   <div className="space-y-4 border-l-2 pl-4 ml-2 border-muted">
                     <div className="grid gap-4">
                       <div className="p-3 bg-muted/30 rounded-lg">
@@ -565,18 +614,30 @@ export const SiteSettingsPanel = () => {
                 )}
               </div>
             </div>
+            <div className="flex justify-end pt-6">
+              <Button onClick={handleSaveColorSettings} className="gap-2">
+                <Save size={16} />
+                Save Color Settings
+              </Button>
+            </div>
           </TabsContent>
           
           <TabsContent value="general" className="mt-6">
             <div className="grid gap-6">
               <div className="grid gap-2">
                 <Label htmlFor="site-description">Site Description</Label>
-                <Textarea id="site-description" value={settings.general.siteDescription} onChange={handleSiteDescriptionChange} />
+                <Textarea id="site-description" value={generalSettings.siteDescription} onChange={handleSiteDescriptionChange} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="footer-text">Footer Text</Label>
-                <Input id="footer-text" value={settings.general.footerText} onChange={handleFooterTextChange} />
+                <Input id="footer-text" value={generalSettings.footerText} onChange={handleFooterTextChange} />
               </div>
+            </div>
+            <div className="flex justify-end pt-6">
+              <Button onClick={handleSaveGeneralSettings} className="gap-2">
+                <Save size={16} />
+                Save General Settings
+              </Button>
             </div>
           </TabsContent>
           
