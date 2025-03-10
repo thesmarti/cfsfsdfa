@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { CouponCard } from '@/components/CouponCard';
@@ -66,10 +65,10 @@ const Index = () => {
         <section className="text-center mb-12 max-w-4xl mx-auto">
           <div className="animate-slide-down">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-4">
-              Save Money with Premium Coupon Codes
+              {settings.textContent.heroTitle}
             </h1>
             <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Browse our curated collection of verified discount codes and offers from your favorite brands.
+              {settings.textContent.heroSubtitle}
             </p>
           </div>
           
@@ -77,7 +76,7 @@ const Index = () => {
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
             <Input
               type="search"
-              placeholder="Search for stores, brands, or coupon codes..."
+              placeholder={settings.textContent.searchPlaceholder}
               className="pl-12 h-12 rounded-full shadow-soft"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -88,6 +87,9 @@ const Index = () => {
         {/* Featured Coupons Slider */}
         {featuredCoupons.length > 0 && (
           <section className="mb-12 animate-fade-in">
+            <h2 className="text-2xl font-display font-semibold mb-6">
+              {settings.textContent.featuredDealsTitle}
+            </h2>
             <FeaturedCoupons coupons={featuredCoupons} />
           </section>
         )}
@@ -96,7 +98,7 @@ const Index = () => {
         <section className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
           <div className="flex justify-between items-center flex-wrap gap-4 mb-6">
             <h2 className="text-2xl font-display font-semibold">
-              All Coupons
+              {settings.textContent.allCouponsTitle}
             </h2>
             
             <div className="flex items-center gap-2 flex-wrap">
@@ -168,7 +170,7 @@ const Index = () => {
               ) : filteredCoupons.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-lg text-muted-foreground mb-4">
-                    {searchTerm ? "No coupons found matching your search." : "No coupons available in this category."}
+                    {settings.textContent.noResultsText}
                   </p>
                 </div>
               ) : (
@@ -184,7 +186,7 @@ const Index = () => {
           {filteredCoupons.length > 9 && (
             <div className="flex justify-center mt-12">
               <Button variant="gradient" size="lg" className={`gap-2 ${gradientClass}`}>
-                Load More <ChevronDown size={16} />
+                {settings.textContent.ctaButtonText} <ChevronDown size={16} />
               </Button>
             </div>
           )}
@@ -193,7 +195,7 @@ const Index = () => {
       
       <footer className="mt-24 py-8 border-t border-border">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} LOLCoupons. All rights reserved.</p>
+          <p>{settings.general.footerText}</p>
         </div>
       </footer>
     </div>
