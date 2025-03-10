@@ -13,21 +13,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { SeoSettingsTab } from './SeoSettingsTab';
 import { GradientPresets } from './GradientPresets';
 
-const DEFAULT_GRADIENT_PRESETS: GradientPreset[] = [
-  { id: 'purple-pink', name: 'Purple to Pink', value: 'bg-gradient-to-br from-violet-500 to-pink-600', category: 'default' },
-  { id: 'blue-teal', name: 'Blue to Teal', value: 'bg-gradient-to-br from-blue-500 to-teal-400', category: 'default' },
-  { id: 'orange-red', name: 'Orange to Red', value: 'bg-gradient-to-br from-orange-400 to-red-500', category: 'food' },
-  { id: 'green-lime', name: 'Green to Lime', value: 'bg-gradient-to-br from-green-500 to-lime-300', category: 'default' },
-  { id: 'pink-orange', name: 'Pink to Orange', value: 'bg-gradient-to-br from-pink-500 to-orange-400', category: 'fashion' },
-  { id: 'indigo-purple', name: 'Indigo to Purple', value: 'bg-gradient-to-br from-indigo-500 to-purple-600', category: 'default' },
-  { id: 'yellow-green', name: 'Yellow to Green', value: 'bg-gradient-to-br from-yellow-400 to-green-500', category: 'food' },
-  { id: 'red-pink', name: 'Red to Pink', value: 'bg-gradient-to-br from-red-500 to-pink-500', category: 'default' },
-  { id: 'teal-cyan', name: 'Teal to Cyan', value: 'bg-gradient-to-br from-teal-500 to-cyan-400', category: 'travel' },
-  { id: 'amber-orange', name: 'Amber to Orange', value: 'bg-gradient-to-br from-amber-400 to-orange-500', category: 'home' },
-  { id: 'fuchsia-pink', name: 'Fuchsia to Pink', value: 'bg-gradient-to-br from-fuchsia-500 to-pink-500', category: 'beauty' },
-  { id: 'blue-indigo', name: 'Blue to Indigo', value: 'bg-gradient-to-br from-blue-500 to-indigo-600', category: 'electronics' },
-];
-
 export const SiteSettingsPanel = () => {
   const { settings, updateNavBarSettings, updateColorSettings, updateGeneralSettings, updateNavButtons, uploadLogo, applyUIGradient } = useSiteSettings();
   const { toast } = useToast();
@@ -37,7 +22,7 @@ export const SiteSettingsPanel = () => {
   
   useEffect(() => {
     if (!settings.colors.gradientPresets) {
-      updateColorSettings({ gradientPresets: DEFAULT_GRADIENT_PRESETS });
+      updateColorSettings({ gradientPresets: [] });
     }
   }, [settings.colors]);
 
@@ -175,7 +160,7 @@ export const SiteSettingsPanel = () => {
   const filterPresetsByCategory = (category: string) => {
     return settings.colors.gradientPresets?.filter(
       preset => preset.category === category || preset.category === 'default'
-    ) || DEFAULT_GRADIENT_PRESETS;
+    ) || [];
   };
 
   return (
@@ -382,7 +367,7 @@ export const SiteSettingsPanel = () => {
                           <div className={`h-8 rounded ${settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600'}`}></div>
                         </div>
                         <GradientPresets 
-                          presets={settings.colors.gradientPresets || DEFAULT_GRADIENT_PRESETS} 
+                          presets={settings.colors.gradientPresets || []} 
                           onSelectPreset={handleApplyToUI}
                           selectedValue={settings.colors.uiGradient}
                         />
@@ -399,7 +384,7 @@ export const SiteSettingsPanel = () => {
                         <TabsContent value="default" className="mt-4">
                           <div className="space-y-4">
                             <GradientPresets 
-                              presets={settings.colors.gradientPresets || DEFAULT_GRADIENT_PRESETS} 
+                              presets={settings.colors.gradientPresets || []} 
                               onSelectPreset={applyPresetToAll}
                               onApplyToUI={handleApplyToUI}
                               selectedValue={settings.colors.defaultGradient}
