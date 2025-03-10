@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,9 +8,6 @@ import { Search, Menu, X, Tag } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-import Particles, { initParticlesEngine } from "@tsparticles/react";
-import { type Container, type ISourceOptions } from "@tsparticles/engine";
-import { loadSlim } from "@tsparticles/slim";
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -18,20 +15,6 @@ export const Navbar = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
   const { settings } = useSiteSettings();
-  const [init, setInit] = useState(false);
-  
-  const particlesRef = useRef<Container | null>(null);
-
-  // Initialize particles engine
-  useEffect(() => {
-    const initEngine = async () => {
-      await initParticlesEngine(async (engine) => {
-        await loadSlim(engine);
-      });
-      setInit(true);
-    };
-    initEngine();
-  }, []);
 
   // Handle scroll events for navbar styling
   useEffect(() => {
@@ -52,74 +35,6 @@ export const Navbar = () => {
     setIsMenuOpen(false);
   }, [location.pathname]);
 
-  // Set up particles options
-  const particlesOptions: ISourceOptions = {
-    particles: {
-      number: {
-        value: settings.navBar.particlesDensity,
-        density: {
-          enable: true,
-          value_area: 800
-        }
-      },
-      color: {
-        value: settings.navBar.particlesColor
-      },
-      opacity: {
-        value: 0.3,
-        anim: {
-          enable: true,
-          speed: 1,
-          opacity_min: 0.1,
-          sync: false
-        }
-      },
-      size: {
-        value: 3
-      },
-      links: {
-        enable: true,
-        distance: 150,
-        color: settings.navBar.particlesColor,
-        opacity: 0.2,
-        width: 1
-      },
-      move: {
-        enable: true,
-        speed: 1,
-        direction: "none",
-        random: true,
-        straight: false,
-        out_mode: "out"
-      }
-    },
-    interactivity: {
-      events: {
-        onhover: {
-          enable: true,
-          mode: "grab"
-        },
-        onclick: {
-          enable: true,
-          mode: "push"
-        },
-        resize: true
-      },
-      modes: {
-        grab: {
-          distance: 140,
-          links: {
-            opacity: 0.3
-          }
-        },
-        push: {
-          particles_nb: 3
-        }
-      }
-    },
-    retina_detect: true
-  };
-
   // Check if the user is on the admin panel
   const isAdmin = location.pathname.includes('/admin');
 
@@ -129,18 +44,8 @@ export const Navbar = () => {
         isScrolled 
           ? 'py-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm' 
           : 'py-5 bg-transparent'
-      } overflow-hidden`}
+      }`}
     >
-      {init && settings.navBar.enableParticles && (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <Particles
-            id="tsparticles"
-            options={particlesOptions}
-            className="absolute inset-0 w-full h-full"
-          />
-        </div>
-      )}
-      
       <div className="container mx-auto px-4 relative z-10">
         <div className="flex items-center justify-between">
           {/* Logo and brand */}
