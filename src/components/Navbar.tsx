@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -138,9 +139,9 @@ export const Navbar = () => {
     </div>
   );
 
-  // Render the centered navbar style with just the logo
+  // Render the simplified centered style with just the logo
   const renderCenteredNavbar = () => (
-    <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center relative">
       {/* Auth buttons on top right */}
       <div className="absolute top-0 right-4 pt-2 flex items-center space-x-2 z-10">
         <Link to="/login">
@@ -153,28 +154,31 @@ export const Navbar = () => {
         </Link>
       </div>
       
-      {/* Large centered logo */}
-      {settings.navBar.showLogo && (
-        <Link to="/" className="mb-2">
-          <img 
-            src={settings.navBar.logoUrl} 
-            alt="Logo" 
-            className="h-16 w-auto" 
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/100x100?text=Logo';
-            }}
-          />
-        </Link>
-      )}
-      
-      {/* Site title */}
-      {settings.navBar.showText && (
-        <Link to="/" className="mb-1">
-          <h1 className={`font-display font-bold text-2xl bg-clip-text text-transparent ${textGradientClass}`}>
-            {settings.navBar.siteTitle}
-          </h1>
-        </Link>
-      )}
+      {/* Only show the logo and site title */}
+      <div className="flex flex-col items-center">
+        {/* Large centered logo */}
+        {settings.navBar.showLogo && (
+          <Link to="/" className="mb-2">
+            <img 
+              src={settings.navBar.logoUrl} 
+              alt="Logo" 
+              className="h-16 w-auto" 
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/100x100?text=Logo';
+              }}
+            />
+          </Link>
+        )}
+        
+        {/* Site title */}
+        {settings.navBar.showText && (
+          <Link to="/" className="mb-1">
+            <h1 className={`font-display font-bold text-2xl bg-clip-text text-transparent ${textGradientClass}`}>
+              {settings.navBar.siteTitle}
+            </h1>
+          </Link>
+        )}
+      </div>
     </div>
   );
 
