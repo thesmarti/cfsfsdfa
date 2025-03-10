@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -355,7 +354,7 @@ export const SiteSettingsPanel = () => {
                 <GradientPresets 
                   presets={settings.colors.gradientPresets || []} 
                   onSelectPreset={handleApplyToUI}
-                  selectedPreset={settings.colors.uiGradient}
+                  selectedValue={settings.colors.uiGradient}
                 />
               </div>
               
@@ -373,7 +372,7 @@ export const SiteSettingsPanel = () => {
                       presets={settings.colors.gradientPresets || []} 
                       onSelectPreset={applyPresetToAll}
                       onApplyToUI={handleApplyToUI}
-                      selectedPreset={settings.colors.defaultGradient}
+                      selectedValue={settings.colors.defaultGradient}
                     />
                     <p className="text-xs text-muted-foreground">
                       Click on a preset to apply it to all categories
@@ -398,7 +397,7 @@ export const SiteSettingsPanel = () => {
                         presets={filterPresetsByCategory('default')}
                         onSelectPreset={(preset) => updateColorSettings({ defaultGradient: preset.value })}
                         onApplyToUI={handleApplyToUI}
-                        selectedPreset={settings.colors.defaultGradient}
+                        selectedValue={settings.colors.defaultGradient}
                       />
                     </div>
                     
@@ -417,7 +416,7 @@ export const SiteSettingsPanel = () => {
                         presets={filterPresetsByCategory('fashion')}
                         onSelectPreset={(preset) => updateColorSettings({ fashionGradient: preset.value })}
                         onApplyToUI={handleApplyToUI}
-                        selectedPreset={settings.colors.fashionGradient}
+                        selectedValue={settings.colors.fashionGradient}
                       />
                     </div>
                     
@@ -436,7 +435,7 @@ export const SiteSettingsPanel = () => {
                         presets={filterPresetsByCategory('food')}
                         onSelectPreset={(preset) => updateColorSettings({ foodGradient: preset.value })}
                         onApplyToUI={handleApplyToUI}
-                        selectedPreset={settings.colors.foodGradient}
+                        selectedValue={settings.colors.foodGradient}
                       />
                     </div>
                     
@@ -455,7 +454,7 @@ export const SiteSettingsPanel = () => {
                         presets={filterPresetsByCategory('electronics')}
                         onSelectPreset={(preset) => updateColorSettings({ electronicsGradient: preset.value })}
                         onApplyToUI={handleApplyToUI}
-                        selectedPreset={settings.colors.electronicsGradient}
+                        selectedValue={settings.colors.electronicsGradient}
                       />
                     </div>
                     
@@ -474,7 +473,7 @@ export const SiteSettingsPanel = () => {
                         presets={filterPresetsByCategory('travel')}
                         onSelectPreset={(preset) => updateColorSettings({ travelGradient: preset.value })}
                         onApplyToUI={handleApplyToUI}
-                        selectedPreset={settings.colors.travelGradient}
+                        selectedValue={settings.colors.travelGradient}
                       />
                     </div>
                     
@@ -493,7 +492,7 @@ export const SiteSettingsPanel = () => {
                         presets={filterPresetsByCategory('beauty')}
                         onSelectPreset={(preset) => updateColorSettings({ beautyGradient: preset.value })}
                         onApplyToUI={handleApplyToUI}
-                        selectedPreset={settings.colors.beautyGradient}
+                        selectedValue={settings.colors.beautyGradient}
                       />
                     </div>
                     
@@ -512,7 +511,7 @@ export const SiteSettingsPanel = () => {
                         presets={filterPresetsByCategory('home')}
                         onSelectPreset={(preset) => updateColorSettings({ homeGradient: preset.value })}
                         onApplyToUI={handleApplyToUI}
-                        selectedPreset={settings.colors.homeGradient}
+                        selectedValue={settings.colors.homeGradient}
                       />
                     </div>
                   </div>
