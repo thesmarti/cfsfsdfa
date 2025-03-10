@@ -80,30 +80,61 @@ export const LoadingOverlay = ({ coupon, onComplete, loadingTime = 3000, content
               <circle 
                 className={`stroke-current transition-all duration-300`}
                 style={{
-                  color: 'currentColor',
-                  stroke: `url(#gradient-${coupon.id})`
+                  stroke: `url(#gradient-${coupon.id})`,
+                  strokeWidth: 10,
+                  strokeLinecap: 'round',
+                  strokeDasharray: `${2.5 * Math.PI * 40}`,
+                  strokeDashoffset: `${2.5 * Math.PI * 40 * (1 - progress / 100)}`,
+                  transform: 'rotate(-90 50 50)',
+                  fill: 'transparent'
                 }}
-                strokeWidth="10" 
-                strokeLinecap="round" 
                 cx="50" 
                 cy="50" 
                 r="40" 
-                fill="transparent"
-                strokeDasharray={`${2.5 * Math.PI * 40}`}
-                strokeDashoffset={`${2.5 * Math.PI * 40 * (1 - progress / 100)}`}
-                transform="rotate(-90 50 50)"
               />
               {/* Define the gradient for the SVG */}
               <defs>
                 <linearGradient id={`gradient-${coupon.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" className="text-indigo-500 dark:text-indigo-400" />
-                  <stop offset="100%" className="text-purple-600 dark:text-purple-500" />
+                  {gradientClass.includes('from-indigo') && gradientClass.includes('to-purple') ? (
+                    <>
+                      <stop offset="0%" stopColor="#6366f1" />
+                      <stop offset="100%" stopColor="#9333ea" />
+                    </>
+                  ) : gradientClass.includes('from-blue') && gradientClass.includes('to-teal') ? (
+                    <>
+                      <stop offset="0%" stopColor="#3b82f6" />
+                      <stop offset="100%" stopColor="#14b8a6" />
+                    </>
+                  ) : gradientClass.includes('from-red') || gradientClass.includes('from-orange') ? (
+                    <>
+                      <stop offset="0%" stopColor="#f97316" />
+                      <stop offset="100%" stopColor="#ef4444" />
+                    </>
+                  ) : gradientClass.includes('from-green') ? (
+                    <>
+                      <stop offset="0%" stopColor="#10b981" />
+                      <stop offset="100%" stopColor="#84cc16" />
+                    </>
+                  ) : gradientClass.includes('from-pink') ? (
+                    <>
+                      <stop offset="0%" stopColor="#ec4899" />
+                      <stop offset="100%" stopColor="#f97316" />
+                    </>
+                  ) : (
+                    <>
+                      <stop offset="0%" stopColor="#6366f1" />
+                      <stop offset="100%" stopColor="#9333ea" />
+                    </>
+                  )}
                 </linearGradient>
               </defs>
-              <text x="50" y="50" textAnchor="middle" dominantBaseline="middle" className={`text-lg font-bold bg-clip-text text-transparent ${gradientClass}`}>
-                {isComplete ? <tspan x="50" y="50">100%</tspan> : <tspan x="50" y="50">{Math.round(progress)}%</tspan>}
-              </text>
             </svg>
+            
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className={`text-lg font-bold bg-clip-text text-transparent ${gradientClass}`}>
+                {isComplete ? "100%" : `${Math.round(progress)}%`}
+              </span>
+            </div>
             
             {isComplete && (
               <div className="absolute inset-0 flex items-center justify-center animate-scale-in">
