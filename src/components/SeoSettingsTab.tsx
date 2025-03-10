@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Image, ArrowUpCircle, Save } from 'lucide-react';
 import { SiteSettings } from '@/types';
 
@@ -24,6 +24,7 @@ export const SeoSettingsTab = () => {
   // Update local state when settings change
   useEffect(() => {
     if (settings.seo) {
+      console.log("SEO settings from useSiteSettings:", settings.seo);
       setSeoSettings({
         title: settings.seo.title || '',
         description: settings.seo.description || '',
@@ -33,11 +34,11 @@ export const SeoSettingsTab = () => {
   }, [settings.seo]);
   
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSeoSettings({...seoSettings, title: e.target.value});
+    setSeoSettings(prev => ({...prev, title: e.target.value}));
   };
   
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setSeoSettings({...seoSettings, description: e.target.value});
+    setSeoSettings(prev => ({...prev, description: e.target.value}));
   };
   
   const handleFaviconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,7 +48,9 @@ export const SeoSettingsTab = () => {
     setIsUploading(true);
     
     try {
-      await uploadFavicon(file);
+      console.log("Uploading favicon:", file.name);
+      const faviconUrl = await uploadFavicon(file);
+      console.log("Uploaded favicon URL:", faviconUrl.substring(0, 50) + "...");
       
       toast({
         title: "Favicon updated",
@@ -68,6 +71,7 @@ export const SeoSettingsTab = () => {
   const handleSaveSeoSettings = async () => {
     setIsSaving(true);
     try {
+      console.log("Saving SEO settings:", seoSettings);
       await updateSeoSettings({
         title: seoSettings.title,
         description: seoSettings.description,

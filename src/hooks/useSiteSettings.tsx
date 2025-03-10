@@ -1,7 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { SiteSettings, NavButton, GradientPreset } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { Json } from '@/integrations/supabase/types';
 
 const DEFAULT_GRADIENT_PRESETS: GradientPreset[] = [
   { id: 'purple-pink', name: 'Purple to Pink', value: 'bg-gradient-to-br from-violet-500 to-pink-600', category: 'default' },
@@ -93,23 +95,23 @@ export const useSiteSettings = () => {
             ...STATIC_SETTINGS,
             navBar: {
               ...STATIC_SETTINGS.navBar,
-              ...(data.navBar || {})
+              ...(data.navbar as any || {})
             },
             colors: {
               ...STATIC_SETTINGS.colors,
-              ...(data.colors || {})
+              ...(data.colors as any || {})
             },
             general: {
               ...STATIC_SETTINGS.general,
-              ...(data.general || {})
+              ...(data.general as any || {})
             },
             seo: {
               ...STATIC_SETTINGS.seo,
-              ...(data.seo || {})
+              ...(data.seo as any || {})
             },
             textContent: {
               ...STATIC_SETTINGS.textContent,
-              ...(data.textContent || {})
+              ...(data.text_content as any || {})
             }
           };
           
@@ -151,17 +153,26 @@ export const useSiteSettings = () => {
         throw fetchError;
       }
       
+      // Transform the SiteSettings object to match Supabase's expected schema
+      const supabaseSettings = {
+        colors: updatedSettings.colors as unknown as Json,
+        navbar: updatedSettings.navBar as unknown as Json,
+        general: updatedSettings.general as unknown as Json,
+        seo: updatedSettings.seo as unknown as Json,
+        text_content: updatedSettings.textContent as unknown as Json
+      };
+      
       if (data?.id) {
         const { error } = await supabase
           .from('site_settings')
-          .update(updatedSettings)
+          .update(supabaseSettings)
           .eq('id', data.id);
           
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('site_settings')
-          .insert(updatedSettings);
+          .insert(supabaseSettings);
           
         if (error) throw error;
       }
@@ -300,6 +311,7 @@ export const useSiteSettings = () => {
   };
 
   const updateSeoSettings = async (seoSettings: Partial<SiteSettings['seo']>) => {
+    console.log("Updating SEO settings:", seoSettings);
     const updatedSettings = {
       ...settings,
       seo: {
@@ -337,6 +349,7 @@ export const useSiteSettings = () => {
   const uploadFavicon = async (file: File): Promise<string> => {
     try {
       const base64Image = await readFileAsDataURL(file);
+      console.log("Favicon base64:", base64Image.substring(0, 50) + "...");
       
       await updateSeoSettings({ favicon: base64Image });
       
