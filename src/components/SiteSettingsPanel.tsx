@@ -29,7 +29,7 @@ const DEFAULT_GRADIENT_PRESETS: GradientPreset[] = [
 ];
 
 export const SiteSettingsPanel = () => {
-  const { settings, updateNavBarSettings, updateColorSettings, updateGeneralSettings, updateNavButtons, uploadLogo } = useSiteSettings();
+  const { settings, updateNavBarSettings, updateColorSettings, updateGeneralSettings, updateNavButtons, uploadLogo, applyUIGradient } = useSiteSettings();
   const { toast } = useToast();
   const [newButtonLabel, setNewButtonLabel] = useState('');
   const [newButtonPath, setNewButtonPath] = useState('');
@@ -168,6 +168,10 @@ export const SiteSettingsPanel = () => {
     });
   };
 
+  const handleApplyToUI = (preset: GradientPreset) => {
+    applyUIGradient(preset);
+  };
+
   const filterPresetsByCategory = (category: string) => {
     return settings.colors.gradientPresets?.filter(
       preset => preset.category === category || preset.category === 'default'
@@ -265,7 +269,7 @@ export const SiteSettingsPanel = () => {
                       </div>
                     )}
                     {settings.navBar.showText && (
-                      <span className="font-display font-semibold text-lg bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500">
+                      <span className={`font-display font-semibold text-lg bg-clip-text text-transparent ${settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600'}`}>
                         {settings.navBar.siteTitle || 'Site Title'}
                       </span>
                     )}
@@ -369,7 +373,22 @@ export const SiteSettingsPanel = () => {
                 {settings.colors.useCustomGradients && (
                   <div className="space-y-4 border-l-2 pl-4 ml-2 border-muted">
                     <div className="grid gap-4">
-                      <Label>Gradient Presets</Label>
+                      <div className="p-3 bg-muted/30 rounded-lg">
+                        <h4 className="font-medium mb-2">Global UI Gradient</h4>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Select a gradient to apply to the entire UI including navbar text and buttons:
+                        </p>
+                        <div className="mb-3">
+                          <div className={`h-8 rounded ${settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600'}`}></div>
+                        </div>
+                        <GradientPresets 
+                          presets={settings.colors.gradientPresets || DEFAULT_GRADIENT_PRESETS} 
+                          onSelectPreset={handleApplyToUI}
+                          selectedValue={settings.colors.uiGradient}
+                        />
+                      </div>
+                      
+                      <Label>Category Gradients</Label>
                       <Tabs defaultValue="default">
                         <TabsList className="grid grid-cols-3">
                           <TabsTrigger value="default">Default</TabsTrigger>
@@ -382,6 +401,7 @@ export const SiteSettingsPanel = () => {
                             <GradientPresets 
                               presets={settings.colors.gradientPresets || DEFAULT_GRADIENT_PRESETS} 
                               onSelectPreset={applyPresetToAll}
+                              onApplyToUI={handleApplyToUI}
                               selectedValue={settings.colors.defaultGradient}
                             />
                             <p className="text-xs text-muted-foreground">
@@ -407,6 +427,7 @@ export const SiteSettingsPanel = () => {
                                 presets={filterPresetsByCategory('default')}
                                 onSelectPreset={(preset) => updateColorSettings({ defaultGradient: preset.value })}
                                 onApplyToAll={applyPresetToAll}
+                                onApplyToUI={handleApplyToUI}
                                 selectedValue={settings.colors.defaultGradient}
                               />
                             </div>
@@ -426,6 +447,7 @@ export const SiteSettingsPanel = () => {
                                 presets={filterPresetsByCategory('fashion')}
                                 onSelectPreset={(preset) => updateColorSettings({ fashionGradient: preset.value })}
                                 onApplyToAll={applyPresetToAll}
+                                onApplyToUI={handleApplyToUI}
                                 selectedValue={settings.colors.fashionGradient}
                               />
                             </div>
@@ -445,6 +467,7 @@ export const SiteSettingsPanel = () => {
                                 presets={filterPresetsByCategory('food')}
                                 onSelectPreset={(preset) => updateColorSettings({ foodGradient: preset.value })}
                                 onApplyToAll={applyPresetToAll}
+                                onApplyToUI={handleApplyToUI}
                                 selectedValue={settings.colors.foodGradient}
                               />
                             </div>
@@ -464,6 +487,7 @@ export const SiteSettingsPanel = () => {
                                 presets={filterPresetsByCategory('electronics')}
                                 onSelectPreset={(preset) => updateColorSettings({ electronicsGradient: preset.value })}
                                 onApplyToAll={applyPresetToAll}
+                                onApplyToUI={handleApplyToUI}
                                 selectedValue={settings.colors.electronicsGradient}
                               />
                             </div>
@@ -483,6 +507,7 @@ export const SiteSettingsPanel = () => {
                                 presets={filterPresetsByCategory('travel')}
                                 onSelectPreset={(preset) => updateColorSettings({ travelGradient: preset.value })}
                                 onApplyToAll={applyPresetToAll}
+                                onApplyToUI={handleApplyToUI}
                                 selectedValue={settings.colors.travelGradient}
                               />
                             </div>
@@ -502,6 +527,7 @@ export const SiteSettingsPanel = () => {
                                 presets={filterPresetsByCategory('beauty')}
                                 onSelectPreset={(preset) => updateColorSettings({ beautyGradient: preset.value })}
                                 onApplyToAll={applyPresetToAll}
+                                onApplyToUI={handleApplyToUI}
                                 selectedValue={settings.colors.beautyGradient}
                               />
                             </div>
@@ -521,6 +547,7 @@ export const SiteSettingsPanel = () => {
                                 presets={filterPresetsByCategory('home')}
                                 onSelectPreset={(preset) => updateColorSettings({ homeGradient: preset.value })}
                                 onApplyToAll={applyPresetToAll}
+                                onApplyToUI={handleApplyToUI}
                                 selectedValue={settings.colors.homeGradient}
                               />
                             </div>

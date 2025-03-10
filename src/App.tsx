@@ -72,8 +72,24 @@ const App = () => {
       document.documentElement.style.setProperty('--custom-secondary', settings.colors.secondary);
       document.documentElement.style.setProperty('--custom-accent', settings.colors.accent);
       
-      // Apply UI gradient as a CSS variable if it exists
+      // Apply UI gradient as a CSS class directly to document root
       if (settings.colors.uiGradient) {
+        // Remove any existing ui-gradient class
+        const oldClasses = Array.from(document.documentElement.classList)
+          .filter(c => c.startsWith('ui-gradient-'));
+        
+        if (oldClasses.length > 0) {
+          oldClasses.forEach(c => document.documentElement.classList.remove(c));
+        }
+        
+        // Create a clean class name from the gradient value
+        const cleanClassName = 'ui-gradient-' + settings.colors.uiGradient
+          .replace(/bg-/g, '')
+          .replace(/from-|to-|via-/g, '')
+          .replace(/[^a-zA-Z0-9-]/g, '-');
+        
+        // Add the new class and set the gradient as a CSS variable
+        document.documentElement.classList.add(cleanClassName);
         document.documentElement.style.setProperty('--ui-gradient', settings.colors.uiGradient);
       }
     }

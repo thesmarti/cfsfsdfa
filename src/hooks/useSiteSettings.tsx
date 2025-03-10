@@ -45,7 +45,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
     beautyGradient: 'bg-gradient-to-br from-fuchsia-400 to-pink-500',
     homeGradient: 'bg-gradient-to-br from-amber-400 to-yellow-500',
     gradientPresets: DEFAULT_GRADIENT_PRESETS,
-    uiGradient: undefined,
+    uiGradient: 'bg-gradient-to-r from-indigo-500 to-purple-600',
   },
   general: {
     siteDescription: 'Find the best coupons and discounts online',
@@ -118,6 +118,20 @@ export const useSiteSettings = () => {
     
     if (appliedSettings.colors.uiGradient) {
       document.documentElement.style.setProperty('--ui-gradient', appliedSettings.colors.uiGradient);
+      
+      const oldClasses = Array.from(document.documentElement.classList)
+        .filter(c => c.startsWith('ui-gradient-'));
+      
+      if (oldClasses.length > 0) {
+        oldClasses.forEach(c => document.documentElement.classList.remove(c));
+      }
+      
+      const cleanClassName = 'ui-gradient-' + appliedSettings.colors.uiGradient
+        .replace(/bg-/g, '')
+        .replace(/from-|to-|via-/g, '')
+        .replace(/[^a-zA-Z0-9-]/g, '-');
+      
+      document.documentElement.classList.add(cleanClassName);
     }
     
     try {
@@ -329,12 +343,12 @@ export const useSiteSettings = () => {
     return hslValue;
   };
 
-  const applyUIGradient = (gradient: string) => {
+  const applyUIGradient = (preset: GradientPreset) => {
     const updatedSettings = {
       ...settings,
       colors: {
         ...settings.colors,
-        uiGradient: gradient,
+        uiGradient: preset.value,
       },
     };
     updateSettings(updatedSettings);

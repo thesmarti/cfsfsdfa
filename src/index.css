@@ -46,6 +46,9 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* Default UI gradient */
+    --ui-gradient: bg-gradient-to-r from-indigo-500 to-purple-600;
   }
 
   .dark {
@@ -85,6 +88,9 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* Default dark UI gradient */
+    --ui-gradient: bg-gradient-to-r from-indigo-400 to-purple-500;
   }
 }
 
@@ -102,6 +108,24 @@
   html, body {
     @apply transition-colors duration-300;
   }
+}
+
+/* Custom gradient utility classes */
+.custom-gradient-text {
+  @apply bg-clip-text text-transparent;
+  background-image: var(--ui-gradient, linear-gradient(to right, theme('colors.indigo.500'), theme('colors.purple.600')));
+}
+
+.custom-gradient-bg {
+  background-image: var(--ui-gradient, linear-gradient(to right, theme('colors.indigo.500'), theme('colors.purple.600')));
+}
+
+.dark .custom-gradient-text {
+  background-image: var(--ui-gradient, linear-gradient(to right, theme('colors.indigo.400'), theme('colors.purple.500')));
+}
+
+.dark .custom-gradient-bg {
+  background-image: var(--ui-gradient, linear-gradient(to right, theme('colors.indigo.400'), theme('colors.purple.500')));
 }
 
 .glass-morphism {
@@ -224,4 +248,15 @@
 
 .cool-card:hover::before {
   @apply opacity-100;
+}
+
+/* Style for UI gradient buttons when applied */
+.button-gradient {
+  background-image: var(--ui-gradient, linear-gradient(to right, theme('colors.indigo.500'), theme('colors.purple.600')));
+  @apply text-white border-none;
+}
+
+.dark .button-gradient {
+  background-image: var(--ui-gradient, linear-gradient(to right, theme('colors.indigo.400'), theme('colors.purple.500')));
+  @apply text-white;
 }

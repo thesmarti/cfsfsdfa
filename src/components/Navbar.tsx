@@ -46,6 +46,9 @@ export const Navbar = () => {
     return 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
   };
 
+  const textGradientClass = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
+  const buttonGradientClass = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -69,14 +72,14 @@ export const Navbar = () => {
               />
             )}
             {settings.navBar.showText && (
-              <span className={`font-display font-semibold text-xl bg-clip-text text-transparent ${getUiGradient()}`}>
+              <span className={`font-display font-semibold text-xl bg-clip-text text-transparent ${textGradientClass}`}>
                 {settings.navBar.siteTitle}
               </span>
             )}
             {!settings.navBar.showLogo && !settings.navBar.showText && (
               <>
-                <Tag size={24} className={`text-transparent bg-clip-text ${getUiGradient()}`} />
-                <span className={`font-display font-semibold text-xl bg-clip-text text-transparent ${getUiGradient()}`}>
+                <Tag size={24} className={`text-transparent bg-clip-text ${textGradientClass}`} />
+                <span className={`font-display font-semibold text-xl bg-clip-text text-transparent ${textGradientClass}`}>
                   LOLCoupons
                 </span>
               </>
@@ -104,7 +107,7 @@ export const Navbar = () => {
                     variant={location.pathname === '/admin' ? 'default' : 'ghost'} 
                     className={`${
                       location.pathname === '/admin' 
-                        ? getUiGradient() + ' border-none' 
+                        ? buttonGradientClass + ' border-none text-white dark:text-white' 
                         : ''
                     }`}
                   >
@@ -173,7 +176,7 @@ export const Navbar = () => {
                     variant={location.pathname === '/admin' ? 'default' : 'ghost'} 
                     className={`w-full justify-start ${
                       location.pathname === '/admin' 
-                        ? getUiGradient() + ' border-none' 
+                        ? buttonGradientClass + ' border-none text-white dark:text-white' 
                         : ''
                     }`}
                   >
