@@ -1,5 +1,21 @@
+
 import { useState, useEffect } from 'react';
-import { SiteSettings, NavButton } from '@/types';
+import { SiteSettings, NavButton, GradientPreset } from '@/types';
+
+const DEFAULT_GRADIENT_PRESETS: GradientPreset[] = [
+  { id: 'purple-pink', name: 'Purple to Pink', value: 'bg-gradient-to-br from-violet-500 to-pink-600', category: 'default' },
+  { id: 'blue-teal', name: 'Blue to Teal', value: 'bg-gradient-to-br from-blue-500 to-teal-400', category: 'default' },
+  { id: 'orange-red', name: 'Orange to Red', value: 'bg-gradient-to-br from-orange-400 to-red-500', category: 'food' },
+  { id: 'green-lime', name: 'Green to Lime', value: 'bg-gradient-to-br from-green-500 to-lime-300', category: 'default' },
+  { id: 'pink-orange', name: 'Pink to Orange', value: 'bg-gradient-to-br from-pink-500 to-orange-400', category: 'fashion' },
+  { id: 'indigo-purple', name: 'Indigo to Purple', value: 'bg-gradient-to-br from-indigo-500 to-purple-600', category: 'default' },
+  { id: 'yellow-green', name: 'Yellow to Green', value: 'bg-gradient-to-br from-yellow-400 to-green-500', category: 'food' },
+  { id: 'red-pink', name: 'Red to Pink', value: 'bg-gradient-to-br from-red-500 to-pink-500', category: 'default' },
+  { id: 'teal-cyan', name: 'Teal to Cyan', value: 'bg-gradient-to-br from-teal-500 to-cyan-400', category: 'travel' },
+  { id: 'amber-orange', name: 'Amber to Orange', value: 'bg-gradient-to-br from-amber-400 to-orange-500', category: 'home' },
+  { id: 'fuchsia-pink', name: 'Fuchsia to Pink', value: 'bg-gradient-to-br from-fuchsia-500 to-pink-500', category: 'beauty' },
+  { id: 'blue-indigo', name: 'Blue to Indigo', value: 'bg-gradient-to-br from-blue-500 to-indigo-600', category: 'electronics' },
+];
 
 const DEFAULT_SETTINGS: SiteSettings = {
   navBar: {
@@ -29,6 +45,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
     travelGradient: 'bg-gradient-to-br from-teal-400 to-emerald-500',
     beautyGradient: 'bg-gradient-to-br from-fuchsia-400 to-pink-500',
     homeGradient: 'bg-gradient-to-br from-amber-400 to-yellow-500',
+    gradientPresets: DEFAULT_GRADIENT_PRESETS,
   },
   general: {
     siteDescription: 'Find the best coupons and discounts online',
@@ -85,6 +102,11 @@ export const useSiteSettings = () => {
   }, []);
 
   const updateSettings = (newSettings: SiteSettings) => {
+    // Initialize gradientPresets if they don't exist
+    if (!newSettings.colors.gradientPresets) {
+      newSettings.colors.gradientPresets = DEFAULT_GRADIENT_PRESETS;
+    }
+    
     setSettings(newSettings);
     localStorage.setItem('siteSettings', JSON.stringify(newSettings));
     applySettings(newSettings);
@@ -157,6 +179,11 @@ export const useSiteSettings = () => {
   };
 
   const updateColorSettings = (colorSettings: Partial<SiteSettings['colors']>) => {
+    // Initialize gradientPresets if they don't exist
+    if (!settings.colors.gradientPresets && !colorSettings.gradientPresets) {
+      colorSettings.gradientPresets = DEFAULT_GRADIENT_PRESETS;
+    }
+    
     const updatedSettings = {
       ...settings,
       colors: {

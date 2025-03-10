@@ -1,3 +1,4 @@
+
 export interface Coupon {
   id: string;
   store: string;
@@ -41,6 +42,13 @@ export interface NavButton {
   enabled: boolean;
 }
 
+export interface GradientPreset {
+  id: string;
+  name: string;
+  value: string;
+  category?: string;
+}
+
 export interface SiteSettings {
   navBar: {
     showLogo: boolean;
@@ -65,6 +73,7 @@ export interface SiteSettings {
     travelGradient?: string;
     beautyGradient?: string;
     homeGradient?: string;
+    gradientPresets?: GradientPreset[];
   };
   general: {
     siteDescription: string;

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,9 +8,25 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Check, Copy, Trash, AlertCircle, Edit, ArrowUpCircle, Plus, Image, Palette, Tag } from 'lucide-react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-import { NavButton } from '@/types';
+import { NavButton, GradientPreset } from '@/types';
 import { useToast } from "@/components/ui/use-toast";
 import { SeoSettingsTab } from './SeoSettingsTab';
+import { GradientPresets } from './GradientPresets';
+
+const DEFAULT_GRADIENT_PRESETS: GradientPreset[] = [
+  { id: 'purple-pink', name: 'Purple to Pink', value: 'bg-gradient-to-br from-violet-500 to-pink-600', category: 'default' },
+  { id: 'blue-teal', name: 'Blue to Teal', value: 'bg-gradient-to-br from-blue-500 to-teal-400', category: 'default' },
+  { id: 'orange-red', name: 'Orange to Red', value: 'bg-gradient-to-br from-orange-400 to-red-500', category: 'food' },
+  { id: 'green-lime', name: 'Green to Lime', value: 'bg-gradient-to-br from-green-500 to-lime-300', category: 'default' },
+  { id: 'pink-orange', name: 'Pink to Orange', value: 'bg-gradient-to-br from-pink-500 to-orange-400', category: 'fashion' },
+  { id: 'indigo-purple', name: 'Indigo to Purple', value: 'bg-gradient-to-br from-indigo-500 to-purple-600', category: 'default' },
+  { id: 'yellow-green', name: 'Yellow to Green', value: 'bg-gradient-to-br from-yellow-400 to-green-500', category: 'food' },
+  { id: 'red-pink', name: 'Red to Pink', value: 'bg-gradient-to-br from-red-500 to-pink-500', category: 'default' },
+  { id: 'teal-cyan', name: 'Teal to Cyan', value: 'bg-gradient-to-br from-teal-500 to-cyan-400', category: 'travel' },
+  { id: 'amber-orange', name: 'Amber to Orange', value: 'bg-gradient-to-br from-amber-400 to-orange-500', category: 'home' },
+  { id: 'fuchsia-pink', name: 'Fuchsia to Pink', value: 'bg-gradient-to-br from-fuchsia-500 to-pink-500', category: 'beauty' },
+  { id: 'blue-indigo', name: 'Blue to Indigo', value: 'bg-gradient-to-br from-blue-500 to-indigo-600', category: 'electronics' },
+];
 
 export const SiteSettingsPanel = () => {
   const { settings, updateNavBarSettings, updateColorSettings, updateGeneralSettings, updateNavButtons, uploadLogo } = useSiteSettings();
@@ -18,6 +34,12 @@ export const SiteSettingsPanel = () => {
   const [newButtonLabel, setNewButtonLabel] = useState('');
   const [newButtonPath, setNewButtonPath] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  
+  useEffect(() => {
+    if (!settings.colors.gradientPresets) {
+      updateColorSettings({ gradientPresets: DEFAULT_GRADIENT_PRESETS });
+    }
+  }, [settings.colors]);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateNavBarSettings({ showLogo: e.target.checked });
@@ -96,6 +118,60 @@ export const SiteSettingsPanel = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleGradientPresetSelect = (preset: GradientPreset) => {
+    switch (preset.category) {
+      case 'fashion':
+        updateColorSettings({ fashionGradient: preset.value });
+        break;
+      case 'food':
+        updateColorSettings({ foodGradient: preset.value });
+        break;
+      case 'electronics':
+        updateColorSettings({ electronicsGradient: preset.value });
+        break;
+      case 'travel':
+        updateColorSettings({ travelGradient: preset.value });
+        break;
+      case 'beauty':
+        updateColorSettings({ beautyGradient: preset.value });
+        break;
+      case 'home':
+        updateColorSettings({ homeGradient: preset.value });
+        break;
+      default:
+        updateColorSettings({ defaultGradient: preset.value });
+        break;
+    }
+    
+    toast({
+      title: "Gradient Applied",
+      description: `Applied the ${preset.name} gradient`,
+    });
+  };
+
+  const applyPresetToAll = (preset: GradientPreset) => {
+    updateColorSettings({
+      defaultGradient: preset.value,
+      fashionGradient: preset.value,
+      foodGradient: preset.value,
+      electronicsGradient: preset.value,
+      travelGradient: preset.value,
+      beautyGradient: preset.value,
+      homeGradient: preset.value,
+    });
+    
+    toast({
+      title: "Gradient Applied to All Categories",
+      description: `Applied the ${preset.name} gradient to all categories`,
+    });
+  };
+
+  const filterPresetsByCategory = (category: string) => {
+    return settings.colors.gradientPresets?.filter(
+      preset => preset.category === category || preset.category === 'default'
+    ) || DEFAULT_GRADIENT_PRESETS;
   };
 
   return (
@@ -248,15 +324,15 @@ export const SiteSettingsPanel = () => {
             <div className="grid gap-6">
               <div className="grid gap-2">
                 <Label htmlFor="primary-color">Primary Color</Label>
-                <Input type="color" id="primary-color" value={settings.colors.primary} onChange={handlePrimaryColorChange} />
+                <Input type="color" id="primary-color" value={settings.colors.primary} onChange={(e) => updateColorSettings({ primary: e.target.value })} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="secondary-color">Secondary Color</Label>
-                <Input type="color" id="secondary-color" value={settings.colors.secondary} onChange={handleSecondaryColorChange} />
+                <Input type="color" id="secondary-color" value={settings.colors.secondary} onChange={(e) => updateColorSettings({ secondary: e.target.value })} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="accent-color">Accent Color</Label>
-                <Input type="color" id="accent-color" value={settings.colors.accent} onChange={handleAccentColorChange} />
+                <Input type="color" id="accent-color" value={settings.colors.accent} onChange={(e) => updateColorSettings({ accent: e.target.value })} />
               </div>
               
               <div className="pt-4">
@@ -271,96 +347,171 @@ export const SiteSettingsPanel = () => {
                 
                 {settings.colors.useCustomGradients && (
                   <div className="space-y-4 border-l-2 pl-4 ml-2 border-muted">
-                    <div className="grid gap-2">
-                      <Label htmlFor="default-gradient">Default Gradient</Label>
-                      <div className="flex gap-3 items-center">
-                        <div className={`w-12 h-6 rounded ${settings.colors.defaultGradient}`}></div>
-                        <Input 
-                          id="default-gradient" 
-                          value={settings.colors.defaultGradient} 
-                          onChange={(e) => updateColorSettings({ defaultGradient: e.target.value })} 
-                          placeholder="Tailwind CSS gradient class"
-                        />
-                      </div>
-                      <p className="text-xs text-muted-foreground">Tailwind format: bg-gradient-to-br from-color-value to-color-value</p>
-                    </div>
-                    
-                    <div className="grid gap-2">
-                      <Label htmlFor="fashion-gradient">Fashion Gradient</Label>
-                      <div className="flex gap-3 items-center">
-                        <div className={`w-12 h-6 rounded ${settings.colors.fashionGradient}`}></div>
-                        <Input 
-                          id="fashion-gradient" 
-                          value={settings.colors.fashionGradient} 
-                          onChange={(e) => updateColorSettings({ fashionGradient: e.target.value })} 
-                          placeholder="Tailwind CSS gradient class"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="grid gap-2">
-                      <Label htmlFor="food-gradient">Food Gradient</Label>
-                      <div className="flex gap-3 items-center">
-                        <div className={`w-12 h-6 rounded ${settings.colors.foodGradient}`}></div>
-                        <Input 
-                          id="food-gradient" 
-                          value={settings.colors.foodGradient} 
-                          onChange={(e) => updateColorSettings({ foodGradient: e.target.value })} 
-                          placeholder="Tailwind CSS gradient class"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="grid gap-2">
-                      <Label htmlFor="electronics-gradient">Electronics Gradient</Label>
-                      <div className="flex gap-3 items-center">
-                        <div className={`w-12 h-6 rounded ${settings.colors.electronicsGradient}`}></div>
-                        <Input 
-                          id="electronics-gradient" 
-                          value={settings.colors.electronicsGradient} 
-                          onChange={(e) => updateColorSettings({ electronicsGradient: e.target.value })} 
-                          placeholder="Tailwind CSS gradient class"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="grid gap-2">
-                      <Label htmlFor="travel-gradient">Travel Gradient</Label>
-                      <div className="flex gap-3 items-center">
-                        <div className={`w-12 h-6 rounded ${settings.colors.travelGradient}`}></div>
-                        <Input 
-                          id="travel-gradient" 
-                          value={settings.colors.travelGradient} 
-                          onChange={(e) => updateColorSettings({ travelGradient: e.target.value })} 
-                          placeholder="Tailwind CSS gradient class"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="grid gap-2">
-                      <Label htmlFor="beauty-gradient">Beauty Gradient</Label>
-                      <div className="flex gap-3 items-center">
-                        <div className={`w-12 h-6 rounded ${settings.colors.beautyGradient}`}></div>
-                        <Input 
-                          id="beauty-gradient" 
-                          value={settings.colors.beautyGradient} 
-                          onChange={(e) => updateColorSettings({ beautyGradient: e.target.value })} 
-                          placeholder="Tailwind CSS gradient class"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="grid gap-2">
-                      <Label htmlFor="home-gradient">Home Gradient</Label>
-                      <div className="flex gap-3 items-center">
-                        <div className={`w-12 h-6 rounded ${settings.colors.homeGradient}`}></div>
-                        <Input 
-                          id="home-gradient" 
-                          value={settings.colors.homeGradient} 
-                          onChange={(e) => updateColorSettings({ homeGradient: e.target.value })} 
-                          placeholder="Tailwind CSS gradient class"
-                        />
-                      </div>
+                    <div className="grid gap-4">
+                      <Label>Gradient Presets</Label>
+                      <Tabs defaultValue="default">
+                        <TabsList className="grid grid-cols-3">
+                          <TabsTrigger value="default">Default</TabsTrigger>
+                          <TabsTrigger value="category">By Category</TabsTrigger>
+                          <TabsTrigger value="custom">Custom</TabsTrigger>
+                        </TabsList>
+                        
+                        <TabsContent value="default" className="mt-4">
+                          <div className="space-y-4">
+                            <GradientPresets 
+                              presets={settings.colors.gradientPresets || DEFAULT_GRADIENT_PRESETS} 
+                              onSelectPreset={applyPresetToAll}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              Click on a preset to apply it to all categories
+                            </p>
+                          </div>
+                        </TabsContent>
+                        
+                        <TabsContent value="category" className="mt-4">
+                          <div className="space-y-6">
+                            <div className="grid gap-2">
+                              <Label htmlFor="default-gradient">Default Gradient</Label>
+                              <div className="flex gap-3 items-center">
+                                <div className={`w-12 h-6 rounded ${settings.colors.defaultGradient}`}></div>
+                                <Input 
+                                  id="default-gradient" 
+                                  value={settings.colors.defaultGradient} 
+                                  onChange={(e) => updateColorSettings({ defaultGradient: e.target.value })} 
+                                  placeholder="Tailwind CSS gradient class"
+                                />
+                              </div>
+                              <GradientPresets 
+                                presets={filterPresetsByCategory('default')}
+                                onSelectPreset={(preset) => updateColorSettings({ defaultGradient: preset.value })}
+                              />
+                            </div>
+                            
+                            <div className="grid gap-2">
+                              <Label htmlFor="fashion-gradient">Fashion Gradient</Label>
+                              <div className="flex gap-3 items-center">
+                                <div className={`w-12 h-6 rounded ${settings.colors.fashionGradient}`}></div>
+                                <Input 
+                                  id="fashion-gradient" 
+                                  value={settings.colors.fashionGradient} 
+                                  onChange={(e) => updateColorSettings({ fashionGradient: e.target.value })} 
+                                  placeholder="Tailwind CSS gradient class"
+                                />
+                              </div>
+                              <GradientPresets 
+                                presets={filterPresetsByCategory('fashion')}
+                                onSelectPreset={(preset) => updateColorSettings({ fashionGradient: preset.value })}
+                              />
+                            </div>
+                            
+                            <div className="grid gap-2">
+                              <Label htmlFor="food-gradient">Food Gradient</Label>
+                              <div className="flex gap-3 items-center">
+                                <div className={`w-12 h-6 rounded ${settings.colors.foodGradient}`}></div>
+                                <Input 
+                                  id="food-gradient" 
+                                  value={settings.colors.foodGradient} 
+                                  onChange={(e) => updateColorSettings({ foodGradient: e.target.value })} 
+                                  placeholder="Tailwind CSS gradient class"
+                                />
+                              </div>
+                              <GradientPresets 
+                                presets={filterPresetsByCategory('food')}
+                                onSelectPreset={(preset) => updateColorSettings({ foodGradient: preset.value })}
+                              />
+                            </div>
+                            
+                            <div className="grid gap-2">
+                              <Label htmlFor="electronics-gradient">Electronics Gradient</Label>
+                              <div className="flex gap-3 items-center">
+                                <div className={`w-12 h-6 rounded ${settings.colors.electronicsGradient}`}></div>
+                                <Input 
+                                  id="electronics-gradient" 
+                                  value={settings.colors.electronicsGradient} 
+                                  onChange={(e) => updateColorSettings({ electronicsGradient: e.target.value })} 
+                                  placeholder="Tailwind CSS gradient class"
+                                />
+                              </div>
+                              <GradientPresets 
+                                presets={filterPresetsByCategory('electronics')}
+                                onSelectPreset={(preset) => updateColorSettings({ electronicsGradient: preset.value })}
+                              />
+                            </div>
+                            
+                            <div className="grid gap-2">
+                              <Label htmlFor="travel-gradient">Travel Gradient</Label>
+                              <div className="flex gap-3 items-center">
+                                <div className={`w-12 h-6 rounded ${settings.colors.travelGradient}`}></div>
+                                <Input 
+                                  id="travel-gradient" 
+                                  value={settings.colors.travelGradient} 
+                                  onChange={(e) => updateColorSettings({ travelGradient: e.target.value })} 
+                                  placeholder="Tailwind CSS gradient class"
+                                />
+                              </div>
+                              <GradientPresets 
+                                presets={filterPresetsByCategory('travel')}
+                                onSelectPreset={(preset) => updateColorSettings({ travelGradient: preset.value })}
+                              />
+                            </div>
+                            
+                            <div className="grid gap-2">
+                              <Label htmlFor="beauty-gradient">Beauty Gradient</Label>
+                              <div className="flex gap-3 items-center">
+                                <div className={`w-12 h-6 rounded ${settings.colors.beautyGradient}`}></div>
+                                <Input 
+                                  id="beauty-gradient" 
+                                  value={settings.colors.beautyGradient} 
+                                  onChange={(e) => updateColorSettings({ beautyGradient: e.target.value })} 
+                                  placeholder="Tailwind CSS gradient class"
+                                />
+                              </div>
+                              <GradientPresets 
+                                presets={filterPresetsByCategory('beauty')}
+                                onSelectPreset={(preset) => updateColorSettings({ beautyGradient: preset.value })}
+                              />
+                            </div>
+                            
+                            <div className="grid gap-2">
+                              <Label htmlFor="home-gradient">Home Gradient</Label>
+                              <div className="flex gap-3 items-center">
+                                <div className={`w-12 h-6 rounded ${settings.colors.homeGradient}`}></div>
+                                <Input 
+                                  id="home-gradient" 
+                                  value={settings.colors.homeGradient} 
+                                  onChange={(e) => updateColorSettings({ homeGradient: e.target.value })} 
+                                  placeholder="Tailwind CSS gradient class"
+                                />
+                              </div>
+                              <GradientPresets 
+                                presets={filterPresetsByCategory('home')}
+                                onSelectPreset={(preset) => updateColorSettings({ homeGradient: preset.value })}
+                              />
+                            </div>
+                          </div>
+                        </TabsContent>
+                        
+                        <TabsContent value="custom" className="mt-4">
+                          <div className="space-y-4">
+                            <p className="text-sm text-muted-foreground">
+                              Enter custom Tailwind CSS gradient classes. Format example: 
+                              <code className="ml-1 px-1 py-0.5 bg-muted rounded text-xs">
+                                bg-gradient-to-r from-pink-500 to-purple-600
+                              </code>
+                            </p>
+                            <div className="grid gap-2">
+                              <Label htmlFor="custom-gradient">Custom Gradient</Label>
+                              <div className="flex gap-3 items-center">
+                                <Input 
+                                  id="custom-gradient" 
+                                  placeholder="Enter a Tailwind CSS gradient class"
+                                />
+                                <Button size="sm">Apply</Button>
+                              </div>
+                            </div>
+                          </div>
+                        </TabsContent>
+                      </Tabs>
                     </div>
                   </div>
                 )}
@@ -389,3 +540,4 @@ export const SiteSettingsPanel = () => {
     </Card>
   );
 };
+
