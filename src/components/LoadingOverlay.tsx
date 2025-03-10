@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Coupon, ContentLockerLink } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,7 +32,13 @@ export const LoadingOverlay = ({ coupon, onComplete, loadingTime = 3000, content
       
       // Wait a moment before redirecting to show the complete state
       setTimeout(() => {
-        onComplete();
+        // If we have a content locker link, redirect to that URL instead
+        if (contentLockerLink && contentLockerLink.url) {
+          window.location.href = contentLockerLink.url;
+        } else {
+          // Otherwise use the default completion handler
+          onComplete();
+        }
       }, 1500);
     }, loadingTime);
 
@@ -41,7 +46,7 @@ export const LoadingOverlay = ({ coupon, onComplete, loadingTime = 3000, content
       clearInterval(interval);
       clearTimeout(timeout);
     };
-  }, [loadingTime, onComplete]);
+  }, [loadingTime, onComplete, contentLockerLink]);
 
   const gradientClass = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
 
@@ -171,7 +176,11 @@ export const LoadingOverlay = ({ coupon, onComplete, loadingTime = 3000, content
         
         <CardFooter className="pt-4 text-center text-sm text-muted-foreground">
           {isComplete ? (
-            <p className="w-full">Redirecting you to the store...</p>
+            <p className="w-full">
+              {contentLockerLink 
+                ? `Redirecting you to ${contentLockerLink.name || 'the required task'}...` 
+                : "Redirecting you to the store..."}
+            </p>
           ) : (
             <p className="w-full">Please wait while we redirect you...</p>
           )}
