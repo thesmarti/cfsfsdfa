@@ -134,6 +134,7 @@ const AdminPanel = () => {
     const result = await addCoupon(couponData);
     if (result) {
       setIsAddingCoupon(false);
+      window.location.reload();
     }
   };
   
@@ -142,6 +143,7 @@ const AdminPanel = () => {
       const result = await updateCoupon(editingCoupon.id, couponData);
       if (result) {
         setEditingCoupon(null);
+        window.location.reload();
       }
     }
   };
@@ -151,6 +153,7 @@ const AdminPanel = () => {
       const result = await deleteCoupon(deletingCouponId);
       if (result) {
         setDeletingCouponId(null);
+        window.location.reload();
       }
     }
   };
@@ -182,6 +185,7 @@ const AdminPanel = () => {
           setIsBulkActionDialogOpen(false);
           setBulkActionType(null);
           setBulkActionValue('');
+          window.location.reload();
         }
       } else {
         let updates: Partial<Coupon> = {};
@@ -202,6 +206,7 @@ const AdminPanel = () => {
           setIsBulkActionDialogOpen(false);
           setBulkActionType(null);
           setBulkActionValue('');
+          window.location.reload();
         }
       }
     } catch (error) {
@@ -214,6 +219,7 @@ const AdminPanel = () => {
       setIsBulkActionDialogOpen(false);
       setBulkActionType(null);
       setBulkActionValue('');
+      window.location.reload();
     }
   };
   
@@ -747,6 +753,9 @@ const AdminPanel = () => {
             setIsBulkActionDialogOpen(false);
             setBulkActionType(null);
             setBulkActionValue('');
+            if (!open) {
+              window.location.reload();
+            }
           }
         }}
       >
