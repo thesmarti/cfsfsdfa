@@ -6,7 +6,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   navBar: {
     showLogo: true,
     showText: true,
-    logoUrl: 'https://via.placeholder.com/50x50?text=Logo',
+    logoUrl: 'https://static.vecteezy.com/system/resources/thumbnails/012/872/334/small_2x/discount-coupon-3d-png.png',
     siteTitle: 'GlowCoupons',
   },
   colors: {
