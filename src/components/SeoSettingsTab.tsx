@@ -9,6 +9,7 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 import { Image, ArrowUpCircle, Save } from 'lucide-react';
+import { SiteSettings } from '@/types';
 
 export const SeoSettingsTab = () => {
   const { settings, updateSeoSettings, uploadFavicon } = useSiteSettings();
@@ -57,7 +58,7 @@ export const SeoSettingsTab = () => {
       }
       
       const newSeoSettings = {
-        ...data?.seo,
+        ...(data?.seo as SiteSettings['seo'] || {}),
         favicon: settings.seo?.favicon
       };
       

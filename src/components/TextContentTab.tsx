@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -42,9 +43,21 @@ export const TextContentTab = () => {
         
         if (data?.text_content) {
           console.log('Loaded text content:', data.text_content);
-          // Update local state with the settings from Supabase
-          setTextContent(data.text_content);
-          updateTextContent(data.text_content);
+          // Properly cast the text_content from Supabase and update local state
+          const textContentData = data.text_content as SiteSettings['textContent'];
+          setTextContent(textContentData || {
+            heroTitle: '',
+            heroSubtitle: '',
+            featuredDealsTitle: '',
+            allCouponsTitle: '',
+            categoriesSectionTitle: '',
+            ctaButtonText: '',
+            noResultsText: '',
+            searchPlaceholder: ''
+          });
+          
+          // Update the global state
+          updateTextContent(textContentData);
         } else if (error && error.code === 'PGRST116') {
           // If no settings exist yet, create a default one
           console.log('No settings found, creating default');
