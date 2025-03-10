@@ -60,13 +60,13 @@ export const CouponCard = ({ coupon, className = '' }: CouponCardProps) => {
 
   return (
     <Card className={`hover-lift overflow-hidden ${className} ${isExpired ? 'opacity-75' : ''}`}>
-      <div className="absolute top-0 right-0 z-10">
-        {coupon.featured && (
+      {coupon.featured && (
+        <div className="absolute top-0 right-0 z-10">
           <Badge variant="default" className="m-2 bg-gradient-to-r from-amber-500 to-pink-500 dark:from-amber-400 dark:to-pink-400 border-none text-white shadow-md">
             Featured
           </Badge>
-        )}
-      </div>
+        </div>
+      )}
       
       {/* Category indicator strip */}
       <div className={`h-1 w-full ${getGradient()}`}></div>

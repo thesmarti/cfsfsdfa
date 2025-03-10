@@ -5,6 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import Index from "./pages/Index";
 import CouponDetail from "./pages/CouponDetail";
 import AdminPanel from "./pages/AdminPanel";
@@ -13,6 +14,8 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => {
+  const { settings } = useSiteSettings();
+
   // Check for saved theme preference or use system preference
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -26,6 +29,24 @@ const App = () => {
       localStorage.setItem('theme', 'light');
     }
   }, []);
+  
+  // Apply dynamic colors from site settings
+  useEffect(() => {
+    if (settings.colors) {
+      const style = document.createElement('style');
+      style.innerHTML = `
+        :root {
+          --custom-primary: ${settings.colors.primary};
+          --custom-secondary: ${settings.colors.secondary};
+          --custom-accent: ${settings.colors.accent};
+        }
+      `;
+      document.head.appendChild(style);
+      return () => {
+        document.head.removeChild(style);
+      };
+    }
+  }, [settings.colors]);
   
   return (
     <QueryClientProvider client={queryClient}>

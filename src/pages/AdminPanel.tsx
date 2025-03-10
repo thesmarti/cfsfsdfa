@@ -5,6 +5,7 @@ import { Navbar } from '@/components/Navbar';
 import { LoginForm } from '@/components/LoginForm';
 import { AdminCouponForm } from '@/components/AdminCouponForm';
 import { ContentLockerLinksPanel } from '@/components/ContentLockerLinksPanel';
+import { SiteSettingsPanel } from '@/components/SiteSettingsPanel';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -25,11 +26,11 @@ import {
   Edit, 
   Trash2, 
   AlertTriangle, 
-  Check, 
   MoreHorizontal, 
   Star, 
   Link,
-  ChevronDown
+  ChevronDown,
+  Settings
 } from 'lucide-react';
 
 const AdminPanel = () => {
@@ -56,6 +57,7 @@ const AdminPanel = () => {
   const [filteredCoupons, setFilteredCoupons] = useState(coupons);
   const [deletingCouponId, setDeletingCouponId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
+  const [adminSection, setAdminSection] = useState<'coupons' | 'links' | 'settings'>('coupons');
   
   // Bulk action states
   const [selectedCoupons, setSelectedCoupons] = useState<string[]>([]);
@@ -233,7 +235,7 @@ const AdminPanel = () => {
                 Admin Dashboard
               </h1>
               <p className="text-muted-foreground">
-                Manage your coupons and offers
+                Manage your coupons and site settings
               </p>
             </div>
             
@@ -284,216 +286,255 @@ const AdminPanel = () => {
             </Card>
           </div>
           
+          <div className="mb-8">
+            <div className="flex space-x-2">
+              <Button 
+                variant={adminSection === 'coupons' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setAdminSection('coupons')}
+                className="gap-1"
+              >
+                <Star size={16} />
+                Coupons
+              </Button>
+              <Button 
+                variant={adminSection === 'links' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setAdminSection('links')}
+                className="gap-1"
+              >
+                <Link size={16} />
+                Content Locker Links
+              </Button>
+              <Button 
+                variant={adminSection === 'settings' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setAdminSection('settings')}
+                className="gap-1"
+              >
+                <Settings size={16} />
+                Site Settings
+              </Button>
+            </div>
+          </div>
+          
           <div className="space-y-6">
             {/* Coupons section */}
-            <div>
-              <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-                <div className="flex gap-2 w-full md:w-auto">
-                  <Button
-                    onClick={() => setIsAddingCoupon(true)}
-                    className="gap-2"
-                  >
-                    <Plus size={16} />
-                    Add New Coupon
-                  </Button>
+            {adminSection === 'coupons' && (
+              <div>
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+                  <div className="flex gap-2 w-full md:w-auto">
+                    <Button
+                      onClick={() => setIsAddingCoupon(true)}
+                      className="gap-2"
+                    >
+                      <Plus size={16} />
+                      Add New Coupon
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      onClick={() => refreshCoupons()}
+                      disabled={loading}
+                    >
+                      Refresh
+                    </Button>
+                  </div>
                   
-                  <Button
-                    variant="outline"
-                    onClick={() => refreshCoupons()}
-                    disabled={loading}
-                  >
-                    Refresh
-                  </Button>
+                  <div className="relative w-full md:w-80">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+                    <Input
+                      placeholder="Search coupons..."
+                      className="pl-9"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
                 </div>
                 
-                <div className="relative w-full md:w-80">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
-                  <Input
-                    placeholder="Search coupons..."
-                    className="pl-9"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-              </div>
-              
-              <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="mb-6">
-                  <TabsTrigger value="all">All Coupons</TabsTrigger>
-                  <TabsTrigger value="active">Active</TabsTrigger>
-                  <TabsTrigger value="expired">Expired</TabsTrigger>
-                  <TabsTrigger value="featured">Featured</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value={activeTab} className="mt-0">
-                  <Card>
-                    {selectedCoupons.length > 0 && (
-                      <div className="p-4 bg-muted border-b flex items-center justify-between">
-                        <div>
-                          <span className="font-medium">{selectedCoupons.length}</span> coupons selected
+                <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+                  <TabsList className="mb-6">
+                    <TabsTrigger value="all">All Coupons</TabsTrigger>
+                    <TabsTrigger value="active">Active</TabsTrigger>
+                    <TabsTrigger value="expired">Expired</TabsTrigger>
+                    <TabsTrigger value="featured">Featured</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value={activeTab} className="mt-0">
+                    <Card>
+                      {selectedCoupons.length > 0 && (
+                        <div className="p-4 bg-muted border-b flex items-center justify-between">
+                          <div>
+                            <span className="font-medium">{selectedCoupons.length}</span> coupons selected
+                          </div>
+                          <div className="flex gap-2">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  Bulk Actions <ChevronDown size={14} className="ml-1" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => openBulkActionDialog('status')}>
+                                  Change Status
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => openBulkActionDialog('category')}>
+                                  Change Category
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => openBulkActionDialog('featured')}>
+                                  Set Featured
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  onClick={() => openBulkActionDialog('delete')}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  Delete Selected
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => setSelectedCoupons([])}
+                            >
+                              Clear Selection
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex gap-2">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                Bulk Actions <ChevronDown size={14} className="ml-1" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => openBulkActionDialog('status')}>
-                                Change Status
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => openBulkActionDialog('category')}>
-                                Change Category
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => openBulkActionDialog('featured')}>
-                                Set Featured
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem 
-                                onClick={() => openBulkActionDialog('delete')}
-                                className="text-destructive focus:text-destructive"
-                              >
-                                Delete Selected
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => setSelectedCoupons([])}
-                          >
-                            Clear Selection
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                    <CardContent className="p-0">
-                      <div className="relative overflow-x-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="w-[50px]">
-                                <Checkbox 
-                                  checked={allSelected} 
-                                  indeterminate={someSelected}
-                                  onCheckedChange={handleSelectAllCoupons}
-                                  aria-label="Select all"
-                                />
-                              </TableHead>
-                              <TableHead>Store</TableHead>
-                              <TableHead>Code</TableHead>
-                              <TableHead>Discount</TableHead>
-                              <TableHead>Category</TableHead>
-                              <TableHead>Expiry Date</TableHead>
-                              <TableHead>Status</TableHead>
-                              <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {loading ? (
+                      )}
+                      <CardContent className="p-0">
+                        <div className="relative overflow-x-auto">
+                          <Table>
+                            <TableHeader>
                               <TableRow>
-                                <TableCell colSpan={8} className="text-center py-8">
-                                  Loading coupons...
-                                </TableCell>
+                                <TableHead className="w-[50px]">
+                                  <Checkbox 
+                                    checked={allSelected} 
+                                    indeterminate={someSelected}
+                                    onCheckedChange={handleSelectAllCoupons}
+                                    aria-label="Select all"
+                                  />
+                                </TableHead>
+                                <TableHead>Store</TableHead>
+                                <TableHead>Code</TableHead>
+                                <TableHead>Discount</TableHead>
+                                <TableHead>Category</TableHead>
+                                <TableHead>Expiry Date</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
                               </TableRow>
-                            ) : filteredCoupons.length === 0 ? (
-                              <TableRow>
-                                <TableCell colSpan={8} className="text-center py-8">
-                                  No coupons found
-                                </TableCell>
-                              </TableRow>
-                            ) : (
-                              filteredCoupons.map((coupon) => (
-                                <TableRow key={coupon.id}>
-                                  <TableCell>
-                                    <Checkbox 
-                                      checked={selectedCoupons.includes(coupon.id)}
-                                      onCheckedChange={(checked) => handleSelectCoupon(coupon.id, !!checked)}
-                                      aria-label={`Select ${coupon.store} coupon`}
-                                    />
-                                  </TableCell>
-                                  <TableCell className="font-medium">
-                                    <div className="flex items-center gap-2">
-                                      {coupon.store}
-                                      {coupon.featured && (
-                                        <Star size={14} className="text-amber-500 fill-amber-500" />
-                                      )}
-                                    </div>
-                                  </TableCell>
-                                  <TableCell>
-                                    <code className="bg-secondary px-2 py-1 rounded text-sm">
-                                      {coupon.code}
-                                    </code>
-                                  </TableCell>
-                                  <TableCell>{coupon.discount}</TableCell>
-                                  <TableCell>{coupon.category}</TableCell>
-                                  <TableCell>{formatDate(coupon.expiryDate)}</TableCell>
-                                  <TableCell>
-                                    <Badge
-                                      variant={
-                                        coupon.status === 'active'
-                                          ? 'default'
-                                          : coupon.status === 'expired'
-                                          ? 'destructive'
-                                          : 'outline'
-                                      }
-                                    >
-                                      {coupon.status.charAt(0).toUpperCase() + coupon.status.slice(1)}
-                                    </Badge>
-                                  </TableCell>
-                                  <TableCell className="text-right">
-                                    <div className="flex justify-end gap-2">
-                                      <Popover>
-                                        <PopoverTrigger asChild>
-                                          <Button variant="ghost" size="icon">
-                                            <MoreHorizontal size={16} />
-                                          </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-[180px]" align="end">
-                                          <div className="grid gap-2">
-                                            <Button 
-                                              variant="ghost" 
-                                              size="sm" 
-                                              className="justify-start font-normal"
-                                              onClick={() => setEditingCoupon(coupon)}
-                                            >
-                                              <Edit size={14} className="mr-2" /> Edit
-                                            </Button>
-                                            <Button 
-                                              variant="ghost" 
-                                              size="sm" 
-                                              className="justify-start font-normal text-destructive hover:text-destructive hover:bg-destructive/10"
-                                              onClick={() => setDeletingCouponId(coupon.id)}
-                                            >
-                                              <Trash2 size={14} className="mr-2" /> Delete
-                                            </Button>
-                                          </div>
-                                        </PopoverContent>
-                                      </Popover>
-                                    </div>
+                            </TableHeader>
+                            <TableBody>
+                              {loading ? (
+                                <TableRow>
+                                  <TableCell colSpan={8} className="text-center py-8">
+                                    Loading coupons...
                                   </TableCell>
                                 </TableRow>
-                              ))
-                            )}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </Tabs>
-            </div>
+                              ) : filteredCoupons.length === 0 ? (
+                                <TableRow>
+                                  <TableCell colSpan={8} className="text-center py-8">
+                                    No coupons found
+                                  </TableCell>
+                                </TableRow>
+                              ) : (
+                                filteredCoupons.map((coupon) => (
+                                  <TableRow key={coupon.id}>
+                                    <TableCell>
+                                      <Checkbox 
+                                        checked={selectedCoupons.includes(coupon.id)}
+                                        onCheckedChange={(checked) => handleSelectCoupon(coupon.id, !!checked)}
+                                        aria-label={`Select ${coupon.store} coupon`}
+                                      />
+                                    </TableCell>
+                                    <TableCell className="font-medium">
+                                      <div className="flex items-center gap-2">
+                                        {coupon.store}
+                                        {coupon.featured && (
+                                          <Star size={14} className="text-amber-500 fill-amber-500" />
+                                        )}
+                                      </div>
+                                    </TableCell>
+                                    <TableCell>
+                                      <code className="bg-secondary px-2 py-1 rounded text-sm">
+                                        {coupon.code}
+                                      </code>
+                                    </TableCell>
+                                    <TableCell>{coupon.discount}</TableCell>
+                                    <TableCell>{coupon.category}</TableCell>
+                                    <TableCell>{formatDate(coupon.expiryDate)}</TableCell>
+                                    <TableCell>
+                                      <Badge
+                                        variant={
+                                          coupon.status === 'active'
+                                            ? 'default'
+                                            : coupon.status === 'expired'
+                                            ? 'destructive'
+                                            : 'outline'
+                                        }
+                                      >
+                                        {coupon.status.charAt(0).toUpperCase() + coupon.status.slice(1)}
+                                      </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      <div className="flex justify-end gap-2">
+                                        <Popover>
+                                          <PopoverTrigger asChild>
+                                            <Button variant="ghost" size="icon">
+                                              <MoreHorizontal size={16} />
+                                            </Button>
+                                          </PopoverTrigger>
+                                          <PopoverContent className="w-[180px]" align="end">
+                                            <div className="grid gap-2">
+                                              <Button 
+                                                variant="ghost" 
+                                                size="sm" 
+                                                className="justify-start font-normal"
+                                                onClick={() => setEditingCoupon(coupon)}
+                                              >
+                                                <Edit size={14} className="mr-2" /> Edit
+                                              </Button>
+                                              <Button 
+                                                variant="ghost" 
+                                                size="sm" 
+                                                className="justify-start font-normal text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                onClick={() => setDeletingCouponId(coupon.id)}
+                                              >
+                                                <Trash2 size={14} className="mr-2" /> Delete
+                                              </Button>
+                                            </div>
+                                          </PopoverContent>
+                                        </Popover>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))
+                              )}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
+              </div>
+            )}
             
             {/* Content Locker Links section */}
-            <div className="pt-6">
+            {adminSection === 'links' && (
               <ContentLockerLinksPanel
                 links={links}
                 onAddLink={addLink}
                 onUpdateLink={updateLink}
                 onDeleteLink={deleteLink}
               />
-            </div>
+            )}
+            
+            {/* Site Settings section */}
+            {adminSection === 'settings' && (
+              <SiteSettingsPanel />
+            )}
           </div>
         </div>
       </main>

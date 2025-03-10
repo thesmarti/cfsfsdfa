@@ -7,12 +7,14 @@ import { Separator } from "@/components/ui/separator";
 import { Search, Menu, X, Tag } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isMobile = useIsMobile();
   const location = useLocation();
+  const { settings } = useSiteSettings();
 
   // Check if the user is on the admin panel
   const isAdmin = location.pathname.includes('/admin');
@@ -48,8 +50,27 @@ export const Navbar = () => {
         <div className="flex items-center justify-between">
           {/* Logo and brand */}
           <Link to="/" className="flex items-center space-x-2">
-            <Tag size={24} className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-400 dark:to-indigo-500" />
-            <span className="font-display font-semibold text-xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500">LOLCoupons</span>
+            {settings.navBar.showLogo && (
+              <img 
+                src={settings.navBar.logoUrl} 
+                alt="Logo" 
+                className="h-8 w-auto" 
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/50x50?text=Logo';
+                }}
+              />
+            )}
+            {settings.navBar.showText && (
+              <span className="font-display font-semibold text-xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500">
+                {settings.navBar.siteTitle}
+              </span>
+            )}
+            {!settings.navBar.showLogo && !settings.navBar.showText && (
+              <>
+                <Tag size={24} className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-400 dark:to-indigo-500" />
+                <span className="font-display font-semibold text-xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500">LOLCoupons</span>
+              </>
+            )}
           </Link>
 
           {/* Desktop Navigation */}

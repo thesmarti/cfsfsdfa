@@ -13,7 +13,7 @@ export interface Coupon {
   createdAt: string;
   updatedAt: string;
   redirectUrl?: string;
-  image?: string; // New field for coupon image
+  image?: string;
 }
 
 export interface User {
@@ -31,4 +31,22 @@ export interface ContentLockerLink {
   url: string;
   active: boolean;
   createdAt: string;
+}
+
+export interface SiteSettings {
+  navBar: {
+    showLogo: boolean;
+    showText: boolean;
+    logoUrl: string;
+    siteTitle: string;
+  };
+  colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+  };
+  general: {
+    siteDescription: string;
+    footerText: string;
+  };
 }
