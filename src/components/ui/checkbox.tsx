@@ -9,12 +9,25 @@ export interface CheckboxProps extends React.ComponentPropsWithoutRef<typeof Che
   indeterminate?: boolean;
 }
 
+// Create a utility to merge refs
+const useMergeRefs = <T extends any>(refs: Array<React.MutableRefObject<T> | React.LegacyRef<T> | null | undefined>) => {
+  return (value: T) => {
+    refs.forEach((ref) => {
+      if (typeof ref === "function") {
+        ref(value);
+      } else if (ref != null) {
+        (ref as React.MutableRefObject<T>).current = value;
+      }
+    });
+  };
+};
+
 const Checkbox = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,
   CheckboxProps
 >(({ className, indeterminate, ...props }, ref) => {
   const checkboxRef = React.useRef<React.ElementRef<typeof CheckboxPrimitive.Root>>(null)
-  const mergedRef = React.useMergeRefs([ref, checkboxRef])
+  const mergedRef = useMergeRefs([ref, checkboxRef])
 
   React.useEffect(() => {
     if (checkboxRef.current) {
@@ -44,18 +57,5 @@ const Checkbox = React.forwardRef<
   )
 })
 Checkbox.displayName = CheckboxPrimitive.Root.displayName
-
-// Create a utility to merge refs
-React.useMergeRefs = (refs: any[]) => {
-  return (value: any) => {
-    refs.forEach((ref) => {
-      if (typeof ref === "function") {
-        ref(value);
-      } else if (ref != null) {
-        (ref as React.MutableRefObject<any>).current = value;
-      }
-    });
-  };
-};
 
 export { Checkbox }

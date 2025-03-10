@@ -5,7 +5,7 @@ import { Navbar } from '@/components/Navbar';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Copy, ExternalLink, Calendar, Tag, ArrowLeft, Check } from 'lucide-react';
+import { ExternalLink, Calendar, Tag, ArrowLeft, Lock } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { useCoupons } from '@/hooks/useCoupons';
 import { LoadingOverlay } from '@/components/LoadingOverlay';
@@ -19,7 +19,6 @@ const CouponDetail = () => {
   
   const [loading, setLoading] = useState(true);
   const [coupon, setCoupon] = useState<any>(null);
-  const [copied, setCopied] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
   
   useEffect(() => {
@@ -48,15 +47,11 @@ const CouponDetail = () => {
     });
   };
   
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(coupon.code);
-    setCopied(true);
+  const handleShowRestriction = () => {
     toast({
-      title: "Code Copied!",
-      description: "Coupon code copied to clipboard",
+      title: "Coupon Locked",
+      description: "This coupon is locked. You need to complete tasks on the website to unlock it.",
     });
-    
-    setTimeout(() => setCopied(false), 2000);
   };
   
   const handleGetCoupon = () => {
@@ -138,20 +133,14 @@ const CouponDetail = () => {
                   {coupon.description}
                 </div>
                 
-                <div className="bg-secondary border border-border px-6 py-4 rounded-md font-mono text-center text-lg relative overflow-hidden">
-                  {coupon.code}
-                  {copied && (
-                    <div className="absolute inset-0 bg-primary text-primary-foreground flex items-center justify-center animate-fade-in">
-                      <Check size={20} className="mr-1" /> Copied!
-                    </div>
-                  )}
+                <div className="bg-secondary border border-border px-6 py-4 rounded-md font-mono text-center text-lg relative overflow-hidden blur-md">
+                  <Lock className="inline-block mr-2" size={16} />
+                  <span>Coupon is locked</span>
                 </div>
                 
-                {coupon.lastVerified && (
-                  <div className="text-xs text-muted-foreground mt-3 text-center">
-                    Last verified: {formatDate(coupon.lastVerified)}
-                  </div>
-                )}
+                <div className="text-xs text-muted-foreground mt-3 text-center">
+                  Complete tasks on the website to unlock this coupon
+                </div>
               </CardContent>
               
               <CardFooter className="flex gap-4 flex-wrap">
@@ -159,11 +148,11 @@ const CouponDetail = () => {
                   variant="outline"
                   size="lg"
                   className="flex-1 button-press"
-                  onClick={handleCopyCode}
+                  onClick={handleShowRestriction}
                   disabled={isExpired}
                 >
-                  {copied ? <Check size={18} className="mr-2" /> : <Copy size={18} className="mr-2" />}
-                  {copied ? "Copied!" : "Copy Code"}
+                  <Lock size={18} className="mr-2" />
+                  Locked Coupon
                 </Button>
                 
                 <Button
@@ -173,7 +162,7 @@ const CouponDetail = () => {
                   onClick={handleGetCoupon}
                   disabled={isExpired}
                 >
-                  <ExternalLink size={18} className="mr-2" /> Get Coupon
+                  <ExternalLink size={18} className="mr-2" /> Go to Website
                 </Button>
               </CardFooter>
             </Card>
@@ -185,15 +174,15 @@ const CouponDetail = () => {
               <ol className="text-left max-w-xl mx-auto space-y-4 text-muted-foreground">
                 <li className="flex gap-2">
                   <span className="bg-primary/10 text-primary rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">1</span>
-                  <span>Click on <strong>"Get Coupon"</strong> button to reveal the coupon code and open the store website.</span>
+                  <span>Click on <strong>"Go to Website"</strong> button to go to the store website.</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="bg-primary/10 text-primary rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">2</span>
-                  <span>Copy the coupon code that appears.</span>
+                  <span>Complete the required tasks on the website.</span>
                 </li>
                 <li className="flex gap-2">
                   <span className="bg-primary/10 text-primary rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">3</span>
-                  <span>Paste and apply the coupon at checkout when making your purchase.</span>
+                  <span>Once completed, the coupon code will be unlocked for you to use at checkout.</span>
                 </li>
               </ol>
             </div>

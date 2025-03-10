@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Coupon } from '@/types';
-import { Tag, Calendar, Ticket } from 'lucide-react';
+import { Tag, Calendar, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface CouponCardProps {
@@ -84,7 +84,7 @@ export const CouponCard = ({ coupon, className = '' }: CouponCardProps) => {
           onClick={handleGetCoupon}
           disabled={isExpired}
         >
-          <Ticket size={16} className="mr-1" /> Get Coupon
+          <ExternalLink size={16} className="mr-1" /> Get Coupon
         </Button>
       </CardFooter>
     </Card>

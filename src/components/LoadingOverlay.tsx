@@ -100,8 +100,8 @@ export const LoadingOverlay = ({ coupon, onComplete, loadingTime = 3000 }: Loadi
 
           <div className="space-y-3">
             <p className="text-sm font-semibold">Your coupon code:</p>
-            <div className={`bg-secondary border border-border px-4 py-3 rounded-md font-mono text-center ${isCodeVisible ? 'transition-all duration-500' : 'blur-md'}`}>
-              {coupon.code}
+            <div className={`bg-secondary border border-border px-4 py-3 rounded-md font-mono text-center ${isCodeVisible ? 'transition-all duration-500 blur-md' : 'blur-md'}`}>
+              <p className="text-sm">The coupon will unlock when you complete the tasks on the website</p>
             </div>
           </div>
         </CardContent>
@@ -110,7 +110,7 @@ export const LoadingOverlay = ({ coupon, onComplete, loadingTime = 3000 }: Loadi
           {isComplete ? (
             <p className="w-full">Redirecting you to the store...</p>
           ) : (
-            <p className="w-full">Please wait while we prepare your coupon...</p>
+            <p className="w-full">Please wait while we redirect you...</p>
           )}
         </CardFooter>
       </Card>
