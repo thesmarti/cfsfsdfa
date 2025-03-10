@@ -37,10 +37,15 @@ function Badge({ className, variant, ...props }: BadgeProps) {
     (!settings.colors.useCustomGradients || !settings.colors.uiGradient) ? 
     'default' : variant;
     
+  // Only add the gradient class if gradients are enabled and the variant is gradient
+  const shouldApplyGradient = variant === 'gradient' && 
+                             settings.colors.useCustomGradients && 
+                             settings.colors.uiGradient;
+  
   return (
     <div className={cn(
       badgeVariants({ variant: effectiveVariant }), 
-      variant === 'gradient' && settings.colors.useCustomGradients && settings.colors.uiGradient,
+      shouldApplyGradient ? settings.colors.uiGradient : undefined,
       className
     )} {...props} />
   )

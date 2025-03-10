@@ -52,10 +52,17 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       (!settings.colors.useCustomGradients || !settings.colors.uiGradient) ? 
       'default' : variant;
       
+    // Only add the gradient class if gradients are enabled and the variant is gradient
+    const shouldApplyGradient = variant === 'gradient' && 
+                               settings.colors.useCustomGradients && 
+                               settings.colors.uiGradient;
+                               
     return (
       <Comp
-        className={cn(buttonVariants({ variant: effectiveVariant, size, className }), 
-          variant === 'gradient' && settings.colors.useCustomGradients && settings.colors.uiGradient)}
+        className={cn(
+          buttonVariants({ variant: effectiveVariant, size, className }), 
+          shouldApplyGradient ? settings.colors.uiGradient : undefined
+        )}
         ref={ref}
         {...props}
       />

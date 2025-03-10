@@ -176,6 +176,9 @@ export const useSiteSettings = () => {
       if (oldClasses.length > 0) {
         oldClasses.forEach(c => document.documentElement.classList.remove(c));
       }
+      
+      // Also clear the CSS variable when gradients are turned off
+      document.documentElement.style.removeProperty('--ui-gradient');
     }
     
     try {
