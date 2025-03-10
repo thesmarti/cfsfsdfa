@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -166,7 +167,7 @@ export const Navbar = () => {
             <img
               src={settings.navBar.logoUrl}
               alt="Logo"
-              className="h-24 w-auto transition-transform duration-300 hover:scale-105"
+              className="h-32 w-auto max-w-[200px] transition-transform duration-300 hover:scale-105"
               onError={(e) => {
                 (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150x150?text=Logo';
               }}
