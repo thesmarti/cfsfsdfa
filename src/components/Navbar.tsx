@@ -59,7 +59,7 @@ export const Navbar = () => {
         value: settings.navBar.particlesDensity,
         density: {
           enable: true,
-          value_area: 800
+          area: 800
         }
       },
       color: {
@@ -67,7 +67,7 @@ export const Navbar = () => {
       },
       opacity: {
         value: 0.3,
-        random: true,
+        random: false,
         anim: {
           enable: true,
           speed: 1,
@@ -77,7 +77,7 @@ export const Navbar = () => {
       },
       size: {
         value: 3,
-        random: true
+        random: false
       },
       links: {
         enable: true,
@@ -92,17 +92,17 @@ export const Navbar = () => {
         direction: "none",
         random: true,
         straight: false,
-        out_mode: "out",
+        outModes: "out",
         bounce: false
       }
     },
     interactivity: {
       events: {
-        onhover: {
+        onHover: {
           enable: true,
           mode: "grab"
         },
-        onclick: {
+        onClick: {
           enable: true,
           mode: "push"
         },
@@ -116,7 +116,7 @@ export const Navbar = () => {
           }
         },
         push: {
-          particles_nb: 3
+          quantity: 3
         }
       }
     },
@@ -135,7 +135,7 @@ export const Navbar = () => {
       } overflow-hidden`}
     >
       {init && settings.navBar.enableParticles && (
-        <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <Particles
             id="tsparticles"
             options={particlesOptions}
@@ -224,7 +224,7 @@ export const Navbar = () => {
 
         {/* Mobile Navigation */}
         {isMobile && isMenuOpen && (
-          <div className="absolute top-full left-0 right-0 bg-background/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-border animate-slide-down">
+          <div className="absolute top-full left-0 right-0 bg-background/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-border animate-slide-down z-50">
             <div className="container py-4 px-4 flex flex-col space-y-2">
               <div className="relative mb-2">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
