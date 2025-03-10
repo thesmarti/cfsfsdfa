@@ -30,6 +30,7 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
     expiryDate: '',
     category: 'COUPON CODE',
     featured: false,
+    verified: false,
     lastVerified: new Date().toISOString().split('T')[0],
     status: 'active',
     image: '',

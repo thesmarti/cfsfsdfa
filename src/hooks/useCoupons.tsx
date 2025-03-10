@@ -13,6 +13,7 @@ const defaultCoupons: Coupon[] = [
     expiryDate: '2023-12-31',
     category: 'DISCOUNT CODE',
     featured: true,
+    verified: true,
     lastVerified: '2023-06-15',
     status: 'active',
     createdAt: '2023-01-15',
@@ -31,6 +32,7 @@ const defaultCoupons: Coupon[] = [
     expiryDate: '2023-08-31',
     category: 'DISCOUNT CODE',
     featured: true,
+    verified: true,
     lastVerified: '2023-06-20',
     status: 'active',
     createdAt: '2023-05-10',
@@ -49,6 +51,7 @@ const defaultCoupons: Coupon[] = [
     expiryDate: '2023-09-15',
     category: 'COUPON CODE',
     featured: false,
+    verified: true,
     lastVerified: '2023-06-10',
     status: 'active',
     createdAt: '2023-06-01',
@@ -67,6 +70,7 @@ const defaultCoupons: Coupon[] = [
     expiryDate: '2023-12-31',
     category: 'FREE CODE',
     featured: true,
+    verified: true,
     lastVerified: '2023-06-18',
     status: 'active',
     createdAt: '2023-06-05',
@@ -85,6 +89,7 @@ const defaultCoupons: Coupon[] = [
     expiryDate: '2023-07-31',
     category: 'DISCOUNT CODE',
     featured: false,
+    verified: true,
     lastVerified: '2023-06-12',
     status: 'active',
     createdAt: '2023-04-22',
@@ -103,6 +108,7 @@ const defaultCoupons: Coupon[] = [
     expiryDate: '2023-11-30',
     category: 'GAME CODE',
     featured: false,
+    verified: true,
     lastVerified: '2023-06-14',
     status: 'active',
     createdAt: '2023-05-30',
@@ -256,326 +262,6 @@ export const useCoupons = () => {
         id: Date.now().toString(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        rating: coupon.rating ?? (Math.floor(Math.random() * 2) + 3 + Math.random() * 0.5),
-        usedCount: coupon.usedCount ?? Math.floor(Math.random() * 900) + 100
-      };
-      
-      // Update our "database"
-      couponsDatabase = [...couponsDatabase, newCoupon];
-      
-      // Save to localStorage
-      saveToStorage('coupons', couponsDatabase);
-      
-      // Refresh the coupon list
-      await fetchCoupons();
-      
-      toast({
-        title: "Success",
-        description: "Coupon added successfully!",
-      });
-      
-      return newCoupon;
-    } catch (err) {
-      console.error('Error adding coupon:', err);
-      toast({
-        title: "Error",
-        description: "Failed to add coupon. Please try again.",
-        variant: "destructive",
-      });
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchCoupons, toast]);
+        verified: coupon.verified ?? false,
 
-  const updateCoupon = useCallback(async (id: string, updates: Partial<Coupon>) => {
-    try {
-      setLoading(true);
-      
-      // Find and update the coupon in our "database"
-      const couponIndex = couponsDatabase.findIndex(c => c.id === id);
-      
-      if (couponIndex === -1) {
-        throw new Error('Coupon not found');
-      }
-      
-      const updatedCoupon = {
-        ...couponsDatabase[couponIndex],
-        ...updates,
-        updatedAt: new Date().toISOString()
-      };
-      
-      couponsDatabase = [
-        ...couponsDatabase.slice(0, couponIndex),
-        updatedCoupon,
-        ...couponsDatabase.slice(couponIndex + 1)
-      ];
-      
-      // Save to localStorage
-      saveToStorage('coupons', couponsDatabase);
-      
-      // Refresh the coupon list
-      await fetchCoupons();
-      
-      toast({
-        title: "Success",
-        description: "Coupon updated successfully!",
-      });
-      
-      return updatedCoupon;
-    } catch (err) {
-      console.error('Error updating coupon:', err);
-      toast({
-        title: "Error",
-        description: "Failed to update coupon. Please try again.",
-        variant: "destructive",
-      });
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchCoupons, toast]);
 
-  const deleteCoupon = useCallback(async (id: string) => {
-    try {
-      setLoading(true);
-      
-      // Remove the coupon from our "database"
-      couponsDatabase = couponsDatabase.filter(c => c.id !== id);
-      
-      // Save to localStorage
-      saveToStorage('coupons', couponsDatabase);
-      
-      // Refresh the coupon list
-      await fetchCoupons();
-      
-      toast({
-        title: "Success",
-        description: "Coupon deleted successfully!",
-      });
-      
-      return true;
-    } catch (err) {
-      console.error('Error deleting coupon:', err);
-      toast({
-        title: "Error",
-        description: "Failed to delete coupon. Please try again.",
-        variant: "destructive",
-      });
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchCoupons, toast]);
-
-  // Bulk update and delete functions
-  const bulkUpdateCoupons = useCallback(async (ids: string[], updates: Partial<Coupon>) => {
-    try {
-      setLoading(true);
-      
-      // Update each coupon
-      const now = new Date().toISOString();
-      
-      couponsDatabase = couponsDatabase.map(coupon => {
-        if (ids.includes(coupon.id)) {
-          return {
-            ...coupon,
-            ...updates,
-            updatedAt: now
-          };
-        }
-        return coupon;
-      });
-      
-      // Save to localStorage
-      saveToStorage('coupons', couponsDatabase);
-      
-      // Refresh the coupon list
-      await fetchCoupons();
-      
-      toast({
-        title: "Success",
-        description: `${ids.length} coupons updated successfully!`,
-      });
-      
-      return true;
-    } catch (err) {
-      console.error('Error updating coupons in bulk:', err);
-      toast({
-        title: "Error",
-        description: "Failed to update coupons. Please try again.",
-        variant: "destructive",
-      });
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchCoupons, toast]);
-
-  const bulkDeleteCoupons = useCallback(async (ids: string[]) => {
-    try {
-      setLoading(true);
-      
-      // Remove the coupons from our "database"
-      couponsDatabase = couponsDatabase.filter(c => !ids.includes(c.id));
-      
-      // Save to localStorage
-      saveToStorage('coupons', couponsDatabase);
-      
-      // Refresh the coupon list
-      await fetchCoupons();
-      
-      toast({
-        title: "Success",
-        description: `${ids.length} coupons deleted successfully!`,
-      });
-      
-      return true;
-    } catch (err) {
-      console.error('Error deleting coupons in bulk:', err);
-      toast({
-        title: "Error",
-        description: "Failed to delete coupons. Please try again.",
-        variant: "destructive",
-      });
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchCoupons, toast]);
-
-  // Content Locker Links functions
-  const addLink = useCallback(async (link: Omit<ContentLockerLink, 'id' | 'createdAt'>) => {
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      const newLink: ContentLockerLink = {
-        ...link,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString()
-      };
-      
-      // Update our "database"
-      linksDatabase = [...linksDatabase, newLink];
-      
-      // Save to localStorage
-      saveToStorage('links', linksDatabase);
-      
-      // Refresh the links list
-      await fetchLinks();
-      
-      toast({
-        title: "Success",
-        description: "Link added successfully!",
-      });
-      
-      return newLink;
-    } catch (err) {
-      console.error('Error adding link:', err);
-      toast({
-        title: "Error",
-        description: "Failed to add link. Please try again.",
-        variant: "destructive",
-      });
-      return null;
-    }
-  }, [fetchLinks, toast]);
-
-  const updateLink = useCallback(async (id: string, updates: Partial<ContentLockerLink>) => {
-    try {
-      // Find and update the link in our "database"
-      const linkIndex = linksDatabase.findIndex(l => l.id === id);
-      
-      if (linkIndex === -1) {
-        throw new Error('Link not found');
-      }
-      
-      const updatedLink = {
-        ...linksDatabase[linkIndex],
-        ...updates
-      };
-      
-      linksDatabase = [
-        ...linksDatabase.slice(0, linkIndex),
-        updatedLink,
-        ...linksDatabase.slice(linkIndex + 1)
-      ];
-      
-      // Save to localStorage
-      saveToStorage('links', linksDatabase);
-      
-      // Refresh the links list
-      await fetchLinks();
-      
-      toast({
-        title: "Success",
-        description: "Link updated successfully!",
-      });
-      
-      return updatedLink;
-    } catch (err) {
-      console.error('Error updating link:', err);
-      toast({
-        title: "Error",
-        description: "Failed to update link. Please try again.",
-        variant: "destructive",
-      });
-      return null;
-    }
-  }, [fetchLinks, toast]);
-
-  const deleteLink = useCallback(async (id: string) => {
-    try {
-      // Remove the link from our "database"
-      linksDatabase = linksDatabase.filter(l => l.id !== id);
-      
-      // Save to localStorage
-      saveToStorage('links', linksDatabase);
-      
-      // Refresh the links list
-      await fetchLinks();
-      
-      toast({
-        title: "Success",
-        description: "Link deleted successfully!",
-      });
-      
-      return true;
-    } catch (err) {
-      console.error('Error deleting link:', err);
-      toast({
-        title: "Error",
-        description: "Failed to delete link. Please try again.",
-        variant: "destructive",
-      });
-      return false;
-    }
-  }, [fetchLinks, toast]);
-
-  const getCouponById = useCallback((id: string) => {
-    return couponsDatabase.find(c => c.id === id) || null;
-  }, []);
-
-  return {
-    coupons,
-    featuredCoupons,
-    links,
-    loading,
-    error,
-    sortBy,
-    filterBy,
-    setSortBy,
-    setFilterBy,
-    addCoupon,
-    updateCoupon,
-    deleteCoupon,
-    bulkUpdateCoupons,
-    bulkDeleteCoupons,
-    getCouponById,
-    refreshCoupons: fetchCoupons,
-    addLink,
-    updateLink,
-    deleteLink
-  };
-};
