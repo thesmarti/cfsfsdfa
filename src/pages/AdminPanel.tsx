@@ -737,5 +737,114 @@ const AdminPanel = () => {
       <Dialog 
         open={isBulkActionDialogOpen} 
         onOpenChange={(open) => {
-         
+          if (!open) {
+            setIsBulkActionDialogOpen(false);
+            setBulkActionType(null);
+            setBulkActionValue('');
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {bulkActionType === 'delete' 
+                ? 'Confirm Bulk Delete' 
+                : bulkActionType === 'status' 
+                ? 'Change Status' 
+                : bulkActionType === 'category' 
+                ? 'Change Category'
+                : bulkActionType === 'featured'
+                ? 'Set Featured Status'
+                : 'Change Content Locker Link'}
+            </DialogTitle>
+            <DialogDescription>
+              {bulkActionType === 'delete' 
+                ? `Are you sure you want to delete ${selectedCoupons.length} coupon(s)? This action cannot be undone.`
+                : `Update ${selectedCoupons.length} selected coupon(s)`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {bulkActionType === 'status' && (
+            <Select value={bulkActionValue} onValueChange={setBulkActionValue}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="expired">Expired</SelectItem>
+                <SelectItem value="upcoming">Upcoming</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          
+          {bulkActionType === 'category' && (
+            <Select value={bulkActionValue} onValueChange={setBulkActionValue}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="GAME CODE">Game Code</SelectItem>
+                <SelectItem value="DISCOUNT CODE">Discount Code</SelectItem>
+                <SelectItem value="COUPON CODE">Coupon Code</SelectItem>
+                <SelectItem value="FREE CODE">Free Code</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          
+          {bulkActionType === 'featured' && (
+            <Select value={bulkActionValue} onValueChange={setBulkActionValue}>
+              <SelectTrigger>
+                <SelectValue placeholder="Set Featured" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="true">Featured</SelectItem>
+                <SelectItem value="false">Not Featured</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          
+          {bulkActionType === 'contentLocker' && (
+            <Select value={bulkActionValue} onValueChange={setBulkActionValue}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Content Locker Link" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None</SelectItem>
+                {links.map(link => (
+                  <SelectItem key={link.id} value={link.id}>
+                    {link.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsBulkActionDialogOpen(false);
+                setBulkActionType(null);
+                setBulkActionValue('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant={bulkActionType === 'delete' ? 'destructive' : 'default'}
+              onClick={handleBulkAction}
+              disabled={
+                (bulkActionType !== 'delete' && bulkActionValue === '') || 
+                selectedCoupons.length === 0
+              }
+            >
+              {bulkActionType === 'delete' ? 'Delete' : 'Update'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
 
+export default AdminPanel;
