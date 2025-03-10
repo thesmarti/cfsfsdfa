@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -29,12 +30,39 @@ const App = () => {
     }
   }, []);
   
-  // Update document title based on site settings
+  // Update document title and meta based on site settings
   useEffect(() => {
-    if (settings.navBar.siteTitle) {
+    // Apply SEO settings if available
+    if (settings.seo) {
+      // Set document title
+      document.title = settings.seo.title;
+      
+      // Update meta description
+      let metaDescription = document.querySelector('meta[name="description"]');
+      if (metaDescription) {
+        metaDescription.setAttribute('content', settings.seo.description);
+      } else {
+        metaDescription = document.createElement('meta');
+        metaDescription.setAttribute('name', 'description');
+        metaDescription.setAttribute('content', settings.seo.description);
+        document.head.appendChild(metaDescription);
+      }
+      
+      // Update favicon
+      let favIcon = document.querySelector('link[rel="icon"]');
+      if (favIcon) {
+        favIcon.setAttribute('href', settings.seo.favicon);
+      } else {
+        favIcon = document.createElement('link');
+        favIcon.setAttribute('rel', 'icon');
+        favIcon.setAttribute('href', settings.seo.favicon);
+        document.head.appendChild(favIcon);
+      }
+    } else if (settings.navBar.siteTitle) {
+      // Fallback to just setting the title from navbar settings
       document.title = settings.navBar.siteTitle;
     }
-  }, [settings.navBar.siteTitle]);
+  }, [settings]);
   
   // Apply dynamic colors from site settings
   useEffect(() => {

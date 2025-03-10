@@ -1,4 +1,3 @@
-
 export interface Coupon {
   id: string;
   store: string;
@@ -70,5 +69,10 @@ export interface SiteSettings {
   general: {
     siteDescription: string;
     footerText: string;
+  };
+  seo?: {
+    title: string;
+    description: string;
+    favicon: string;
   };
 }

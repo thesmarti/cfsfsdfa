@@ -34,6 +34,11 @@ const DEFAULT_SETTINGS: SiteSettings = {
     siteDescription: 'Find the best coupons and discounts online',
     footerText: '© 2025 GlowCoupons. All rights reserved.',
   },
+  seo: {
+    title: 'GlowCoupons - Best Discounts & Promo Codes',
+    description: 'Find and save with the best coupons, discount codes, and promotions from top stores and brands.',
+    favicon: '/favicon.ico',
+  }
 };
 
 export const useSiteSettings = () => {
@@ -61,6 +66,10 @@ export const useSiteSettings = () => {
             general: {
               ...DEFAULT_SETTINGS.general,
               ...parsedSettings.general,
+            },
+            seo: {
+              ...DEFAULT_SETTINGS.seo,
+              ...parsedSettings.seo,
             }
           };
           setSettings(mergedSettings);
@@ -92,6 +101,30 @@ export const useSiteSettings = () => {
       document.documentElement.style.setProperty('--accent', hexToHsl(appliedSettings.colors.accent));
     } catch (error) {
       console.error('Error converting hex to HSL:', error);
+    }
+
+    // Apply SEO settings
+    if (appliedSettings.seo) {
+      if (appliedSettings.seo.title) {
+        document.title = appliedSettings.seo.title;
+      }
+      
+      // Update meta description
+      let metaDescription = document.querySelector('meta[name="description"]');
+      if (metaDescription) {
+        metaDescription.setAttribute('content', appliedSettings.seo.description);
+      } else {
+        metaDescription = document.createElement('meta');
+        metaDescription.setAttribute('name', 'description');
+        metaDescription.setAttribute('content', appliedSettings.seo.description);
+        document.head.appendChild(metaDescription);
+      }
+      
+      // Update favicon
+      let favIcon = document.querySelector('link[rel="icon"]');
+      if (favIcon) {
+        favIcon.setAttribute('href', appliedSettings.seo.favicon);
+      }
     }
   };
 
@@ -145,6 +178,17 @@ export const useSiteSettings = () => {
     updateSettings(updatedSettings);
   };
 
+  const updateSeoSettings = (seoSettings: Partial<SiteSettings['seo']>) => {
+    const updatedSettings = {
+      ...settings,
+      seo: {
+        ...settings.seo,
+        ...seoSettings,
+      },
+    };
+    updateSettings(updatedSettings);
+  };
+
   const uploadLogo = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       if (!file) {
@@ -168,6 +212,43 @@ export const useSiteSettings = () => {
         if (e.target && e.target.result) {
           const base64Image = e.target.result.toString();
           updateNavBarSettings({ logoUrl: base64Image });
+          resolve(base64Image);
+        } else {
+          reject(new Error('Error reading file'));
+        }
+      };
+      
+      reader.onerror = () => {
+        reject(new Error('Error reading file'));
+      };
+      
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const uploadFavicon = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      if (!file) {
+        reject(new Error('No file selected'));
+        return;
+      }
+      
+      if (!file.type.match('image.*')) {
+        reject(new Error('File is not an image'));
+        return;
+      }
+      
+      if (file.size > 1 * 1024 * 1024) {
+        reject(new Error('File is too large (max 1MB)'));
+        return;
+      }
+      
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        if (e.target && e.target.result) {
+          const base64Image = e.target.result.toString();
+          updateSeoSettings({ favicon: base64Image });
           resolve(base64Image);
         } else {
           reject(new Error('Error reading file'));
@@ -230,6 +311,8 @@ export const useSiteSettings = () => {
     updateNavButtons,
     updateColorSettings,
     updateGeneralSettings,
+    updateSeoSettings,
     uploadLogo,
+    uploadFavicon,
   };
 };
