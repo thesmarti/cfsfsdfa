@@ -8,20 +8,54 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { SiteSettings } from '@/types';
-import { Save } from 'lucide-react';
+import { Save, CloudUpload } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
 
 export const TextContentTab = () => {
   const { settings, updateTextContent } = useSiteSettings();
   const { toast } = useToast();
+  const supabase = useSupabaseClient();
   const [textContent, setTextContent] = useState<SiteSettings['textContent']>({
     ...settings.textContent
   });
+  const [isSyncing, setIsSyncing] = useState(false);
   
   // Update local state when settings change
   useEffect(() => {
     setTextContent({...settings.textContent});
   }, [settings.textContent]);
+
+  // Load settings from Supabase on component mount
+  useEffect(() => {
+    const loadSettingsFromSupabase = async () => {
+      setIsSyncing(true);
+      try {
+        const { data, error } = await supabase
+          .from('site_settings')
+          .select('text_content')
+          .single();
+        
+        if (error) {
+          console.error('Error fetching settings:', error);
+          // If no settings exist yet, create a default one
+          if (error.code === 'PGRST116') {
+            await saveSettingsToSupabase(textContent);
+          }
+        } else if (data?.text_content) {
+          // Update local state with the settings from Supabase
+          setTextContent(data.text_content);
+          updateTextContent(data.text_content);
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      } finally {
+        setIsSyncing(false);
+      }
+    };
+
+    loadSettingsFromSupabase();
+  }, [supabase]);
 
   const handleInputChange = (key: keyof SiteSettings['textContent'], value: string) => {
     setTextContent(prev => ({
@@ -30,7 +64,54 @@ export const TextContentTab = () => {
     }));
   };
 
-  const handleSave = (section: 'hero' | 'headings' | 'ui') => {
+  const saveSettingsToSupabase = async (content: Partial<SiteSettings['textContent']>) => {
+    setIsSyncing(true);
+    try {
+      // Check if settings record exists
+      const { data } = await supabase
+        .from('site_settings')
+        .select('id')
+        .single();
+      
+      if (data?.id) {
+        // Update existing record
+        await supabase
+          .from('site_settings')
+          .update({ 
+            text_content: content,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', data.id);
+      } else {
+        // Insert new record
+        await supabase
+          .from('site_settings')
+          .insert({ 
+            text_content: content,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+      }
+      
+      updateTextContent(content as SiteSettings['textContent']);
+      
+      toast({
+        title: 'Success',
+        description: 'Settings saved to Supabase and synced across all devices.',
+      });
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save settings. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleSave = async (section: 'hero' | 'headings' | 'ui') => {
     const sectionMap = {
       hero: ['heroTitle', 'heroSubtitle'],
       headings: ['featuredDealsTitle', 'allCouponsTitle', 'categoriesSectionTitle'],
@@ -43,27 +124,22 @@ export const TextContentTab = () => {
       )
     );
     
-    updateTextContent(sectionData as Partial<SiteSettings['textContent']>);
-    
-    toast({
-      title: 'Success',
-      description: `${section.charAt(0).toUpperCase() + section.slice(1)} section has been updated.`,
+    await saveSettingsToSupabase({
+      ...settings.textContent,
+      ...sectionData
     });
   };
 
-  const handleSaveAll = () => {
-    updateTextContent(textContent);
-    toast({
-      title: 'Success',
-      description: 'All text content settings have been updated.',
-    });
+  const handleSaveAll = async () => {
+    await saveSettingsToSupabase(textContent);
   };
 
   return (
     <div className="space-y-6">
-      <Alert variant="destructive" className="mb-4">
-        <AlertDescription>
-          Note: Settings changes are temporary and not synced across devices. They will only be visible in your current browser session.
+      <Alert className="mb-4 bg-blue-50 border-blue-200 text-blue-800">
+        <AlertDescription className="flex items-center gap-2">
+          <CloudUpload size={18} />
+          Settings are now saved to Supabase and will be synced across all devices.
         </AlertDescription>
       </Alert>
       
@@ -94,9 +170,9 @@ export const TextContentTab = () => {
           </div>
         </CardContent>
         <CardFooter className="flex justify-end">
-          <Button onClick={() => handleSave('hero')} className="gap-2">
+          <Button onClick={() => handleSave('hero')} disabled={isSyncing} className="gap-2">
             <Save size={16} />
-            Save Hero Section
+            {isSyncing ? 'Saving...' : 'Save Hero Section'}
           </Button>
         </CardFooter>
       </Card>
@@ -135,9 +211,9 @@ export const TextContentTab = () => {
           </div>
         </CardContent>
         <CardFooter className="flex justify-end">
-          <Button onClick={() => handleSave('headings')} className="gap-2">
+          <Button onClick={() => handleSave('headings')} disabled={isSyncing} className="gap-2">
             <Save size={16} />
-            Save Headings
+            {isSyncing ? 'Saving...' : 'Save Headings'}
           </Button>
         </CardFooter>
       </Card>
@@ -176,20 +252,20 @@ export const TextContentTab = () => {
           </div>
         </CardContent>
         <CardFooter className="flex justify-end">
-          <Button onClick={() => handleSave('ui')} className="gap-2">
+          <Button onClick={() => handleSave('ui')} disabled={isSyncing} className="gap-2">
             <Save size={16} />
-            Save UI Text
+            {isSyncing ? 'Saving...' : 'Save UI Text'}
           </Button>
         </CardFooter>
       </Card>
 
       <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={() => setTextContent({...settings.textContent})}>
+        <Button variant="outline" onClick={() => setTextContent({...settings.textContent})} disabled={isSyncing}>
           Reset Changes
         </Button>
-        <Button onClick={handleSaveAll} className="gap-2">
+        <Button onClick={handleSaveAll} disabled={isSyncing} className="gap-2">
           <Save size={16} />
-          Save All Changes
+          {isSyncing ? 'Saving...' : 'Save All Changes'}
         </Button>
       </div>
     </div>
