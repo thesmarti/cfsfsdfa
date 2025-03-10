@@ -324,15 +324,36 @@ export const SiteSettingsPanel = () => {
             <div className="grid gap-6">
               <div className="grid gap-2">
                 <Label htmlFor="primary-color">Primary Color</Label>
-                <Input type="color" id="primary-color" value={settings.colors.primary} onChange={(e) => updateColorSettings({ primary: e.target.value })} />
+                <Input 
+                  type="color" 
+                  id="primary-color" 
+                  value={settings.colors.primary} 
+                  onChange={(e) => updateColorSettings({ primary: e.target.value })}
+                  disabled={settings.colors.useCustomGradients}
+                  className={settings.colors.useCustomGradients ? 'opacity-50 cursor-not-allowed' : ''}
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="secondary-color">Secondary Color</Label>
-                <Input type="color" id="secondary-color" value={settings.colors.secondary} onChange={(e) => updateColorSettings({ secondary: e.target.value })} />
+                <Input 
+                  type="color" 
+                  id="secondary-color" 
+                  value={settings.colors.secondary} 
+                  onChange={(e) => updateColorSettings({ secondary: e.target.value })}
+                  disabled={settings.colors.useCustomGradients}
+                  className={settings.colors.useCustomGradients ? 'opacity-50 cursor-not-allowed' : ''}
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="accent-color">Accent Color</Label>
-                <Input type="color" id="accent-color" value={settings.colors.accent} onChange={(e) => updateColorSettings({ accent: e.target.value })} />
+                <Input 
+                  type="color" 
+                  id="accent-color" 
+                  value={settings.colors.accent} 
+                  onChange={(e) => updateColorSettings({ accent: e.target.value })}
+                  disabled={settings.colors.useCustomGradients}
+                  className={settings.colors.useCustomGradients ? 'opacity-50 cursor-not-allowed' : ''}
+                />
               </div>
               
               <div className="pt-4">
@@ -361,6 +382,7 @@ export const SiteSettingsPanel = () => {
                             <GradientPresets 
                               presets={settings.colors.gradientPresets || DEFAULT_GRADIENT_PRESETS} 
                               onSelectPreset={applyPresetToAll}
+                              selectedValue={settings.colors.defaultGradient}
                             />
                             <p className="text-xs text-muted-foreground">
                               Click on a preset to apply it to all categories
@@ -384,6 +406,7 @@ export const SiteSettingsPanel = () => {
                               <GradientPresets 
                                 presets={filterPresetsByCategory('default')}
                                 onSelectPreset={(preset) => updateColorSettings({ defaultGradient: preset.value })}
+                                selectedValue={settings.colors.defaultGradient}
                               />
                             </div>
                             
@@ -401,6 +424,7 @@ export const SiteSettingsPanel = () => {
                               <GradientPresets 
                                 presets={filterPresetsByCategory('fashion')}
                                 onSelectPreset={(preset) => updateColorSettings({ fashionGradient: preset.value })}
+                                selectedValue={settings.colors.fashionGradient}
                               />
                             </div>
                             
@@ -418,6 +442,7 @@ export const SiteSettingsPanel = () => {
                               <GradientPresets 
                                 presets={filterPresetsByCategory('food')}
                                 onSelectPreset={(preset) => updateColorSettings({ foodGradient: preset.value })}
+                                selectedValue={settings.colors.foodGradient}
                               />
                             </div>
                             
@@ -435,6 +460,7 @@ export const SiteSettingsPanel = () => {
                               <GradientPresets 
                                 presets={filterPresetsByCategory('electronics')}
                                 onSelectPreset={(preset) => updateColorSettings({ electronicsGradient: preset.value })}
+                                selectedValue={settings.colors.electronicsGradient}
                               />
                             </div>
                             
@@ -452,6 +478,7 @@ export const SiteSettingsPanel = () => {
                               <GradientPresets 
                                 presets={filterPresetsByCategory('travel')}
                                 onSelectPreset={(preset) => updateColorSettings({ travelGradient: preset.value })}
+                                selectedValue={settings.colors.travelGradient}
                               />
                             </div>
                             
@@ -469,6 +496,7 @@ export const SiteSettingsPanel = () => {
                               <GradientPresets 
                                 presets={filterPresetsByCategory('beauty')}
                                 onSelectPreset={(preset) => updateColorSettings({ beautyGradient: preset.value })}
+                                selectedValue={settings.colors.beautyGradient}
                               />
                             </div>
                             
@@ -486,6 +514,7 @@ export const SiteSettingsPanel = () => {
                               <GradientPresets 
                                 presets={filterPresetsByCategory('home')}
                                 onSelectPreset={(preset) => updateColorSettings({ homeGradient: preset.value })}
+                                selectedValue={settings.colors.homeGradient}
                               />
                             </div>
                           </div>

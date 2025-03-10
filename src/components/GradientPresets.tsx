@@ -4,13 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { GradientPreset } from '@/types';
 import { useToast } from "@/components/ui/use-toast";
+import { Check } from 'lucide-react';
 
 interface GradientPresetsProps {
   presets: GradientPreset[];
   onSelectPreset: (preset: GradientPreset) => void;
+  selectedValue?: string;
 }
 
-export const GradientPresets = ({ presets, onSelectPreset }: GradientPresetsProps) => {
+export const GradientPresets = ({ presets, onSelectPreset, selectedValue }: GradientPresetsProps) => {
   const { toast } = useToast();
   
   const handlePresetClick = (preset: GradientPreset) => {
@@ -29,7 +31,9 @@ export const GradientPresets = ({ presets, onSelectPreset }: GradientPresetsProp
         {presets.map((preset) => (
           <Card 
             key={preset.id}
-            className="overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+            className={`overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all relative ${
+              selectedValue === preset.value ? 'ring-2 ring-primary' : ''
+            }`}
             onClick={() => handlePresetClick(preset)}
           >
             <div 
@@ -37,9 +41,15 @@ export const GradientPresets = ({ presets, onSelectPreset }: GradientPresetsProp
               title={preset.name}
             ></div>
             <div className="p-2 text-xs text-center truncate">{preset.name}</div>
+            {selectedValue === preset.value && (
+              <div className="absolute top-1 right-1 bg-primary text-primary-foreground rounded-full p-0.5">
+                <Check className="h-3 w-3" />
+              </div>
+            )}
           </Card>
         ))}
       </div>
     </div>
   );
 };
+
