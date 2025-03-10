@@ -32,18 +32,27 @@ export const ThemeSettingsTab = () => {
         }
         
         if (data?.theme) {
-          // Update local state with the theme from Supabase
-          console.log('Theme loaded from Supabase:', data.theme);
-          setCurrentTheme(data.theme as ThemeOption);
-          applyThemeToDocument(data.theme as ThemeOption);
+          // Parse the theme from Json type to string
+          const themeValue = typeof data.theme === 'string' 
+            ? data.theme as ThemeOption
+            : JSON.stringify(data.theme);
+            
+          // Make sure it's a valid theme option
+          const validTheme = ['light', 'dark', 'system'].includes(themeValue) 
+            ? themeValue as ThemeOption 
+            : 'system';
+            
+          console.log('Theme loaded from Supabase:', validTheme);
+          setCurrentTheme(validTheme);
+          applyThemeToDocument(validTheme);
         } else {
           // If no theme setting exists yet, set up with current theme
           console.log('No theme setting found, using system default');
           // Get theme from localStorage for first-time migration
           const storedTheme = localStorage.getItem('theme');
           const initialTheme = storedTheme === 'dark' ? 'dark' : 
-                              storedTheme === 'light' ? 'light' : 
-                              'system';
+                             storedTheme === 'light' ? 'light' : 
+                             'system';
           
           setCurrentTheme(initialTheme);
           applyThemeToDocument(initialTheme);
@@ -104,6 +113,7 @@ export const ThemeSettingsTab = () => {
         const { error } = await supabase
           .from('site_settings')
           .update({ 
+            // Store theme as a JSON string value
             theme: theme as unknown as Json,
             updated_at: new Date().toISOString()
           })
