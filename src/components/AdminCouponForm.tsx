@@ -254,15 +254,14 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
             <Label htmlFor="contentLockerLink">Content Locker Link</Label>
             <div className="flex gap-2">
               <Select
-                value={formData.contentLockerLinkId || ''}
-                onValueChange={(value) => handleSelectChange('contentLockerLinkId', value)}
-                className="flex-1"
+                value={formData.contentLockerLinkId || "none"}
+                onValueChange={(value) => handleSelectChange('contentLockerLinkId', value === "none" ? "" : value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="flex-1">
                   <SelectValue placeholder="Select content locker link" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {activeLinks.map(link => (
                     <SelectItem key={link.id} value={link.id}>
                       {link.name}

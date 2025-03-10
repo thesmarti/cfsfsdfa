@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Coupon } from '@/types';
+import { Coupon, ContentLockerLink } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Store, Tag, Check } from 'lucide-react';
@@ -9,9 +9,10 @@ interface LoadingOverlayProps {
   coupon: Coupon;
   onComplete: () => void;
   loadingTime?: number;
+  contentLockerLink?: ContentLockerLink;
 }
 
-export const LoadingOverlay = ({ coupon, onComplete, loadingTime = 3000 }: LoadingOverlayProps) => {
+export const LoadingOverlay = ({ coupon, onComplete, loadingTime = 3000, contentLockerLink }: LoadingOverlayProps) => {
   const [progress, setProgress] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const [isCodeVisible, setIsCodeVisible] = useState(false);
