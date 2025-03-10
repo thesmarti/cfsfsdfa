@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
@@ -27,7 +26,6 @@ const CouponDetail = () => {
     if (id) {
       const couponData = getCouponById(id);
       
-      // Simulate loading
       setTimeout(() => {
         setCoupon(couponData);
         setLoading(false);
@@ -61,7 +59,6 @@ const CouponDetail = () => {
   };
   
   const handleLoadingComplete = () => {
-    // If we have a redirect URL, go there, otherwise just hide the overlay
     if (coupon.redirectUrl) {
       window.location.href = coupon.redirectUrl;
     } else {
@@ -71,14 +68,12 @@ const CouponDetail = () => {
   
   const isExpired = coupon && new Date(coupon.expiryDate) < new Date();
   
-  // Find the associated content locker link if any
   const contentLockerLink = coupon?.contentLockerLinkId 
     ? links.find(link => link.id === coupon.contentLockerLinkId)
     : null;
 
   const gradientClass = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
   
-  // Process the coupon code for partial blurring
   const couponCode = coupon?.code || "SAVE25NOW";
   const codeLength = couponCode.length;
   const halfLength = Math.ceil(codeLength / 2);
@@ -196,7 +191,7 @@ const CouponDetail = () => {
               <ol className="text-left max-w-xl mx-auto space-y-4 text-muted-foreground">
                 <li className="flex gap-2">
                   <span className={`rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-white ${gradientClass}`}>1</span>
-                  <span>Click on <strong>"Unlock Coupon"</strong> button to go to the store website.</span>
+                  <span>Click on <strong>"Unlock Coupon"</strong> button.</span>
                 </li>
                 <li className="flex gap-2">
                   <span className={`rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-white ${gradientClass}`}>2</span>
@@ -204,7 +199,7 @@ const CouponDetail = () => {
                 </li>
                 <li className="flex gap-2">
                   <span className={`rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-white ${gradientClass}`}>3</span>
-                  <span>Once completed, the coupon code will be unlocked for you to use at checkout.</span>
+                  <span>Once completed, the coupon code will be unlocked for you to use at <strong>{coupon.store}</strong>.</span>
                 </li>
               </ol>
             </div>
