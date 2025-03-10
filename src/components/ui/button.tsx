@@ -30,7 +30,7 @@ const buttonVariants = cva(
       },
     },
     defaultVariants: {
-      variant: "default",
+      variant: "gradient",
       size: "default",
     },
   }
@@ -47,14 +47,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const { settings } = useSiteSettings();
     const Comp = asChild ? Slot : "button"
     
-    // Always use gradient variant if UI gradient is available
-    const useGradient = settings.colors.uiGradient && variant === 'gradient';
+    // Always use gradient for buttons unless explicitly overridden
+    const buttonGradient = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600';
     
     return (
       <Comp
         className={cn(
           buttonVariants({ variant, size, className }), 
-          useGradient ? settings.colors.uiGradient : undefined
+          variant === 'gradient' ? buttonGradient : undefined
         )}
         ref={ref}
         {...props}

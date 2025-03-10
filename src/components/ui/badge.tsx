@@ -20,7 +20,7 @@ const badgeVariants = cva(
       },
     },
     defaultVariants: {
-      variant: "default",
+      variant: "gradient",
     },
   }
 )
@@ -32,13 +32,13 @@ export interface BadgeProps
 function Badge({ className, variant, ...props }: BadgeProps) {
   const { settings } = useSiteSettings();
   
-  // Apply gradient styling if variant is gradient and uiGradient is available
-  const useGradient = variant === 'gradient' && settings.colors.uiGradient;
+  // Apply gradient styling if uiGradient is available
+  const badgeGradient = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600';
   
   return (
     <div className={cn(
       badgeVariants({ variant }), 
-      useGradient ? settings.colors.uiGradient : undefined,
+      variant === 'gradient' ? badgeGradient : undefined,
       className
     )} {...props} />
   )

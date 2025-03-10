@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
@@ -72,33 +73,14 @@ const CouponDetail = () => {
     ? links.find(link => link.id === coupon.contentLockerLinkId)
     : null;
 
-  const getButtonStyle = () => {
-    if (settings.colors.useCustomGradients) {
-      return settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
-    }
-    return 'bg-primary';
+  const getGradient = () => {
+    return settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
   };
 
-  const gradientClass = getButtonStyle();
+  const gradientClass = getGradient();
   
   const extractColorsFromGradient = (gradientClass: string) => {
-    if (!settings.colors.useCustomGradients) {
-      return {
-        light: {
-          from: 'bg-primary/10',
-          to: 'bg-primary/5',
-        },
-        hover: {
-          from: 'hover:bg-primary/15',
-          to: 'hover:bg-primary/10',
-        },
-        border: {
-          from: 'border-primary/20',
-          to: 'border-primary/20',
-        }
-      };
-    }
-    
+    // Look for "from-" and "to-" color classes in the gradient
     const fromMatch = gradientClass.match(/from-([a-z]+-[0-9]+)/);
     const toMatch = gradientClass.match(/to-([a-z]+-[0-9]+)/);
     
@@ -122,12 +104,8 @@ const CouponDetail = () => {
   };
   
   const gradientColors = extractColorsFromGradient(gradientClass);
-  const couponBgClass = settings.colors.useCustomGradients 
-    ? `bg-gradient-to-br ${gradientColors.light.from} ${gradientColors.light.to} border ${gradientColors.border.from}`
-    : 'bg-primary/5 border border-primary/20';
-  const buttonHoverClass = settings.colors.useCustomGradients
-    ? `${gradientColors.hover.from} transition-colors duration-200`
-    : 'hover:bg-primary/15 transition-colors duration-200';
+  const couponBgClass = `bg-gradient-to-br ${gradientColors.light.from} ${gradientColors.light.to} border ${gradientColors.border.from}`;
+  const buttonHoverClass = `${gradientColors.hover.from} transition-colors duration-200`;
   
   const couponCode = coupon?.code || "SAVE25NOW";
   const codeLength = couponCode.length;
@@ -226,7 +204,7 @@ const CouponDetail = () => {
                   </div>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Users size={16} className="mr-1" /> 
-                    <span className="font-semibold text-primary">{usedCount}</span> Users used this coupon
+                    <span className={`font-semibold bg-clip-text text-transparent ${gradientClass}`}>{usedCount}</span> Users used this coupon
                   </div>
                 </div>
                 
