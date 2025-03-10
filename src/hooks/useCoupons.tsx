@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { Coupon, SortOption, FilterOption } from '@/types';
+import { Coupon, SortOption, FilterOption, ContentLockerLink } from '@/types';
 import { useToast } from "@/components/ui/use-toast";
 
 // This is a mock database for demonstration purposes
@@ -18,7 +18,8 @@ const mockCoupons: Coupon[] = [
     lastVerified: '2023-06-15',
     status: 'active',
     createdAt: '2023-01-15',
-    updatedAt: '2023-06-15'
+    updatedAt: '2023-06-15',
+    redirectUrl: 'https://amazon.com'
   },
   {
     id: '2',
@@ -32,7 +33,8 @@ const mockCoupons: Coupon[] = [
     lastVerified: '2023-06-20',
     status: 'active',
     createdAt: '2023-05-10',
-    updatedAt: '2023-06-20'
+    updatedAt: '2023-06-20',
+    redirectUrl: 'https://bestbuy.com'
   },
   {
     id: '3',
@@ -46,7 +48,8 @@ const mockCoupons: Coupon[] = [
     lastVerified: '2023-06-10',
     status: 'active',
     createdAt: '2023-06-01',
-    updatedAt: '2023-06-10'
+    updatedAt: '2023-06-10',
+    redirectUrl: 'https://nike.com'
   },
   {
     id: '4',
@@ -60,7 +63,8 @@ const mockCoupons: Coupon[] = [
     lastVerified: '2023-06-18',
     status: 'active',
     createdAt: '2023-06-05',
-    updatedAt: '2023-06-18'
+    updatedAt: '2023-06-18',
+    redirectUrl: 'https://ubereats.com'
   },
   {
     id: '5',
@@ -74,7 +78,8 @@ const mockCoupons: Coupon[] = [
     lastVerified: '2023-06-12',
     status: 'active',
     createdAt: '2023-04-22',
-    updatedAt: '2023-06-12'
+    updatedAt: '2023-06-12',
+    redirectUrl: 'https://walmart.com'
   },
   {
     id: '6',
@@ -88,17 +93,45 @@ const mockCoupons: Coupon[] = [
     lastVerified: '2023-06-14',
     status: 'active',
     createdAt: '2023-05-30',
-    updatedAt: '2023-06-14'
+    updatedAt: '2023-06-14',
+    redirectUrl: 'https://target.com'
+  }
+];
+
+// Mock content locker links
+const mockLinks: ContentLockerLink[] = [
+  {
+    id: '1',
+    name: 'Amazon Shop',
+    url: 'https://amazon.com',
+    active: true,
+    createdAt: '2023-01-01'
+  },
+  {
+    id: '2',
+    name: 'Best Buy Deals',
+    url: 'https://bestbuy.com',
+    active: true,
+    createdAt: '2023-01-02'
+  },
+  {
+    id: '3',
+    name: 'Nike Store',
+    url: 'https://nike.com',
+    active: false,
+    createdAt: '2023-01-03'
   }
 ];
 
 // In-memory database (this would be a real backend in production)
 let couponsDatabase = [...mockCoupons];
+let linksDatabase = [...mockLinks];
 
 export const useCoupons = () => {
   const { toast } = useToast();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [featuredCoupons, setFeaturedCoupons] = useState<Coupon[]>([]);
+  const [links, setLinks] = useState<ContentLockerLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -149,9 +182,25 @@ export const useCoupons = () => {
     }
   }, [sortBy, filterBy, toast]);
 
+  const fetchLinks = useCallback(async () => {
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 300));
+      setLinks(linksDatabase);
+    } catch (err) {
+      console.error('Error fetching links:', err);
+      toast({
+        title: "Error",
+        description: "Failed to load content locker links.",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
+
   useEffect(() => {
     fetchCoupons();
-  }, [fetchCoupons]);
+    fetchLinks();
+  }, [fetchCoupons, fetchLinks]);
 
   // Admin functions for managing coupons
   const addCoupon = useCallback(async (coupon: Omit<Coupon, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -271,6 +320,186 @@ export const useCoupons = () => {
     }
   }, [fetchCoupons, toast]);
 
+  // Bulk update and delete functions
+  const bulkUpdateCoupons = useCallback(async (ids: string[], updates: Partial<Coupon>) => {
+    try {
+      setLoading(true);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Update each coupon
+      const now = new Date().toISOString();
+      
+      couponsDatabase = couponsDatabase.map(coupon => {
+        if (ids.includes(coupon.id)) {
+          return {
+            ...coupon,
+            ...updates,
+            updatedAt: now
+          };
+        }
+        return coupon;
+      });
+      
+      // Refresh the coupon list
+      await fetchCoupons();
+      
+      toast({
+        title: "Success",
+        description: `${ids.length} coupons updated successfully!`,
+      });
+      
+      return true;
+    } catch (err) {
+      console.error('Error updating coupons in bulk:', err);
+      toast({
+        title: "Error",
+        description: "Failed to update coupons. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchCoupons, toast]);
+
+  const bulkDeleteCoupons = useCallback(async (ids: string[]) => {
+    try {
+      setLoading(true);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Remove the coupons from our "database"
+      couponsDatabase = couponsDatabase.filter(c => !ids.includes(c.id));
+      
+      // Refresh the coupon list
+      await fetchCoupons();
+      
+      toast({
+        title: "Success",
+        description: `${ids.length} coupons deleted successfully!`,
+      });
+      
+      return true;
+    } catch (err) {
+      console.error('Error deleting coupons in bulk:', err);
+      toast({
+        title: "Error",
+        description: "Failed to delete coupons. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchCoupons, toast]);
+
+  // Content Locker Links functions
+  const addLink = useCallback(async (link: Omit<ContentLockerLink, 'id' | 'createdAt'>) => {
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const newLink: ContentLockerLink = {
+        ...link,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString()
+      };
+      
+      // Update our "database"
+      linksDatabase = [...linksDatabase, newLink];
+      
+      // Refresh the links list
+      await fetchLinks();
+      
+      toast({
+        title: "Success",
+        description: "Link added successfully!",
+      });
+      
+      return newLink;
+    } catch (err) {
+      console.error('Error adding link:', err);
+      toast({
+        title: "Error",
+        description: "Failed to add link. Please try again.",
+        variant: "destructive",
+      });
+      return null;
+    }
+  }, [fetchLinks, toast]);
+
+  const updateLink = useCallback(async (id: string, updates: Partial<ContentLockerLink>) => {
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Find and update the link in our "database"
+      const linkIndex = linksDatabase.findIndex(l => l.id === id);
+      
+      if (linkIndex === -1) {
+        throw new Error('Link not found');
+      }
+      
+      const updatedLink = {
+        ...linksDatabase[linkIndex],
+        ...updates
+      };
+      
+      linksDatabase = [
+        ...linksDatabase.slice(0, linkIndex),
+        updatedLink,
+        ...linksDatabase.slice(linkIndex + 1)
+      ];
+      
+      // Refresh the links list
+      await fetchLinks();
+      
+      toast({
+        title: "Success",
+        description: "Link updated successfully!",
+      });
+      
+      return updatedLink;
+    } catch (err) {
+      console.error('Error updating link:', err);
+      toast({
+        title: "Error",
+        description: "Failed to update link. Please try again.",
+        variant: "destructive",
+      });
+      return null;
+    }
+  }, [fetchLinks, toast]);
+
+  const deleteLink = useCallback(async (id: string) => {
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Remove the link from our "database"
+      linksDatabase = linksDatabase.filter(l => l.id !== id);
+      
+      // Refresh the links list
+      await fetchLinks();
+      
+      toast({
+        title: "Success",
+        description: "Link deleted successfully!",
+      });
+      
+      return true;
+    } catch (err) {
+      console.error('Error deleting link:', err);
+      toast({
+        title: "Error",
+        description: "Failed to delete link. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  }, [fetchLinks, toast]);
+
   const getCouponById = useCallback((id: string) => {
     return couponsDatabase.find(c => c.id === id) || null;
   }, []);
@@ -278,6 +507,7 @@ export const useCoupons = () => {
   return {
     coupons,
     featuredCoupons,
+    links,
     loading,
     error,
     sortBy,
@@ -287,7 +517,12 @@ export const useCoupons = () => {
     addCoupon,
     updateCoupon,
     deleteCoupon,
+    bulkUpdateCoupons,
+    bulkDeleteCoupons,
     getCouponById,
-    refreshCoupons: fetchCoupons
+    refreshCoupons: fetchCoupons,
+    addLink,
+    updateLink,
+    deleteLink
   };
 };

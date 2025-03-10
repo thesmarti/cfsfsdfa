@@ -12,6 +12,7 @@ export interface Coupon {
   status: 'active' | 'expired' | 'upcoming';
   createdAt: string;
   updatedAt: string;
+  redirectUrl?: string; // New field for redirection
 }
 
 export interface User {
@@ -22,3 +23,11 @@ export interface User {
 
 export type SortOption = 'newest' | 'popular' | 'expiringSoon';
 export type FilterOption = 'all' | 'active' | 'expired' | string;
+
+export interface ContentLockerLink {
+  id: string;
+  name: string;
+  url: string;
+  active: boolean;
+  createdAt: string;
+}

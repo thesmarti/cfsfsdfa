@@ -1,249 +1,212 @@
 
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { useToast } from "@/components/ui/use-toast";
+import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Copy, ExternalLink, Calendar, Tag, ArrowLeft, Check } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
 import { useCoupons } from '@/hooks/useCoupons';
-import { Coupon } from '@/types';
-import { Check, Copy, ArrowLeft, Calendar, Tag, Clock, ExternalLink, ShoppingBag } from 'lucide-react';
+import { LoadingOverlay } from '@/components/LoadingOverlay';
+import { Skeleton } from "@/components/ui/skeleton";
 
 const CouponDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { getCouponById } = useCoupons();
+  const navigate = useNavigate();
   const { toast } = useToast();
+  const { getCouponById } = useCoupons();
   
-  const [coupon, setCoupon] = useState<Coupon | null>(null);
   const [loading, setLoading] = useState(true);
+  const [coupon, setCoupon] = useState<any>(null);
   const [copied, setCopied] = useState(false);
+  const [showLoading, setShowLoading] = useState(false);
   
   useEffect(() => {
     if (id) {
-      // In a real app, we'd make an API call here
-      setLoading(true);
-      // Simulate API delay
+      const couponData = getCouponById(id);
+      
+      // Simulate loading
       setTimeout(() => {
-        const result = getCouponById(id);
-        setCoupon(result);
+        setCoupon(couponData);
         setLoading(false);
       }, 500);
     }
   }, [id, getCouponById]);
   
-  const handleCopyCode = () => {
-    if (coupon) {
-      navigator.clipboard.writeText(coupon.code);
-      setCopied(true);
-      toast({
-        title: "Code Copied!",
-        description: "Coupon code copied to clipboard",
-      });
-      
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
+  if (!id || (!loading && !coupon)) {
+    navigate('/not-found');
+    return null;
+  }
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
       year: 'numeric', 
-      month: 'long', 
+      month: 'short', 
       day: 'numeric' 
     });
   };
   
-  // Determine if coupon is expired
-  const isExpired = coupon && new Date(coupon.expiryDate) < new Date();
-  
-  // Time remaining calculation
-  const getTimeRemaining = () => {
-    if (!coupon) return '';
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(coupon.code);
+    setCopied(true);
+    toast({
+      title: "Code Copied!",
+      description: "Coupon code copied to clipboard",
+    });
     
-    const now = new Date();
-    const expiry = new Date(coupon.expiryDate);
-    const diffTime = expiry.getTime() - now.getTime();
-    
-    if (diffTime <= 0) return 'Expired';
-    
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays > 30) {
-      const diffMonths = Math.floor(diffDays / 30);
-      return `${diffMonths} month${diffMonths > 1 ? 's' : ''} left`;
-    }
-    
-    return `${diffDays} day${diffDays > 1 ? 's' : ''} left`;
+    setTimeout(() => setCopied(false), 2000);
   };
+  
+  const handleGetCoupon = () => {
+    setShowLoading(true);
+  };
+  
+  const handleLoadingComplete = () => {
+    // If we have a redirect URL, go there, otherwise just hide the overlay
+    if (coupon.redirectUrl) {
+      window.location.href = coupon.redirectUrl;
+    } else {
+      setShowLoading(false);
+    }
+  };
+  
+  const isExpired = coupon && new Date(coupon.expiryDate) < new Date();
   
   return (
     <div className="min-h-screen pb-20">
       <Navbar />
       
-      <main className="container mx-auto px-4 pt-28 pb-10">
-        <div className="max-w-4xl mx-auto">
-          {/* Back Button */}
-          <Link to="/">
-            <Button variant="ghost" className="mb-6 gap-2">
-              <ArrowLeft size={16} /> Back to Coupons
-            </Button>
-          </Link>
-          
-          {loading ? (
-            <div className="space-y-4">
-              <Skeleton className="h-12 w-3/4" />
-              <Skeleton className="h-6 w-1/2" />
-              <Skeleton className="h-48 w-full mt-6" />
-            </div>
-          ) : coupon ? (
-            <div className="animate-fade-in">
-              <div className="mb-8">
-                <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+      <main className="container mx-auto px-4 pt-28">
+        <Button 
+          variant="ghost" 
+          size="sm"
+          className="mb-6"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft size={16} className="mr-1" /> Back
+        </Button>
+        
+        {loading ? (
+          <div className="max-w-3xl mx-auto">
+            <Skeleton className="h-12 w-1/3 mb-4" />
+            <Skeleton className="h-64 w-full rounded-xl" />
+          </div>
+        ) : (
+          <div className="max-w-3xl mx-auto">
+            <h1 className="text-3xl md:text-4xl font-display font-bold mb-8 animate-fade-in">
+              {coupon.store} Coupon
+            </h1>
+            
+            <Card className="glass-card animate-scale-in mb-10 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start flex-wrap gap-4">
                   <div>
-                    <h1 className="text-3xl font-display font-bold mb-2">
-                      {coupon.store} - {coupon.discount}
-                    </h1>
-                    <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Calendar size={14} />
-                        <span>Expires: {formatDate(coupon.expiryDate)}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Tag size={14} />
-                        <span>{coupon.category}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock size={14} />
-                        <span>Last Verified: {coupon.lastVerified ? formatDate(coupon.lastVerified) : 'Unknown'}</span>
-                      </div>
+                    <CardTitle className="text-2xl font-display mb-1">
+                      {coupon.store}
+                    </CardTitle>
+                    <div className="flex gap-3 mt-2">
+                      <Badge variant="outline" className="flex items-center gap-1">
+                        <Tag size={12} />
+                        {coupon.category}
+                      </Badge>
+                      <Badge 
+                        variant={isExpired ? "destructive" : "outline"} 
+                        className={!isExpired ? "bg-green-100 text-green-800 border-green-200" : ""}
+                      >
+                        {isExpired ? 'Expired' : 'Active'}
+                      </Badge>
+                      {coupon.featured && (
+                        <Badge variant="default" className="bg-gradient-to-r from-pink-500 to-purple-500">
+                          Featured
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   
-                  <Badge 
-                    variant={isExpired ? "destructive" : "outline"}
-                    className="font-semibold px-3 py-1 text-sm"
-                  >
-                    {isExpired ? 'Expired' : getTimeRemaining()}
-                  </Badge>
+                  <div className="flex items-center gap-1 text-sm">
+                    <Calendar size={14} className="text-muted-foreground" />
+                    <span className="text-muted-foreground">Expires:</span> 
+                    <span className="font-medium">{formatDate(coupon.expiryDate)}</span>
+                  </div>
                 </div>
-              </div>
+              </CardHeader>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="md:col-span-2">
-                  <Card className="glass-card">
-                    <CardContent className="p-6">
-                      <h2 className="text-xl font-display font-semibold mb-4">
-                        Description
-                      </h2>
-                      <p className="text-lg mb-6">
-                        {coupon.description}
-                      </p>
-                      
-                      <h3 className="text-lg font-medium mb-3">How to use this coupon:</h3>
-                      <ol className="list-decimal list-inside space-y-2 mb-6">
-                        <li>Copy the coupon code below</li>
-                        <li>Visit the {coupon.store} website</li>
-                        <li>Add products to your cart</li>
-                        <li>Paste the coupon code at checkout</li>
-                        <li>Enjoy your savings!</li>
-                      </ol>
-                      
-                      <div className="bg-secondary/50 rounded-lg p-4 border border-border">
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Terms & Conditions:
-                        </p>
-                        <p className="text-sm">
-                          This coupon may not be combined with other offers. Valid for specified products only. 
-                          Discount applies to qualifying items only. Shipping restrictions may apply.
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
+              <CardContent className="py-6">
+                <div className="text-xl mb-8">
+                  {coupon.description}
                 </div>
                 
-                <div>
-                  <Card className="glass-card sticky top-24">
-                    <CardContent className="p-6">
-                      <div className="text-center mb-4">
-                        <h3 className="text-lg font-semibold mb-2">Coupon Code</h3>
-                        <div className="bg-secondary border-2 border-dashed border-primary/30 rounded-md p-3 font-mono text-lg mb-4 relative overflow-hidden">
-                          {coupon.code}
-                          {copied && (
-                            <div className="absolute inset-0 bg-primary text-primary-foreground flex items-center justify-center animate-fade-in">
-                              <Check size={18} className="mr-1" /> Copied!
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="space-y-3">
-                          <Button
-                            className="w-full gap-2 button-press"
-                            onClick={handleCopyCode}
-                            disabled={copied || isExpired}
-                          >
-                            {copied ? <Check size={16} /> : <Copy size={16} />}
-                            {copied ? "Copied!" : "Copy Code"}
-                          </Button>
-                          
-                          <Button
-                            variant="outline"
-                            className="w-full gap-2 button-press"
-                            onClick={() => window.open(`https://${coupon.store.toLowerCase().replace(' ', '')}.com`, '_blank')}
-                          >
-                            <ShoppingBag size={16} />
-                            Shop at {coupon.store}
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div className="border-t border-border pt-4">
-                        <p className="text-center text-sm text-muted-foreground mb-2">
-                          Share this coupon:
-                        </p>
-                        <div className="flex justify-center gap-2">
-                          <Button variant="outline" size="icon" className="rounded-full button-press" onClick={() => {
-                            window.open(`https://www.facebook.com/sharer/sharer.php?u=${window.location.href}`, '_blank');
-                          }}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
-                          </Button>
-                          <Button variant="outline" size="icon" className="rounded-full button-press" onClick={() => {
-                            window.open(`https://twitter.com/intent/tweet?text=Check out this ${coupon.store} coupon: ${coupon.discount}&url=${window.location.href}`, '_blank');
-                          }}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
-                          </Button>
-                          <Button variant="outline" size="icon" className="rounded-full button-press" onClick={() => {
-                            navigator.clipboard.writeText(window.location.href);
-                            toast({
-                              title: "Link Copied!",
-                              description: "Coupon link copied to clipboard",
-                            });
-                          }}>
-                            <ExternalLink size={16} />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                <div className="bg-secondary border border-border px-6 py-4 rounded-md font-mono text-center text-lg relative overflow-hidden">
+                  {coupon.code}
+                  {copied && (
+                    <div className="absolute inset-0 bg-primary text-primary-foreground flex items-center justify-center animate-fade-in">
+                      <Check size={20} className="mr-1" /> Copied!
+                    </div>
+                  )}
                 </div>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-display font-bold mb-4">
-                Coupon Not Found
+                
+                {coupon.lastVerified && (
+                  <div className="text-xs text-muted-foreground mt-3 text-center">
+                    Last verified: {formatDate(coupon.lastVerified)}
+                  </div>
+                )}
+              </CardContent>
+              
+              <CardFooter className="flex gap-4 flex-wrap">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="flex-1 button-press"
+                  onClick={handleCopyCode}
+                  disabled={isExpired}
+                >
+                  {copied ? <Check size={18} className="mr-2" /> : <Copy size={18} className="mr-2" />}
+                  {copied ? "Copied!" : "Copy Code"}
+                </Button>
+                
+                <Button
+                  variant="default"
+                  size="lg"
+                  className="flex-1 button-press bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+                  onClick={handleGetCoupon}
+                  disabled={isExpired}
+                >
+                  <ExternalLink size={18} className="mr-2" /> Get Coupon
+                </Button>
+              </CardFooter>
+            </Card>
+            
+            <div className="mt-12 text-center">
+              <h2 className="text-xl font-display font-semibold mb-4">
+                How to use this coupon?
               </h2>
-              <p className="text-muted-foreground mb-6">
-                The coupon you are looking for may have been removed or expired.
-              </p>
-              <Link to="/">
-                <Button>Return to Homepage</Button>
-              </Link>
+              <ol className="text-left max-w-xl mx-auto space-y-4 text-muted-foreground">
+                <li className="flex gap-2">
+                  <span className="bg-primary/10 text-primary rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">1</span>
+                  <span>Click on <strong>"Get Coupon"</strong> button to reveal the coupon code and open the store website.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="bg-primary/10 text-primary rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">2</span>
+                  <span>Copy the coupon code that appears.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="bg-primary/10 text-primary rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">3</span>
+                  <span>Paste and apply the coupon at checkout when making your purchase.</span>
+                </li>
+              </ol>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </main>
+      
+      {showLoading && coupon && (
+        <LoadingOverlay 
+          coupon={coupon} 
+          onComplete={handleLoadingComplete}
+        />
+      )}
     </div>
   );
 };

@@ -4,26 +4,49 @@ import { useToast } from "@/components/ui/use-toast";
 import { Navbar } from '@/components/Navbar';
 import { LoginForm } from '@/components/LoginForm';
 import { AdminCouponForm } from '@/components/AdminCouponForm';
+import { ContentLockerLinksPanel } from '@/components/ContentLockerLinksPanel';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, Coupon } from '@/types';
 import { useCoupons } from '@/hooks/useCoupons';
-import { LogOut, Plus, Search, Edit, Trash2, AlertTriangle } from 'lucide-react';
+import { 
+  LogOut, 
+  Plus, 
+  Search, 
+  Edit, 
+  Trash2, 
+  AlertTriangle, 
+  Check, 
+  MoreHorizontal, 
+  Star, 
+  Link,
+  ChevronDown
+} from 'lucide-react';
 
 const AdminPanel = () => {
   const { toast } = useToast();
   const { 
     coupons, 
+    links,
     loading, 
     addCoupon, 
     updateCoupon, 
-    deleteCoupon, 
-    refreshCoupons 
+    deleteCoupon,
+    bulkUpdateCoupons,
+    bulkDeleteCoupons,
+    refreshCoupons,
+    addLink,
+    updateLink,
+    deleteLink
   } = useCoupons();
   
   const [user, setUser] = useState<User | null>(null);
@@ -33,6 +56,12 @@ const AdminPanel = () => {
   const [filteredCoupons, setFilteredCoupons] = useState(coupons);
   const [deletingCouponId, setDeletingCouponId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
+  
+  // Bulk action states
+  const [selectedCoupons, setSelectedCoupons] = useState<string[]>([]);
+  const [bulkActionType, setBulkActionType] = useState<'status' | 'category' | 'featured' | 'delete' | null>(null);
+  const [bulkActionValue, setBulkActionValue] = useState<string>('');
+  const [isBulkActionDialogOpen, setIsBulkActionDialogOpen] = useState(false);
   
   // Check if user is already logged in
   useEffect(() => {
@@ -77,6 +106,11 @@ const AdminPanel = () => {
     }
   }, [activeTab, coupons]);
   
+  // Clear selected coupons when filtered list changes
+  useEffect(() => {
+    setSelectedCoupons([]);
+  }, [filteredCoupons]);
+  
   const handleLogout = () => {
     localStorage.removeItem('user');
     setUser(null);
@@ -111,6 +145,65 @@ const AdminPanel = () => {
     }
   };
   
+  const handleSelectAllCoupons = (checked: boolean) => {
+    if (checked) {
+      setSelectedCoupons(filteredCoupons.map(coupon => coupon.id));
+    } else {
+      setSelectedCoupons([]);
+    }
+  };
+  
+  const handleSelectCoupon = (couponId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedCoupons(prev => [...prev, couponId]);
+    } else {
+      setSelectedCoupons(prev => prev.filter(id => id !== couponId));
+    }
+  };
+  
+  const handleBulkAction = async () => {
+    if (!bulkActionType || selectedCoupons.length === 0) return;
+    
+    try {
+      if (bulkActionType === 'delete') {
+        await bulkDeleteCoupons(selectedCoupons);
+      } else {
+        let updates: Partial<Coupon> = {};
+        
+        if (bulkActionType === 'status') {
+          updates.status = bulkActionValue as 'active' | 'expired' | 'upcoming';
+        } else if (bulkActionType === 'category') {
+          updates.category = bulkActionValue;
+        } else if (bulkActionType === 'featured') {
+          updates.featured = bulkActionValue === 'true';
+        }
+        
+        await bulkUpdateCoupons(selectedCoupons, updates);
+      }
+      
+      setSelectedCoupons([]);
+      setIsBulkActionDialogOpen(false);
+      setBulkActionType(null);
+      setBulkActionValue('');
+    } catch (error) {
+      console.error('Error performing bulk action:', error);
+    }
+  };
+  
+  const openBulkActionDialog = (actionType: 'status' | 'category' | 'featured' | 'delete') => {
+    if (selectedCoupons.length === 0) {
+      toast({
+        title: "No Coupons Selected",
+        description: "Please select at least one coupon to perform bulk actions.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setBulkActionType(actionType);
+    setIsBulkActionDialogOpen(true);
+  };
+  
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -124,6 +217,9 @@ const AdminPanel = () => {
   if (!user) {
     return <LoginForm onLoginSuccess={setUser} />;
   }
+  
+  const allSelected = filteredCoupons.length > 0 && selectedCoupons.length === filteredCoupons.length;
+  const someSelected = selectedCoupons.length > 0 && selectedCoupons.length < filteredCoupons.length;
   
   return (
     <div className="min-h-screen pb-20">
@@ -188,134 +284,217 @@ const AdminPanel = () => {
             </Card>
           </div>
           
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-            <div className="flex gap-2 w-full md:w-auto">
-              <Button
-                onClick={() => setIsAddingCoupon(true)}
-                className="gap-2"
-              >
-                <Plus size={16} />
-                Add New Coupon
-              </Button>
+          <div className="space-y-6">
+            {/* Coupons section */}
+            <div>
+              <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+                <div className="flex gap-2 w-full md:w-auto">
+                  <Button
+                    onClick={() => setIsAddingCoupon(true)}
+                    className="gap-2"
+                  >
+                    <Plus size={16} />
+                    Add New Coupon
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => refreshCoupons()}
+                    disabled={loading}
+                  >
+                    Refresh
+                  </Button>
+                </div>
+                
+                <div className="relative w-full md:w-80">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+                  <Input
+                    placeholder="Search coupons..."
+                    className="pl-9"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
               
-              <Button
-                variant="outline"
-                onClick={() => refreshCoupons()}
-                disabled={loading}
-              >
-                Refresh
-              </Button>
+              <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="mb-6">
+                  <TabsTrigger value="all">All Coupons</TabsTrigger>
+                  <TabsTrigger value="active">Active</TabsTrigger>
+                  <TabsTrigger value="expired">Expired</TabsTrigger>
+                  <TabsTrigger value="featured">Featured</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value={activeTab} className="mt-0">
+                  <Card>
+                    {selectedCoupons.length > 0 && (
+                      <div className="p-4 bg-muted border-b flex items-center justify-between">
+                        <div>
+                          <span className="font-medium">{selectedCoupons.length}</span> coupons selected
+                        </div>
+                        <div className="flex gap-2">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                Bulk Actions <ChevronDown size={14} className="ml-1" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => openBulkActionDialog('status')}>
+                                Change Status
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => openBulkActionDialog('category')}>
+                                Change Category
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => openBulkActionDialog('featured')}>
+                                Set Featured
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                onClick={() => openBulkActionDialog('delete')}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                Delete Selected
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => setSelectedCoupons([])}
+                          >
+                            Clear Selection
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                    <CardContent className="p-0">
+                      <div className="relative overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-[50px]">
+                                <Checkbox 
+                                  checked={allSelected} 
+                                  indeterminate={someSelected}
+                                  onCheckedChange={handleSelectAllCoupons}
+                                  aria-label="Select all"
+                                />
+                              </TableHead>
+                              <TableHead>Store</TableHead>
+                              <TableHead>Code</TableHead>
+                              <TableHead>Discount</TableHead>
+                              <TableHead>Category</TableHead>
+                              <TableHead>Expiry Date</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {loading ? (
+                              <TableRow>
+                                <TableCell colSpan={8} className="text-center py-8">
+                                  Loading coupons...
+                                </TableCell>
+                              </TableRow>
+                            ) : filteredCoupons.length === 0 ? (
+                              <TableRow>
+                                <TableCell colSpan={8} className="text-center py-8">
+                                  No coupons found
+                                </TableCell>
+                              </TableRow>
+                            ) : (
+                              filteredCoupons.map((coupon) => (
+                                <TableRow key={coupon.id}>
+                                  <TableCell>
+                                    <Checkbox 
+                                      checked={selectedCoupons.includes(coupon.id)}
+                                      onCheckedChange={(checked) => handleSelectCoupon(coupon.id, !!checked)}
+                                      aria-label={`Select ${coupon.store} coupon`}
+                                    />
+                                  </TableCell>
+                                  <TableCell className="font-medium">
+                                    <div className="flex items-center gap-2">
+                                      {coupon.store}
+                                      {coupon.featured && (
+                                        <Star size={14} className="text-amber-500 fill-amber-500" />
+                                      )}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <code className="bg-secondary px-2 py-1 rounded text-sm">
+                                      {coupon.code}
+                                    </code>
+                                  </TableCell>
+                                  <TableCell>{coupon.discount}</TableCell>
+                                  <TableCell>{coupon.category}</TableCell>
+                                  <TableCell>{formatDate(coupon.expiryDate)}</TableCell>
+                                  <TableCell>
+                                    <Badge
+                                      variant={
+                                        coupon.status === 'active'
+                                          ? 'default'
+                                          : coupon.status === 'expired'
+                                          ? 'destructive'
+                                          : 'outline'
+                                      }
+                                    >
+                                      {coupon.status.charAt(0).toUpperCase() + coupon.status.slice(1)}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    <div className="flex justify-end gap-2">
+                                      <Popover>
+                                        <PopoverTrigger asChild>
+                                          <Button variant="ghost" size="icon">
+                                            <MoreHorizontal size={16} />
+                                          </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[180px]" align="end">
+                                          <div className="grid gap-2">
+                                            <Button 
+                                              variant="ghost" 
+                                              size="sm" 
+                                              className="justify-start font-normal"
+                                              onClick={() => setEditingCoupon(coupon)}
+                                            >
+                                              <Edit size={14} className="mr-2" /> Edit
+                                            </Button>
+                                            <Button 
+                                              variant="ghost" 
+                                              size="sm" 
+                                              className="justify-start font-normal text-destructive hover:text-destructive hover:bg-destructive/10"
+                                              onClick={() => setDeletingCouponId(coupon.id)}
+                                            >
+                                              <Trash2 size={14} className="mr-2" /> Delete
+                                            </Button>
+                                          </div>
+                                        </PopoverContent>
+                                      </Popover>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              ))
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
             </div>
             
-            <div className="relative w-full md:w-80">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
-              <Input
-                placeholder="Search coupons..."
-                className="pl-9"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+            {/* Content Locker Links section */}
+            <div className="pt-6">
+              <ContentLockerLinksPanel
+                links={links}
+                onAddLink={addLink}
+                onUpdateLink={updateLink}
+                onDeleteLink={deleteLink}
               />
             </div>
           </div>
-          
-          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-6">
-              <TabsTrigger value="all">All Coupons</TabsTrigger>
-              <TabsTrigger value="active">Active</TabsTrigger>
-              <TabsTrigger value="expired">Expired</TabsTrigger>
-              <TabsTrigger value="featured">Featured</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value={activeTab} className="mt-0">
-              <Card>
-                <CardContent className="p-0">
-                  <div className="relative overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Store</TableHead>
-                          <TableHead>Code</TableHead>
-                          <TableHead>Discount</TableHead>
-                          <TableHead>Category</TableHead>
-                          <TableHead>Expiry Date</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {loading ? (
-                          <TableRow>
-                            <TableCell colSpan={7} className="text-center py-8">
-                              Loading coupons...
-                            </TableCell>
-                          </TableRow>
-                        ) : filteredCoupons.length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={7} className="text-center py-8">
-                              No coupons found
-                            </TableCell>
-                          </TableRow>
-                        ) : (
-                          filteredCoupons.map((coupon) => (
-                            <TableRow key={coupon.id}>
-                              <TableCell className="font-medium">
-                                {coupon.store}
-                              </TableCell>
-                              <TableCell>
-                                <code className="bg-secondary px-2 py-1 rounded text-sm">
-                                  {coupon.code}
-                                </code>
-                              </TableCell>
-                              <TableCell>{coupon.discount}</TableCell>
-                              <TableCell>{coupon.category}</TableCell>
-                              <TableCell>{formatDate(coupon.expiryDate)}</TableCell>
-                              <TableCell>
-                                <Badge
-                                  variant={
-                                    coupon.status === 'active'
-                                      ? 'default'
-                                      : coupon.status === 'expired'
-                                      ? 'destructive'
-                                      : 'outline'
-                                  }
-                                >
-                                  {coupon.status.charAt(0).toUpperCase() + coupon.status.slice(1)}
-                                </Badge>
-                                {coupon.featured && (
-                                  <Badge variant="outline" className="ml-2 bg-primary/10">
-                                    Featured
-                                  </Badge>
-                                )}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <div className="flex justify-end gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => setEditingCoupon(coupon)}
-                                  >
-                                    <Edit size={16} />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="text-destructive hover:text-destructive"
-                                    onClick={() => setDeletingCouponId(coupon.id)}
-                                  >
-                                    <Trash2 size={16} />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
         </div>
       </main>
       
@@ -351,6 +530,94 @@ const AdminPanel = () => {
             </Button>
             <Button variant="destructive" onClick={confirmDelete}>
               Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Bulk Action Dialog */}
+      <Dialog open={isBulkActionDialogOpen} onOpenChange={setIsBulkActionDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {bulkActionType === 'delete' 
+                ? 'Confirm Bulk Delete' 
+                : `Bulk Update Coupons`}
+            </DialogTitle>
+            <DialogDescription>
+              {bulkActionType === 'delete'
+                ? `Are you sure you want to delete ${selectedCoupons.length} coupons? This action cannot be undone.`
+                : `Update ${selectedCoupons.length} coupons at once.`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {bulkActionType && bulkActionType !== 'delete' && (
+            <div className="py-4">
+              {bulkActionType === 'status' && (
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium">Status</label>
+                  <Select value={bulkActionValue} onValueChange={setBulkActionValue}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="expired">Expired</SelectItem>
+                      <SelectItem value="upcoming">Upcoming</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              
+              {bulkActionType === 'category' && (
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium">Category</label>
+                  <Select value={bulkActionValue} onValueChange={setBulkActionValue}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Electronics">Electronics</SelectItem>
+                      <SelectItem value="Fashion">Fashion</SelectItem>
+                      <SelectItem value="Food">Food</SelectItem>
+                      <SelectItem value="Retail">Retail</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              
+              {bulkActionType === 'featured' && (
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium">Featured</label>
+                  <Select value={bulkActionValue} onValueChange={setBulkActionValue}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Set featured status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Yes</SelectItem>
+                      <SelectItem value="false">No</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsBulkActionDialogOpen(false);
+                setBulkActionType(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant={bulkActionType === 'delete' ? 'destructive' : 'default'}
+              onClick={handleBulkAction}
+            >
+              {bulkActionType === 'delete' ? 'Delete Coupons' : 'Update Coupons'}
             </Button>
           </DialogFooter>
         </DialogContent>

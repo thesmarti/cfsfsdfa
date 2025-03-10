@@ -5,8 +5,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Coupon } from '@/types';
-import { Check, Copy, ExternalLink, Tag, Calendar } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Tag, Calendar, Ticket } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface CouponCardProps {
   coupon: Coupon;
@@ -15,19 +15,8 @@ interface CouponCardProps {
 
 export const CouponCard = ({ coupon, className = '' }: CouponCardProps) => {
   const { toast } = useToast();
-  const [copied, setCopied] = useState(false);
-
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(coupon.code);
-    setCopied(true);
-    toast({
-      title: "Code Copied!",
-      description: "Coupon code copied to clipboard",
-    });
-    
-    setTimeout(() => setCopied(false), 2000);
-  };
-
+  const navigate = useNavigate();
+  
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
@@ -41,11 +30,15 @@ export const CouponCard = ({ coupon, className = '' }: CouponCardProps) => {
   const isExpired = new Date(coupon.expiryDate) < new Date();
   const daysLeft = Math.ceil((new Date(coupon.expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
 
+  const handleGetCoupon = () => {
+    navigate(`/coupon/${coupon.id}`);
+  };
+
   return (
-    <Card className={`glass-card hover-lift overflow-hidden ${className}`}>
+    <Card className={`glass-card hover-lift overflow-hidden ${className} bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900`}>
       <div className="absolute top-0 right-0">
         {coupon.featured && (
-          <Badge variant="default" className="m-2 bg-primary">
+          <Badge variant="default" className="m-2 bg-gradient-to-r from-pink-500 to-purple-500">
             Featured
           </Badge>
         )}
@@ -64,7 +57,7 @@ export const CouponCard = ({ coupon, className = '' }: CouponCardProps) => {
           </div>
           <Badge 
             variant={isExpired ? "destructive" : "outline"} 
-            className="font-semibold text-xs"
+            className={`font-semibold text-xs ${!isExpired && "bg-green-100 text-green-800 border-green-200"}`}
           >
             {isExpired ? 'Expired' : daysLeft <= 7 ? `${daysLeft} days left` : 'Active'}
           </Badge>
@@ -81,40 +74,18 @@ export const CouponCard = ({ coupon, className = '' }: CouponCardProps) => {
             Expires: {formatDate(coupon.expiryDate)}
           </div>
         </div>
-        
-        <div className="flex justify-center my-2">
-          <div className="bg-secondary border border-border px-4 py-2 rounded-md font-mono text-center relative overflow-hidden">
-            {coupon.code}
-            {copied && (
-              <div className="absolute inset-0 bg-primary text-primary-foreground flex items-center justify-center animate-fade-in">
-                <Check size={16} className="mr-1" /> Copied!
-              </div>
-            )}
-          </div>
-        </div>
       </CardContent>
       
-      <CardFooter className="flex gap-2 pt-2">
+      <CardFooter className="pt-2">
         <Button
-          variant="outline"
+          variant="default"
           size="sm"
-          className="flex-1 button-press"
-          onClick={handleCopyCode}
-          disabled={copied || isExpired}
+          className="w-full button-press bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+          onClick={handleGetCoupon}
+          disabled={isExpired}
         >
-          {copied ? <Check size={16} className="mr-1" /> : <Copy size={16} className="mr-1" />}
-          {copied ? "Copied!" : "Copy Code"}
+          <Ticket size={16} className="mr-1" /> Get Coupon
         </Button>
-        
-        <Link to={`/coupon/${coupon.id}`} className="flex-1">
-          <Button
-            variant="default"
-            size="sm"
-            className="w-full button-press"
-          >
-            <ExternalLink size={16} className="mr-1" /> Details
-          </Button>
-        </Link>
       </CardFooter>
     </Card>
   );
