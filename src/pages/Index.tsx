@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SortOption, FilterOption } from '@/types';
 import { useCoupons } from '@/hooks/useCoupons';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { ChevronDown, Search, Filter } from 'lucide-react';
 
 const Index = () => {
@@ -22,10 +23,14 @@ const Index = () => {
     setSortBy, 
     setFilterBy 
   } = useCoupons();
+  
+  const { settings } = useSiteSettings();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredCoupons, setFilteredCoupons] = useState(coupons);
   const [activeTab, setActiveTab] = useState("all");
+  
+  const gradientClass = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
 
   // Apply search filter on coupons
   useEffect(() => {
@@ -114,13 +119,48 @@ const Index = () => {
           
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 mb-8">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="active">Active</TabsTrigger>
-              <TabsTrigger value="expiringSoon">Expiring Soon</TabsTrigger>
-              <TabsTrigger value="Electronics">Electronics</TabsTrigger>
-              <TabsTrigger value="Fashion">Fashion</TabsTrigger>
-              <TabsTrigger value="Food">Food</TabsTrigger>
-              <TabsTrigger value="Retail">Retail</TabsTrigger>
+              <TabsTrigger 
+                value="all" 
+                className={activeTab === "all" ? `text-white ${gradientClass}` : ""}
+              >
+                All
+              </TabsTrigger>
+              <TabsTrigger 
+                value="active"
+                className={activeTab === "active" ? `text-white ${gradientClass}` : ""}
+              >
+                Active
+              </TabsTrigger>
+              <TabsTrigger 
+                value="expiringSoon"
+                className={activeTab === "expiringSoon" ? `text-white ${gradientClass}` : ""}
+              >
+                Expiring Soon
+              </TabsTrigger>
+              <TabsTrigger 
+                value="Electronics"
+                className={activeTab === "Electronics" ? `text-white ${gradientClass}` : ""}
+              >
+                Electronics
+              </TabsTrigger>
+              <TabsTrigger 
+                value="Fashion"
+                className={activeTab === "Fashion" ? `text-white ${gradientClass}` : ""}
+              >
+                Fashion
+              </TabsTrigger>
+              <TabsTrigger 
+                value="Food"
+                className={activeTab === "Food" ? `text-white ${gradientClass}` : ""}
+              >
+                Food
+              </TabsTrigger>
+              <TabsTrigger 
+                value="Retail"
+                className={activeTab === "Retail" ? `text-white ${gradientClass}` : ""}
+              >
+                Retail
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value={activeTab} className="mt-0">
@@ -133,7 +173,7 @@ const Index = () => {
               ) : error ? (
                 <div className="text-center py-12">
                   <p className="text-lg text-red-500 mb-4">{error}</p>
-                  <Button>Try Again</Button>
+                  <Button variant="gradient" className={gradientClass}>Try Again</Button>
                 </div>
               ) : filteredCoupons.length === 0 ? (
                 <div className="text-center py-12">
@@ -153,7 +193,7 @@ const Index = () => {
           
           {filteredCoupons.length > 9 && (
             <div className="flex justify-center mt-12">
-              <Button variant="outline" size="lg" className="gap-2">
+              <Button variant="gradient" size="lg" className={`gap-2 ${gradientClass}`}>
                 Load More <ChevronDown size={16} />
               </Button>
             </div>

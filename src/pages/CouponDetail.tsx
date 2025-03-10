@@ -75,6 +75,8 @@ const CouponDetail = () => {
   const contentLockerLink = coupon?.contentLockerLinkId 
     ? links.find(link => link.id === coupon.contentLockerLinkId)
     : null;
+
+  const gradientClass = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
   
   return (
     <div className="min-h-screen pb-20">
@@ -120,7 +122,7 @@ const CouponDetail = () => {
                         {isExpired ? 'Expired' : 'Active'}
                       </Badge>
                       {coupon.featured && (
-                        <Badge variant="default" className="bg-gradient-to-r from-pink-500 to-purple-500">
+                        <Badge variant="gradient" className={gradientClass}>
                           Featured
                         </Badge>
                       )}
@@ -163,9 +165,9 @@ const CouponDetail = () => {
                 </Button>
                 
                 <Button
-                  variant="default"
+                  variant="gradient"
                   size="lg"
-                  className="flex-1 button-press bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+                  className={`flex-1 button-press ${gradientClass}`}
                   onClick={handleGetCoupon}
                   disabled={isExpired}
                 >
@@ -180,15 +182,15 @@ const CouponDetail = () => {
               </h2>
               <ol className="text-left max-w-xl mx-auto space-y-4 text-muted-foreground">
                 <li className="flex gap-2">
-                  <span className="bg-primary/10 text-primary rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">1</span>
+                  <span className={`rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-white ${gradientClass}`}>1</span>
                   <span>Click on <strong>"Go to Website"</strong> button to go to the store website.</span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="bg-primary/10 text-primary rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">2</span>
+                  <span className={`rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-white ${gradientClass}`}>2</span>
                   <span>Complete the required tasks on the website.</span>
                 </li>
                 <li className="flex gap-2">
-                  <span className="bg-primary/10 text-primary rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">3</span>
+                  <span className={`rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-white ${gradientClass}`}>3</span>
                   <span>Once completed, the coupon code will be unlocked for you to use at checkout.</span>
                 </li>
               </ol>

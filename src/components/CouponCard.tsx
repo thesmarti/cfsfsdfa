@@ -39,48 +39,9 @@ export const CouponCard = ({ coupon, className = '' }: CouponCardProps) => {
   // Default image if none is provided
   const imageUrl = coupon.image || 'https://via.placeholder.com/300x150?text=No+Image';
   
-  // Get gradient based on category and site settings
+  // Always use the UI gradient from site settings if available
   const getGradient = () => {
-    // First check if we should use the UI gradient for all elements
-    if (settings.colors.uiGradient) {
-      return settings.colors.uiGradient;
-    }
-    
-    const category = coupon.category.toLowerCase();
-    
-    if (settings.colors.useCustomGradients) {
-      if (category.includes('fashion')) {
-        return settings.colors.fashionGradient || 'bg-gradient-to-br from-pink-500 to-purple-600 dark:from-pink-600 dark:to-purple-800';
-      } else if (category.includes('food')) {
-        return settings.colors.foodGradient || 'bg-gradient-to-br from-orange-400 to-red-500 dark:from-orange-500 dark:to-red-700';
-      } else if (category.includes('electronics')) {
-        return settings.colors.electronicsGradient || 'bg-gradient-to-br from-blue-400 to-indigo-600 dark:from-blue-500 dark:to-indigo-800';
-      } else if (category.includes('travel')) {
-        return settings.colors.travelGradient || 'bg-gradient-to-br from-teal-400 to-emerald-500 dark:from-teal-500 dark:to-emerald-700';
-      } else if (category.includes('beauty')) {
-        return settings.colors.beautyGradient || 'bg-gradient-to-br from-fuchsia-400 to-pink-500 dark:from-fuchsia-500 dark:to-pink-700';
-      } else if (category.includes('home')) {
-        return settings.colors.homeGradient || 'bg-gradient-to-br from-amber-400 to-yellow-500 dark:from-amber-500 dark:to-yellow-700';
-      } else {
-        return settings.colors.defaultGradient || 'bg-gradient-to-br from-violet-500 to-purple-600 dark:from-violet-600 dark:to-purple-800';
-      }
-    } else {
-      if (category.includes('fashion')) {
-        return 'bg-gradient-to-br from-pink-500 to-purple-600 dark:from-pink-600 dark:to-purple-800';
-      } else if (category.includes('food')) {
-        return 'bg-gradient-to-br from-orange-400 to-red-500 dark:from-orange-500 dark:to-red-700';
-      } else if (category.includes('electronics')) {
-        return 'bg-gradient-to-br from-blue-400 to-indigo-600 dark:from-blue-500 dark:to-indigo-800';
-      } else if (category.includes('travel')) {
-        return 'bg-gradient-to-br from-teal-400 to-emerald-500 dark:from-teal-500 dark:to-emerald-700';
-      } else if (category.includes('beauty')) {
-        return 'bg-gradient-to-br from-fuchsia-400 to-pink-500 dark:from-fuchsia-500 dark:to-pink-700';
-      } else if (category.includes('home')) {
-        return 'bg-gradient-to-br from-amber-400 to-yellow-500 dark:from-amber-500 dark:to-yellow-700';
-      } else {
-        return 'bg-gradient-to-br from-violet-500 to-purple-600 dark:from-violet-600 dark:to-purple-800';
-      }
-    }
+    return settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
   };
 
   return (
@@ -135,12 +96,12 @@ export const CouponCard = ({ coupon, className = '' }: CouponCardProps) => {
       
       <CardFooter className="pt-2">
         <Button
-          variant="default"
+          variant={isExpired ? "outline" : "gradient"}
           size="sm"
           className={`w-full button-press ${
             isExpired 
               ? 'bg-gray-300 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-700' 
-              : `${getGradient()} hover:shadow-lg border-none`
+              : getGradient()
           }`}
           onClick={handleGetCoupon}
           disabled={isExpired}

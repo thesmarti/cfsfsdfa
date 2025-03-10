@@ -4,6 +4,7 @@ import { Coupon, ContentLockerLink } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Store, Tag, Check } from 'lucide-react';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 interface LoadingOverlayProps {
   coupon: Coupon;
@@ -16,6 +17,7 @@ export const LoadingOverlay = ({ coupon, onComplete, loadingTime = 3000, content
   const [progress, setProgress] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const [isCodeVisible, setIsCodeVisible] = useState(false);
+  const { settings } = useSiteSettings();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -40,6 +42,8 @@ export const LoadingOverlay = ({ coupon, onComplete, loadingTime = 3000, content
       clearTimeout(timeout);
     };
   }, [loadingTime, onComplete]);
+
+  const gradientClass = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -74,7 +78,11 @@ export const LoadingOverlay = ({ coupon, onComplete, loadingTime = 3000, content
                 fill="transparent"
               />
               <circle 
-                className="text-primary stroke-current transition-all duration-300" 
+                className={`stroke-current transition-all duration-300`}
+                style={{
+                  color: 'currentColor',
+                  stroke: `url(#gradient-${coupon.id})`
+                }}
                 strokeWidth="10" 
                 strokeLinecap="round" 
                 cx="50" 
@@ -85,14 +93,21 @@ export const LoadingOverlay = ({ coupon, onComplete, loadingTime = 3000, content
                 strokeDashoffset={`${2.5 * Math.PI * 40 * (1 - progress / 100)}`}
                 transform="rotate(-90 50 50)"
               />
-              <text x="50" y="50" textAnchor="middle" dominantBaseline="middle" className="text-lg font-bold fill-primary">
+              {/* Define the gradient for the SVG */}
+              <defs>
+                <linearGradient id={`gradient-${coupon.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" className="text-indigo-500 dark:text-indigo-400" />
+                  <stop offset="100%" className="text-purple-600 dark:text-purple-500" />
+                </linearGradient>
+              </defs>
+              <text x="50" y="50" textAnchor="middle" dominantBaseline="middle" className={`text-lg font-bold bg-clip-text text-transparent ${gradientClass}`}>
                 {isComplete ? <tspan x="50" y="50">100%</tspan> : <tspan x="50" y="50">{Math.round(progress)}%</tspan>}
               </text>
             </svg>
             
             {isComplete && (
               <div className="absolute inset-0 flex items-center justify-center animate-scale-in">
-                <div className="bg-green-500 text-white rounded-full p-2">
+                <div className={`text-white rounded-full p-2 ${gradientClass}`}>
                   <Check size={32} strokeWidth={3} />
                 </div>
               </div>
