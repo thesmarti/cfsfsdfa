@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -6,11 +5,12 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { SiteSettings } from '@/types';
 import { Save, CloudUpload } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
+import { Json } from '@/integrations/supabase/types';
 
 export const TextContentTab = () => {
   const { settings, updateTextContent } = useSiteSettings();
@@ -43,21 +43,26 @@ export const TextContentTab = () => {
         
         if (data?.text_content) {
           console.log('Loaded text content:', data.text_content);
-          // Properly cast the text_content from Supabase and update local state
-          const textContentData = data.text_content as SiteSettings['textContent'];
-          setTextContent(textContentData || {
-            heroTitle: '',
-            heroSubtitle: '',
-            featuredDealsTitle: '',
-            allCouponsTitle: '',
-            categoriesSectionTitle: '',
-            ctaButtonText: '',
-            noResultsText: '',
-            searchPlaceholder: ''
-          });
+          
+          // Safely handle the text_content data from Supabase
+          const textContentData = data.text_content as Record<string, unknown>;
+          
+          // Create a properly typed object with defaults for missing properties
+          const typedTextContent: SiteSettings['textContent'] = {
+            heroTitle: typeof textContentData.heroTitle === 'string' ? textContentData.heroTitle : '',
+            heroSubtitle: typeof textContentData.heroSubtitle === 'string' ? textContentData.heroSubtitle : '',
+            featuredDealsTitle: typeof textContentData.featuredDealsTitle === 'string' ? textContentData.featuredDealsTitle : '',
+            allCouponsTitle: typeof textContentData.allCouponsTitle === 'string' ? textContentData.allCouponsTitle : '',
+            categoriesSectionTitle: typeof textContentData.categoriesSectionTitle === 'string' ? textContentData.categoriesSectionTitle : '',
+            ctaButtonText: typeof textContentData.ctaButtonText === 'string' ? textContentData.ctaButtonText : '',
+            noResultsText: typeof textContentData.noResultsText === 'string' ? textContentData.noResultsText : '',
+            searchPlaceholder: typeof textContentData.searchPlaceholder === 'string' ? textContentData.searchPlaceholder : ''
+          };
+          
+          setTextContent(typedTextContent);
           
           // Update the global state
-          updateTextContent(textContentData);
+          updateTextContent(typedTextContent);
         } else if (error && error.code === 'PGRST116') {
           // If no settings exist yet, create a default one
           console.log('No settings found, creating default');
@@ -101,13 +106,25 @@ export const TextContentTab = () => {
         throw fetchError;
       }
       
+      // Ensure content has all required properties
+      const safeContent: SiteSettings['textContent'] = {
+        heroTitle: content.heroTitle || '',
+        heroSubtitle: content.heroSubtitle || '',
+        featuredDealsTitle: content.featuredDealsTitle || '',
+        allCouponsTitle: content.allCouponsTitle || '',
+        categoriesSectionTitle: content.categoriesSectionTitle || '',
+        ctaButtonText: content.ctaButtonText || '',
+        noResultsText: content.noResultsText || '',
+        searchPlaceholder: content.searchPlaceholder || ''
+      };
+      
       if (data?.id) {
         console.log('Updating existing record with ID:', data.id);
         // Update existing record
         const { error } = await supabase
           .from('site_settings')
           .update({ 
-            text_content: content,
+            text_content: safeContent,
             updated_at: new Date().toISOString()
           })
           .eq('id', data.id);
@@ -122,7 +139,7 @@ export const TextContentTab = () => {
         const { error } = await supabase
           .from('site_settings')
           .insert({ 
-            text_content: content,
+            text_content: safeContent,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           });
@@ -133,7 +150,7 @@ export const TextContentTab = () => {
         }
       }
       
-      updateTextContent(content as SiteSettings['textContent']);
+      updateTextContent(safeContent);
       
       toast({
         title: 'Success',
@@ -162,7 +179,7 @@ export const TextContentTab = () => {
       Object.entries(textContent).filter(([key]) => 
         sectionMap[section].includes(key as string)
       )
-    );
+    ) as Partial<SiteSettings['textContent']>;
     
     await saveSettingsToSupabase({
       ...settings.textContent,

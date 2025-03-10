@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 import { Image, ArrowUpCircle, Save } from 'lucide-react';
 import { SiteSettings } from '@/types';
@@ -16,18 +16,20 @@ export const SeoSettingsTab = () => {
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [seoSettings, setSeoSettings] = useState({
+  const [seoSettings, setSeoSettings] = useState<SiteSettings['seo']>({
     title: settings.seo?.title || '',
     description: settings.seo?.description || '',
     favicon: settings.seo?.favicon || ''
   });
   
   useEffect(() => {
-    setSeoSettings({
-      title: settings.seo?.title || '',
-      description: settings.seo?.description || '',
-      favicon: settings.seo?.favicon || ''
-    });
+    if (settings.seo) {
+      setSeoSettings({
+        title: settings.seo.title || '',
+        description: settings.seo.description || '',
+        favicon: settings.seo.favicon || ''
+      });
+    }
   }, [settings.seo]);
   
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,9 +59,14 @@ export const SeoSettingsTab = () => {
         throw fetchError;
       }
       
+      // Safely handle potential null or undefined values
+      const currentSeo = data?.seo ? 
+        (typeof data.seo === 'object' ? data.seo : {}) : 
+        {};
+      
       const newSeoSettings = {
-        ...(data?.seo as SiteSettings['seo'] || {}),
-        favicon: settings.seo?.favicon
+        ...currentSeo,
+        favicon: settings.seo?.favicon || ''
       };
       
       if (data?.id) {
@@ -108,7 +115,8 @@ export const SeoSettingsTab = () => {
       // Update local state first
       updateSeoSettings({
         title: seoSettings.title,
-        description: seoSettings.description
+        description: seoSettings.description,
+        favicon: seoSettings.favicon
       });
       
       // Save to Supabase
@@ -122,9 +130,9 @@ export const SeoSettingsTab = () => {
       }
       
       const newSeoSettings = {
-        title: seoSettings.title,
-        description: seoSettings.description,
-        favicon: settings.seo?.favicon || ''
+        title: seoSettings.title || '',
+        description: seoSettings.description || '',
+        favicon: settings.seo?.favicon || seoSettings.favicon || ''
       };
       
       if (data?.id) {
