@@ -59,7 +59,7 @@ export const Navbar = () => {
         value: settings.navBar.particlesDensity,
         density: {
           enable: true,
-          area: 800
+          value_area: 800
         }
       },
       color: {
@@ -67,7 +67,6 @@ export const Navbar = () => {
       },
       opacity: {
         value: 0.3,
-        random: false,
         anim: {
           enable: true,
           speed: 1,
@@ -76,8 +75,7 @@ export const Navbar = () => {
         }
       },
       size: {
-        value: 3,
-        random: false
+        value: 3
       },
       links: {
         enable: true,
@@ -92,17 +90,16 @@ export const Navbar = () => {
         direction: "none",
         random: true,
         straight: false,
-        outModes: "out",
-        bounce: false
+        out_mode: "out"
       }
     },
     interactivity: {
       events: {
-        onHover: {
+        onhover: {
           enable: true,
           mode: "grab"
         },
-        onClick: {
+        onclick: {
           enable: true,
           mode: "push"
         },
@@ -116,7 +113,7 @@ export const Navbar = () => {
           }
         },
         push: {
-          quantity: 3
+          particles_nb: 3
         }
       }
     },
