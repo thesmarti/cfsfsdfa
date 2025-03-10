@@ -35,7 +35,9 @@ export const ThemeSettingsTab = () => {
           // Parse the theme from Json type to string
           const themeValue = typeof data.theme === 'string' 
             ? data.theme as ThemeOption
-            : JSON.stringify(data.theme);
+            : (typeof data.theme === 'object' 
+                ? JSON.stringify(data.theme) 
+                : String(data.theme));
             
           // Make sure it's a valid theme option
           const validTheme = ['light', 'dark', 'system'].includes(themeValue) 
@@ -113,8 +115,8 @@ export const ThemeSettingsTab = () => {
         const { error } = await supabase
           .from('site_settings')
           .update({ 
-            // Store theme as a JSON string value
-            theme: theme as unknown as Json,
+            // Store theme as a string directly, not as JSON
+            theme: theme,
             updated_at: new Date().toISOString()
           })
           .eq('id', data.id);
@@ -129,7 +131,8 @@ export const ThemeSettingsTab = () => {
         const { error } = await supabase
           .from('site_settings')
           .insert({ 
-            theme: theme as unknown as Json,
+            // Store theme as a string directly, not as JSON
+            theme: theme,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           });
