@@ -142,6 +142,18 @@ export const Navbar = () => {
   // Render the centered navbar style with large logo and tagline
   const renderCenteredNavbar = () => (
     <div className="flex flex-col items-center justify-center">
+      {/* Auth buttons on top right */}
+      <div className="absolute top-0 right-4 pt-2 flex items-center space-x-2 z-10">
+        <Link to="/login">
+          <Button variant="ghost" size="sm">Login</Button>
+        </Link>
+        <Link to="/register">
+          <Button variant="gradient" size="sm" className={buttonGradientClass}>
+            Register
+          </Button>
+        </Link>
+      </div>
+      
       {/* Large centered logo */}
       {settings.navBar.showLogo && (
         <Link to="/" className="mb-2">
@@ -164,9 +176,6 @@ export const Navbar = () => {
           </h1>
         </Link>
       )}
-      
-      {/* Tagline */}
-      <p className="text-sm text-muted-foreground mb-4">{settings.navBar.tagline}</p>
       
       {/* Navigation links - desktop */}
       {!isMobile && (
