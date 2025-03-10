@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { ThemeSelector } from './ThemeSelector';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CloudUpload, Info } from 'lucide-react';
+import { CloudUpload, Info, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -13,6 +13,7 @@ export const ThemeSettingsTab = () => {
   const [currentTheme, setCurrentTheme] = useState<ThemeOption>('system');
   const [isSyncing, setIsSyncing] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [rlsNeedsSetup, setRlsNeedsSetup] = useState(false);
   const { toast } = useToast();
 
   // Load theme from Supabase on mount
@@ -26,9 +27,24 @@ export const ThemeSettingsTab = () => {
           .select('theme')
           .maybeSingle();
         
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error fetching theme setting:', error);
-          throw error;
+        if (error) {
+          // Check if this is an RLS error
+          if (error.code === '42501') {
+            console.log('RLS policy error detected');
+            setRlsNeedsSetup(true);
+            // Still load the theme from localStorage as fallback
+            const storedTheme = localStorage.getItem('theme');
+            const initialTheme = storedTheme === 'dark' ? 'dark' : 
+                             storedTheme === 'light' ? 'light' : 
+                             'system';
+            
+            setCurrentTheme(initialTheme);
+            applyThemeToDocument(initialTheme);
+            return;
+          } else if (error.code !== 'PGRST116') {
+            console.error('Error fetching theme setting:', error);
+            throw error;
+          }
         }
         
         if (data?.theme) {
@@ -64,13 +80,25 @@ export const ThemeSettingsTab = () => {
           applyThemeToDocument(initialTheme);
         }
         setSaveError(null);
+        setRlsNeedsSetup(false);
       } catch (error) {
         console.error('Error loading theme:', error);
+        // Check if this could be an RLS error
+        if (error && typeof error === 'object' && 'code' in error && error.code === '42501') {
+          setRlsNeedsSetup(true);
+        }
         toast({
           title: 'Error',
-          description: 'Failed to load theme setting. Please try again.',
+          description: 'Failed to load theme setting. Using local settings instead.',
           variant: 'destructive',
         });
+        // Load from localStorage as fallback
+        const storedTheme = localStorage.getItem('theme');
+        const initialTheme = storedTheme === 'dark' ? 'dark' : 
+                           storedTheme === 'light' ? 'light' : 
+                           'system';
+        setCurrentTheme(initialTheme);
+        applyThemeToDocument(initialTheme);
       } finally {
         setIsSyncing(false);
       }
@@ -99,6 +127,12 @@ export const ThemeSettingsTab = () => {
   };
 
   const saveThemeToSupabase = async (theme: ThemeOption) => {
+    if (rlsNeedsSetup) {
+      // If we already know RLS is not set up, don't attempt to save to Supabase
+      setSaveError('Database permissions not configured (RLS policy needed)');
+      return;
+    }
+    
     setIsSyncing(true);
     setSaveError(null);
     try {
@@ -110,9 +144,15 @@ export const ThemeSettingsTab = () => {
         .select('id')
         .maybeSingle();
       
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error('Error fetching settings:', fetchError);
-        throw fetchError;
+      if (fetchError) {
+        if (fetchError.code === '42501') {
+          // This is an RLS error
+          setRlsNeedsSetup(true);
+          throw new Error('Database permissions not configured (RLS policy needed)');
+        } else if (fetchError.code !== 'PGRST116') {
+          console.error('Error fetching settings:', fetchError);
+          throw fetchError;
+        }
       }
       
       if (data?.id) {
@@ -127,6 +167,11 @@ export const ThemeSettingsTab = () => {
           .eq('id', data.id);
           
         if (error) {
+          if (error.code === '42501') {
+            // This is an RLS error
+            setRlsNeedsSetup(true);
+            throw new Error('Database permissions not configured (RLS policy needed)');
+          }
           console.error('Error updating theme:', error);
           throw error;
         }
@@ -142,6 +187,11 @@ export const ThemeSettingsTab = () => {
           });
           
         if (error) {
+          if (error.code === '42501') {
+            // This is an RLS error
+            setRlsNeedsSetup(true);
+            throw new Error('Database permissions not configured (RLS policy needed)');
+          }
           console.error('Error inserting theme:', error);
           throw error;
         }
@@ -166,9 +216,14 @@ export const ThemeSettingsTab = () => {
   };
 
   const handleThemeChange = async (theme: ThemeOption) => {
+    // Always update local theme
     setCurrentTheme(theme);
     applyThemeToDocument(theme);
-    await saveThemeToSupabase(theme);
+    
+    // Try to save to Supabase if RLS might be configured
+    if (!rlsNeedsSetup) {
+      await saveThemeToSupabase(theme);
+    }
   };
 
   return (
@@ -180,14 +235,28 @@ export const ThemeSettingsTab = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Alert className="mb-4 bg-blue-50 border-blue-200 text-blue-800">
-          <AlertDescription className="flex items-center gap-2">
-            <CloudUpload size={18} />
-            Theme settings are now saved to Supabase and will be synced across all devices.
-          </AlertDescription>
-        </Alert>
+        {rlsNeedsSetup && (
+          <Alert className="mb-4 bg-amber-50 border-amber-200 text-amber-800">
+            <AlertDescription className="flex items-center gap-2">
+              <AlertTriangle size={18} />
+              <div>
+                <p className="font-semibold">Database permissions not configured</p>
+                <p className="text-sm">Theme changes will only apply locally. To enable syncing, you must set up RLS policies in Supabase.</p>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
         
-        {saveError && (
+        {!rlsNeedsSetup && (
+          <Alert className="mb-4 bg-blue-50 border-blue-200 text-blue-800">
+            <AlertDescription className="flex items-center gap-2">
+              <CloudUpload size={18} />
+              Theme settings are now saved to Supabase and will be synced across all devices.
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {saveError && !rlsNeedsSetup && (
           <Alert className="mb-4 bg-red-50 border-red-200 text-red-800">
             <AlertDescription className="flex items-center gap-2">
               <Info size={18} />
