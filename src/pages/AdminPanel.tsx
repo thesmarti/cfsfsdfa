@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Navbar } from '@/components/Navbar';
@@ -175,7 +174,7 @@ const AdminPanel = () => {
         if (bulkActionType === 'status') {
           updates.status = bulkActionValue as 'active' | 'expired' | 'upcoming';
         } else if (bulkActionType === 'category') {
-          updates.category = bulkActionValue;
+          updates.category = bulkActionValue as 'GAME CODE' | 'DISCOUNT CODE' | 'COUPON CODE' | 'FREE CODE';
         } else if (bulkActionType === 'featured') {
           updates.featured = bulkActionValue === 'true';
         }
@@ -618,10 +617,10 @@ const AdminPanel = () => {
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Electronics">Electronics</SelectItem>
-                      <SelectItem value="Fashion">Fashion</SelectItem>
-                      <SelectItem value="Food">Food</SelectItem>
-                      <SelectItem value="Retail">Retail</SelectItem>
+                      <SelectItem value="GAME CODE">GAME CODE</SelectItem>
+                      <SelectItem value="DISCOUNT CODE">DISCOUNT CODE</SelectItem>
+                      <SelectItem value="COUPON CODE">COUPON CODE</SelectItem>
+                      <SelectItem value="FREE CODE">FREE CODE</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
