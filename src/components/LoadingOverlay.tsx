@@ -45,6 +45,15 @@ export const LoadingOverlay = ({ coupon, onComplete, loadingTime = 3000, content
 
   const gradientClass = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
 
+  // Example coupon code (for demonstration purposes)
+  const couponCode = coupon.code || "SAVE25NOW";
+  
+  // Split the coupon code in half for partial blurring
+  const codeLength = couponCode.length;
+  const halfLength = Math.ceil(codeLength / 2);
+  const visiblePart = couponCode.substring(0, halfLength);
+  const blurredPart = couponCode.substring(halfLength);
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md mx-auto glass-card bg-white dark:bg-gray-800 overflow-hidden animate-scale-in">
@@ -147,9 +156,16 @@ export const LoadingOverlay = ({ coupon, onComplete, loadingTime = 3000, content
 
           <div className="space-y-3">
             <p className="text-sm font-semibold">Your coupon code:</p>
-            <div className={`bg-secondary border border-border px-4 py-3 rounded-md font-mono text-center ${isCodeVisible ? 'transition-all duration-500 blur-md' : 'blur-md'}`}>
-              <p className="text-sm">The coupon will unlock when you complete the tasks on the website</p>
-            </div>
+            {isCodeVisible ? (
+              <div className="bg-secondary border border-border px-4 py-3 rounded-md font-mono text-center tracking-wide flex justify-center">
+                <span className="inline-block">{visiblePart}</span>
+                <span className="inline-block blur-md">{blurredPart}</span>
+              </div>
+            ) : (
+              <div className="bg-secondary border border-border px-4 py-3 rounded-md font-mono text-center blur-md">
+                <p className="text-sm">The coupon will unlock when you complete the tasks on the website</p>
+              </div>
+            )}
           </div>
         </CardContent>
         
