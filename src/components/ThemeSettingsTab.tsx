@@ -84,22 +84,30 @@ export const ThemeSettingsTab = () => {
       
       if (data?.id) {
         // Update existing record
-        await supabase
+        const { error } = await supabase
           .from('site_settings')
           .update({ 
             theme: theme,
             updated_at: new Date().toISOString()
           })
           .eq('id', data.id);
+          
+        if (error) {
+          throw error;
+        }
       } else {
         // Insert new record
-        await supabase
+        const { error } = await supabase
           .from('site_settings')
           .insert({ 
             theme: theme,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           });
+          
+        if (error) {
+          throw error;
+        }
       }
       
       toast({
