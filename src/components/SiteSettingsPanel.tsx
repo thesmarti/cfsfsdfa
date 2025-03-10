@@ -406,6 +406,7 @@ export const SiteSettingsPanel = () => {
                               <GradientPresets 
                                 presets={filterPresetsByCategory('default')}
                                 onSelectPreset={(preset) => updateColorSettings({ defaultGradient: preset.value })}
+                                onApplyToAll={applyPresetToAll}
                                 selectedValue={settings.colors.defaultGradient}
                               />
                             </div>
@@ -424,6 +425,7 @@ export const SiteSettingsPanel = () => {
                               <GradientPresets 
                                 presets={filterPresetsByCategory('fashion')}
                                 onSelectPreset={(preset) => updateColorSettings({ fashionGradient: preset.value })}
+                                onApplyToAll={applyPresetToAll}
                                 selectedValue={settings.colors.fashionGradient}
                               />
                             </div>
@@ -442,6 +444,7 @@ export const SiteSettingsPanel = () => {
                               <GradientPresets 
                                 presets={filterPresetsByCategory('food')}
                                 onSelectPreset={(preset) => updateColorSettings({ foodGradient: preset.value })}
+                                onApplyToAll={applyPresetToAll}
                                 selectedValue={settings.colors.foodGradient}
                               />
                             </div>
@@ -460,6 +463,7 @@ export const SiteSettingsPanel = () => {
                               <GradientPresets 
                                 presets={filterPresetsByCategory('electronics')}
                                 onSelectPreset={(preset) => updateColorSettings({ electronicsGradient: preset.value })}
+                                onApplyToAll={applyPresetToAll}
                                 selectedValue={settings.colors.electronicsGradient}
                               />
                             </div>
@@ -478,6 +482,7 @@ export const SiteSettingsPanel = () => {
                               <GradientPresets 
                                 presets={filterPresetsByCategory('travel')}
                                 onSelectPreset={(preset) => updateColorSettings({ travelGradient: preset.value })}
+                                onApplyToAll={applyPresetToAll}
                                 selectedValue={settings.colors.travelGradient}
                               />
                             </div>
@@ -496,6 +501,7 @@ export const SiteSettingsPanel = () => {
                               <GradientPresets 
                                 presets={filterPresetsByCategory('beauty')}
                                 onSelectPreset={(preset) => updateColorSettings({ beautyGradient: preset.value })}
+                                onApplyToAll={applyPresetToAll}
                                 selectedValue={settings.colors.beautyGradient}
                               />
                             </div>
@@ -514,6 +520,7 @@ export const SiteSettingsPanel = () => {
                               <GradientPresets 
                                 presets={filterPresetsByCategory('home')}
                                 onSelectPreset={(preset) => updateColorSettings({ homeGradient: preset.value })}
+                                onApplyToAll={applyPresetToAll}
                                 selectedValue={settings.colors.homeGradient}
                               />
                             </div>

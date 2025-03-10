@@ -4,15 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { GradientPreset } from '@/types';
 import { useToast } from "@/components/ui/use-toast";
-import { Check } from 'lucide-react';
+import { Check, Copy } from 'lucide-react';
 
 interface GradientPresetsProps {
   presets: GradientPreset[];
   onSelectPreset: (preset: GradientPreset) => void;
+  onApplyToAll?: (preset: GradientPreset) => void;
   selectedValue?: string;
 }
 
-export const GradientPresets = ({ presets, onSelectPreset, selectedValue }: GradientPresetsProps) => {
+export const GradientPresets = ({ presets, onSelectPreset, onApplyToAll, selectedValue }: GradientPresetsProps) => {
   const { toast } = useToast();
   
   const handlePresetClick = (preset: GradientPreset) => {
@@ -22,6 +23,18 @@ export const GradientPresets = ({ presets, onSelectPreset, selectedValue }: Grad
       description: `The "${preset.name}" gradient has been selected.`,
       duration: 3000,
     });
+  };
+
+  const handleApplyToAll = (preset: GradientPreset, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the card click
+    if (onApplyToAll) {
+      onApplyToAll(preset);
+      toast({
+        title: "Gradient Applied to All",
+        description: `The "${preset.name}" gradient has been applied to all categories.`,
+        duration: 3000,
+      });
+    }
   };
 
   return (
@@ -41,6 +54,17 @@ export const GradientPresets = ({ presets, onSelectPreset, selectedValue }: Grad
               title={preset.name}
             ></div>
             <div className="p-2 text-xs text-center truncate">{preset.name}</div>
+            {onApplyToAll && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="absolute bottom-1 left-1 h-6 w-6 rounded-full bg-background/80 hover:bg-background/90"
+                onClick={(e) => handleApplyToAll(preset, e)}
+                title="Apply to all categories"
+              >
+                <Copy className="h-3 w-3" />
+              </Button>
+            )}
             {selectedValue === preset.value && (
               <div className="absolute top-1 right-1 bg-primary text-primary-foreground rounded-full p-0.5">
                 <Check className="h-3 w-3" />
@@ -52,4 +76,3 @@ export const GradientPresets = ({ presets, onSelectPreset, selectedValue }: Grad
     </div>
   );
 };
-
