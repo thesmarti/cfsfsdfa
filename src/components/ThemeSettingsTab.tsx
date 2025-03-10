@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +33,6 @@ export const ThemeSettingsTab = () => {
   
   // Navbar options state
   const [navStyle, setNavStyle] = useState(settings.navBar.navStyle);
-  const [tagline, setTagline] = useState(settings.navBar.tagline);
   
   // Tabs state
   const [activeTab, setActiveTab] = useState('navbar');
@@ -119,25 +117,6 @@ export const ThemeSettingsTab = () => {
     toast({
       title: "Navigation Style Updated",
       description: `The navigation style has been set to ${style}.`,
-    });
-  };
-  
-  const handleTaglineChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTagline(e.target.value);
-  };
-  
-  const saveTagline = () => {
-    updateSettings({
-      ...settings,
-      navBar: {
-        ...settings.navBar,
-        tagline
-      }
-    });
-    
-    toast({
-      title: "Tagline Updated",
-      description: "The site tagline has been updated successfully.",
     });
   };
   
@@ -305,24 +284,6 @@ export const ThemeSettingsTab = () => {
                 </div>
               </div>
             </div>
-            
-            {navStyle === 'centered' && (
-              <div className="space-y-2">
-                <Label htmlFor="tagline">Site Tagline</Label>
-                <div className="flex gap-2">
-                  <Input 
-                    id="tagline" 
-                    value={tagline} 
-                    onChange={handleTaglineChange}
-                    placeholder="Enter a catchy tagline for your site"
-                  />
-                  <Button onClick={saveTagline} className="shrink-0">Save</Button>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  This tagline appears below your logo in the centered navigation style.
-                </p>
-              </div>
-            )}
           </div>
         </TabsContent>
         
