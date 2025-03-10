@@ -1,13 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { SiteSettings } from '@/types';
+import { Save } from 'lucide-react';
 
 export const TextContentTab = () => {
   const { settings, updateTextContent } = useSiteSettings();
@@ -28,11 +29,32 @@ export const TextContentTab = () => {
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = (section: 'hero' | 'headings' | 'ui') => {
+    const sectionMap = {
+      hero: ['heroTitle', 'heroSubtitle'],
+      headings: ['featuredDealsTitle', 'allCouponsTitle', 'categoriesSectionTitle'],
+      ui: ['ctaButtonText', 'noResultsText', 'searchPlaceholder']
+    };
+    
+    const sectionData = Object.fromEntries(
+      Object.entries(textContent).filter(([key]) => 
+        sectionMap[section].includes(key as string)
+      )
+    );
+    
+    updateTextContent(sectionData as Partial<SiteSettings['textContent']>);
+    
+    toast({
+      title: 'Success',
+      description: `${section.charAt(0).toUpperCase() + section.slice(1)} section has been updated.`,
+    });
+  };
+
+  const handleSaveAll = () => {
     updateTextContent(textContent);
     toast({
       title: 'Success',
-      description: 'Text content settings have been updated.',
+      description: 'All text content settings have been updated.',
     });
   };
 
@@ -64,6 +86,12 @@ export const TextContentTab = () => {
             />
           </div>
         </CardContent>
+        <CardFooter className="flex justify-end">
+          <Button onClick={() => handleSave('hero')} className="gap-2">
+            <Save size={16} />
+            Save Hero Section
+          </Button>
+        </CardFooter>
       </Card>
 
       <Card>
@@ -99,6 +127,12 @@ export const TextContentTab = () => {
             />
           </div>
         </CardContent>
+        <CardFooter className="flex justify-end">
+          <Button onClick={() => handleSave('headings')} className="gap-2">
+            <Save size={16} />
+            Save Headings
+          </Button>
+        </CardFooter>
       </Card>
 
       <Card>
@@ -134,10 +168,22 @@ export const TextContentTab = () => {
             />
           </div>
         </CardContent>
+        <CardFooter className="flex justify-end">
+          <Button onClick={() => handleSave('ui')} className="gap-2">
+            <Save size={16} />
+            Save UI Text
+          </Button>
+        </CardFooter>
       </Card>
 
-      <div className="flex justify-end">
-        <Button onClick={handleSave}>Save Changes</Button>
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={() => setTextContent({...settings.textContent})}>
+          Reset Changes
+        </Button>
+        <Button onClick={handleSaveAll} className="gap-2">
+          <Save size={16} />
+          Save All Changes
+        </Button>
       </div>
     </div>
   );

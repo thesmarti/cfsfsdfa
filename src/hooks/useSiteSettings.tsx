@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { SiteSettings, NavButton, GradientPreset } from '@/types';
 
@@ -152,7 +151,8 @@ export const useSiteSettings = () => {
     document.documentElement.style.setProperty('--custom-secondary', appliedSettings.colors.secondary);
     document.documentElement.style.setProperty('--custom-accent', appliedSettings.colors.accent);
     
-    if (appliedSettings.colors.uiGradient) {
+    // Apply UI gradient or use primary color based on useCustomGradients setting
+    if (appliedSettings.colors.useCustomGradients && appliedSettings.colors.uiGradient) {
       document.documentElement.style.setProperty('--ui-gradient', appliedSettings.colors.uiGradient);
       
       const oldClasses = Array.from(document.documentElement.classList)
@@ -168,6 +168,14 @@ export const useSiteSettings = () => {
         .replace(/[^a-zA-Z0-9-]/g, '-');
       
       document.documentElement.classList.add(cleanClassName);
+    } else {
+      // Remove gradient classes when not using custom gradients
+      const oldClasses = Array.from(document.documentElement.classList)
+        .filter(c => c.startsWith('ui-gradient-'));
+      
+      if (oldClasses.length > 0) {
+        oldClasses.forEach(c => document.documentElement.classList.remove(c));
+      }
     }
     
     try {

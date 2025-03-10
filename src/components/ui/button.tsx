@@ -44,10 +44,18 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const { settings } = useSiteSettings();
     const Comp = asChild ? Slot : "button"
+    
+    // If gradient variant is selected but gradients are disabled, use default variant
+    const effectiveVariant = variant === 'gradient' && 
+      (!settings.colors.useCustomGradients || !settings.colors.uiGradient) ? 
+      'default' : variant;
+      
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(buttonVariants({ variant: effectiveVariant, size, className }), 
+          variant === 'gradient' && settings.colors.useCustomGradients && settings.colors.uiGradient)}
         ref={ref}
         {...props}
       />
