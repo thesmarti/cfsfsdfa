@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Search, Menu, X, Tag } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 export const Navbar = () => {
@@ -127,15 +126,12 @@ export const Navbar = () => {
                   className="pl-9 w-[200px] transition-all duration-300 focus:w-[300px]"
                 />
               </div>
-              
-              <ThemeToggle />
             </nav>
           )}
 
-          {/* Mobile Menu Button and Theme Toggle */}
+          {/* Mobile Menu Button (without ThemeToggle) */}
           {isMobile && (
             <div className="flex items-center gap-2">
-              <ThemeToggle />
               <Button
                 variant="ghost"
                 size="icon"
@@ -200,4 +196,3 @@ export const Navbar = () => {
     </header>
   );
 };
-
