@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Navbar } from '@/components/CustomNavbar';
@@ -63,7 +64,7 @@ const AdminPanel = () => {
   const [adminSection, setAdminSection] = useState<'coupons' | 'links' | 'settings' | 'theme' | 'text'>('coupons');
   
   const [selectedCoupons, setSelectedCoupons] = useState<string[]>([]);
-  const [bulkActionType, setBulkActionType] = useState<'status' | 'category' | 'featured' | 'delete' | null>(null);
+  const [bulkActionType, setBulkActionType] = useState<'status' | 'category' | 'featured' | 'delete' | 'contentLocker' | null>(null);
   const [bulkActionValue, setBulkActionValue] = useState<string>('');
   const [isBulkActionDialogOpen, setIsBulkActionDialogOpen] = useState(false);
   
@@ -176,6 +177,8 @@ const AdminPanel = () => {
           updates.category = bulkActionValue as 'GAME CODE' | 'DISCOUNT CODE' | 'COUPON CODE' | 'FREE CODE';
         } else if (bulkActionType === 'featured') {
           updates.featured = bulkActionValue === 'true';
+        } else if (bulkActionType === 'contentLocker') {
+          updates.contentLockerLinkId = bulkActionValue === 'none' ? undefined : bulkActionValue;
         }
         
         await bulkUpdateCoupons(selectedCoupons, updates);
@@ -190,7 +193,7 @@ const AdminPanel = () => {
     }
   };
   
-  const openBulkActionDialog = (actionType: 'status' | 'category' | 'featured' | 'delete') => {
+  const openBulkActionDialog = (actionType: 'status' | 'category' | 'featured' | 'delete' | 'contentLocker') => {
     if (selectedCoupons.length === 0) {
       toast({
         title: "No Coupons Selected",
@@ -397,6 +400,9 @@ const AdminPanel = () => {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => openBulkActionDialog('featured')}>
                                   Set Featured
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => openBulkActionDialog('contentLocker')}>
+                                  Change Content Locker Link
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem 
@@ -654,6 +660,25 @@ const AdminPanel = () => {
                     <SelectContent>
                       <SelectItem value="true">Yes</SelectItem>
                       <SelectItem value="false">No</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              
+              {bulkActionType === 'contentLocker' && (
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium">Content Locker Link</label>
+                  <Select value={bulkActionValue} onValueChange={setBulkActionValue}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select content locker link" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None (Remove Link)</SelectItem>
+                      {links.filter(link => link.active).map(link => (
+                        <SelectItem key={link.id} value={link.id}>
+                          {link.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
