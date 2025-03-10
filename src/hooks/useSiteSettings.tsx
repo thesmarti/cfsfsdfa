@@ -13,10 +13,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
       { id: 'categories', label: 'Categories', path: '/categories', enabled: true },
       { id: 'stores', label: 'Stores', path: '/stores', enabled: true }
     ],
-    showAdminButton: false,
-    enableParticles: true,
-    particlesColor: '#8b5cf6',
-    particlesDensity: 50
+    showAdminButton: false
   },
   colors: {
     primary: '#3b82f6',

@@ -1,4 +1,4 @@
-
+<lov-code>
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-import { Settings, Palette, Type, Image, Paintbrush, User, Upload, Menu, Plus, Trash2, Sparkles } from 'lucide-react';
+import { Settings, Palette, Type, Image, User, Upload, Menu, Plus, Trash2, Paintbrush } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Progress } from "@/components/ui/progress";
@@ -27,9 +27,6 @@ export const SiteSettingsPanel = () => {
     logoUrl: settings.navBar.logoUrl,
     siteTitle: settings.navBar.siteTitle,
     showAdminButton: settings.navBar.showAdminButton,
-    enableParticles: settings.navBar.enableParticles,
-    particlesColor: settings.navBar.particlesColor,
-    particlesDensity: settings.navBar.particlesDensity
   });
   
   const [navButtons, setNavButtons] = useState<NavButton[]>(
@@ -82,10 +79,7 @@ export const SiteSettingsPanel = () => {
       showText: settings.navBar.showText,
       logoUrl: settings.navBar.logoUrl,
       siteTitle: settings.navBar.siteTitle,
-      showAdminButton: settings.navBar.showAdminButton,
-      enableParticles: settings.navBar.enableParticles,
-      particlesColor: settings.navBar.particlesColor,
-      particlesDensity: settings.navBar.particlesDensity
+      showAdminButton: settings.navBar.showAdminButton
     });
     
     setNavButtons(settings.navBar.buttons || []);
@@ -97,7 +91,7 @@ export const SiteSettingsPanel = () => {
       useCustomGradients: settings.colors.useCustomGradients || false,
       defaultGradient: settings.colors.defaultGradient || 'bg-gradient-to-br from-violet-500 to-purple-600',
       fashionGradient: settings.colors.fashionGradient || 'bg-gradient-to-br from-pink-500 to-purple-600',
-      foodGradient: settings.colors.foodGradient || 'bg-gradient-to-br from-orange-400 to-red-500',
+      foodGradient: settings.colors.fashionGradient || 'bg-gradient-to-br from-orange-400 to-red-500',
       electronicsGradient: settings.colors.electronicsGradient || 'bg-gradient-to-br from-blue-400 to-indigo-600',
       travelGradient: settings.colors.travelGradient || 'bg-gradient-to-br from-teal-400 to-emerald-500',
       beautyGradient: settings.colors.beautyGradient || 'bg-gradient-to-br from-fuchsia-400 to-pink-500',
@@ -547,64 +541,6 @@ export const SiteSettingsPanel = () => {
                 </div>
               </div>
               
-              <Separator className="my-4" />
-              
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Sparkles size={18} />
-                    <h3 className="text-base font-medium">Particles Effect</h3>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="enableParticles"
-                      checked={navBarForm.enableParticles}
-                      onCheckedChange={(checked) => setNavBarForm({...navBarForm, enableParticles: checked})}
-                    />
-                    <Label htmlFor="enableParticles">Enable Particles Background</Label>
-                  </div>
-                  
-                  {navBarForm.enableParticles && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <Label htmlFor="particlesColor">Particles Color</Label>
-                        <div className="flex gap-2">
-                          <div 
-                            className="w-10 h-10 rounded-md border"
-                            style={{ backgroundColor: navBarForm.particlesColor }}
-                          ></div>
-                          <Input 
-                            id="particlesColor"
-                            type="color"
-                            value={navBarForm.particlesColor}
-                            onChange={(e) => setNavBarForm({...navBarForm, particlesColor: e.target.value})}
-                            className="w-full"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <Label htmlFor="particlesDensity">Particles Density</Label>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            id="particlesDensity"
-                            type="number"
-                            min={10}
-                            max={200}
-                            value={navBarForm.particlesDensity}
-                            onChange={(e) => setNavBarForm({...navBarForm, particlesDensity: parseInt(e.target.value)})}
-                          />
-                          <span className="text-sm text-muted-foreground whitespace-nowrap">(10-200)</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
               <Button type="submit" className="w-full">Save Navigation Settings</Button>
             </form>
           </TabsContent>
@@ -927,43 +863,4 @@ export const SiteSettingsPanel = () => {
                     <Input 
                       id="currentPassword"
                       type="password"
-                      placeholder="Enter current password"
-                      value={adminForm.currentPassword}
-                      onChange={(e) => setAdminForm({...adminForm, currentPassword: e.target.value})}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <Label htmlFor="newPassword">New Password (leave blank to keep current)</Label>
-                    <Input 
-                      id="newPassword"
-                      type="password"
-                      placeholder="Enter new password"
-                      value={adminForm.newPassword}
-                      onChange={(e) => setAdminForm({...adminForm, newPassword: e.target.value})}
-                    />
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                    <Input 
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="Confirm new password"
-                      value={adminForm.confirmPassword}
-                      onChange={(e) => setAdminForm({...adminForm, confirmPassword: e.target.value})}
-                      disabled={!adminForm.newPassword}
-                    />
-                  </div>
-                </div>
-              </div>
-              
-              <Button type="submit" className="w-full">Update Admin Credentials</Button>
-            </form>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
-  );
-};
+                      placeholder
