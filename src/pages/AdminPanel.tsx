@@ -212,6 +212,8 @@ const AdminPanel = () => {
         variant: "destructive",
       });
       setIsBulkActionDialogOpen(false);
+      setBulkActionType(null);
+      setBulkActionValue('');
     }
   };
   
@@ -711,7 +713,11 @@ const AdminPanel = () => {
       
       <Dialog 
         open={deletingCouponId !== null} 
-        onOpenChange={() => setDeletingCouponId(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeletingCouponId(null);
+          }
+        }}
       >
         <DialogContent>
           <DialogHeader>
