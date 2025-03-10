@@ -3,16 +3,15 @@ import { useState, useEffect } from 'react';
 import { ThemeSelector } from './ThemeSelector';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { CloudUpload } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 type ThemeOption = "light" | "dark" | "system";
 
 export const ThemeSettingsTab = () => {
   const [currentTheme, setCurrentTheme] = useState<ThemeOption>('system');
   const [isSyncing, setIsSyncing] = useState(false);
-  const supabase = useSupabaseClient();
   const { toast } = useToast();
 
   // Load theme from Supabase on mount
@@ -20,39 +19,49 @@ export const ThemeSettingsTab = () => {
     const loadThemeFromSupabase = async () => {
       setIsSyncing(true);
       try {
+        console.log('Loading theme from Supabase');
         const { data, error } = await supabase
           .from('site_settings')
           .select('theme')
-          .single();
+          .maybeSingle();
         
-        if (error) {
+        if (error && error.code !== 'PGRST116') {
           console.error('Error fetching theme setting:', error);
-          // If no theme setting exists yet, set up with current theme
-          if (error.code === 'PGRST116') {
-            // Get theme from localStorage for first-time migration
-            const storedTheme = localStorage.getItem('theme');
-            const initialTheme = storedTheme === 'dark' ? 'dark' : 
-                                storedTheme === 'light' ? 'light' : 
-                                'system';
-            
-            await saveThemeToSupabase(initialTheme);
-            setCurrentTheme(initialTheme);
-            applyThemeToDocument(initialTheme);
-          }
-        } else if (data?.theme) {
+          throw error;
+        }
+        
+        if (data?.theme) {
           // Update local state with the theme from Supabase
+          console.log('Theme loaded from Supabase:', data.theme);
           setCurrentTheme(data.theme as ThemeOption);
           applyThemeToDocument(data.theme as ThemeOption);
+        } else if (error && error.code === 'PGRST116') {
+          // If no theme setting exists yet, set up with current theme
+          console.log('No theme setting found, creating default');
+          // Get theme from localStorage for first-time migration
+          const storedTheme = localStorage.getItem('theme');
+          const initialTheme = storedTheme === 'dark' ? 'dark' : 
+                              storedTheme === 'light' ? 'light' : 
+                              'system';
+          
+          await saveThemeToSupabase(initialTheme);
+          setCurrentTheme(initialTheme);
+          applyThemeToDocument(initialTheme);
         }
       } catch (error) {
         console.error('Error loading theme:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load theme setting. Please try again.',
+          variant: 'destructive',
+        });
       } finally {
         setIsSyncing(false);
       }
     };
 
     loadThemeFromSupabase();
-  }, [supabase]);
+  }, []);
 
   const applyThemeToDocument = (theme: ThemeOption) => {
     if (theme === 'system') {

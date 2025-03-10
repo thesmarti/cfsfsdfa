@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -6,16 +5,15 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { SiteSettings } from '@/types';
 import { Save, CloudUpload } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import { supabase } from '@/integrations/supabase/client';
 
 export const TextContentTab = () => {
   const { settings, updateTextContent } = useSiteSettings();
   const { toast } = useToast();
-  const supabase = useSupabaseClient();
   const [textContent, setTextContent] = useState<SiteSettings['textContent']>({
     ...settings.textContent
   });
@@ -65,7 +63,7 @@ export const TextContentTab = () => {
     };
 
     loadSettingsFromSupabase();
-  }, [supabase]);
+  }, []);
 
   const handleInputChange = (key: keyof SiteSettings['textContent'], value: string) => {
     setTextContent(prev => ({
