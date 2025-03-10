@@ -1,6 +1,7 @@
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useToast } from "@/components/ui/use-toast";
-import { Coupon, ContentLockerLink } from '@/types';
+import { Coupon, ContentLockerLink, SortOption, FilterOption } from '@/types';
 
 // Custom hook to manage coupons and content locker links
 export const useCoupons = () => {
@@ -9,6 +10,8 @@ export const useCoupons = () => {
   const [links, setLinks] = useState<ContentLockerLink[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [filterBy, setFilterBy] = useState<FilterOption>('all');
 
   // Function to initialize coupons from localStorage
   const initializeCoupons = useCallback(() => {
@@ -51,6 +54,16 @@ export const useCoupons = () => {
   
   const activeCoupons = useMemo(() => {
     return coupons.filter(coupon => coupon.status === 'active');
+  }, [coupons]);
+  
+  const featuredCoupons = useMemo(() => {
+    return coupons.filter(coupon => coupon.featured === true);
+  }, [coupons]);
+
+  // Get a specific coupon by its ID
+  const getCouponById = useCallback((id: string): Coupon | null => {
+    const coupon = coupons.find(c => c.id === id);
+    return coupon || null;
   }, [coupons]);
 
   useEffect(() => {
@@ -230,19 +243,29 @@ export const useCoupons = () => {
     }
   };
 
-  const updateLink = async (id: string, updates: Omit<ContentLockerLink, 'id' | 'createdAt'>) => {
+  const updateLink = async (id: string, updates: Partial<ContentLockerLink>) => {
     try {
       setLoading(true);
+      const linkToUpdate = links.find(link => link.id === id);
+      
+      if (!linkToUpdate) {
+        throw new Error('Link not found');
+      }
+      
+      const updatedLink = { ...linkToUpdate, ...updates };
       const updatedLinks = links.map(link =>
-        link.id === id ? { ...link, ...updates } : link
+        link.id === id ? updatedLink : link
       );
+      
       setLinks(updatedLinks);
       localStorage.setItem('contentLockerLinks', JSON.stringify(updatedLinks));
+      
       toast({
         title: "Success",
         description: "Content locker link updated successfully.",
       });
-      return true;
+      
+      return updatedLink;
     } catch (error) {
       console.error('Error updating content locker link:', error);
       toast({
@@ -250,7 +273,7 @@ export const useCoupons = () => {
         description: "Failed to update content locker link. Please try again.",
         variant: "destructive",
       });
-      return false;
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -284,14 +307,20 @@ export const useCoupons = () => {
     coupons,
     links,
     activeCoupons,
+    featuredCoupons,
     loading,
     error,
+    sortBy,
+    filterBy,
+    setSortBy,
+    setFilterBy,
     addCoupon,
     updateCoupon,
     deleteCoupon,
     bulkUpdateCoupons,
     bulkDeleteCoupons,
     refreshCoupons,
+    getCouponById,
     addLink,
     updateLink,
     deleteLink
