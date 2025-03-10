@@ -15,7 +15,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { NavButton } from "@/types";
-import ParticlesBackground from "@/components/ParticlesBackground";
+import { ParticlesBackground } from "@/components/ParticlesBackground";
 import { cn } from "@/lib/utils";
 import { Menu, Search } from "lucide-react";
 
