@@ -121,7 +121,7 @@ const Index = () => {
           </div>
           
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-auto mb-8 gap-1">
+            <TabsList className="flex flex-wrap mb-8 bg-muted p-1 rounded-md">
               <TabsTrigger 
                 value="all" 
                 className={activeTab === "all" ? `text-white ${gradientClass}` : ""}
