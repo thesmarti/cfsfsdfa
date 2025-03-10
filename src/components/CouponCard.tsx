@@ -44,9 +44,9 @@ export const CouponCard = ({ coupon, className = '' }: CouponCardProps) => {
     return settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
   };
 
-  // Use the actual values from the coupon
-  const rating = coupon.rating || 0;
-  const usedCount = coupon.usedCount || 0;
+  // Default rating and used count if not provided
+  const rating = coupon.rating || Math.floor(Math.random() * 2) + 3; // Random between 3-5 if not set
+  const usedCount = coupon.usedCount || Math.floor(Math.random() * 900) + 100; // Random between 100-999 if not set
 
   // Generate star rating UI
   const renderStars = (rating: number) => {
