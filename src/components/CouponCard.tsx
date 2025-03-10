@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Coupon, ContentLockerLink } from '@/types';
-import { Tag, Calendar, ExternalLink } from 'lucide-react';
+import { Tag, Calendar, ExternalLink, Star, StarHalf, StarOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 
@@ -42,6 +42,35 @@ export const CouponCard = ({ coupon, className = '' }: CouponCardProps) => {
   // Always use the UI gradient from site settings if available
   const getGradient = () => {
     return settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
+  };
+
+  // Default rating and used count if not provided
+  const rating = coupon.rating || Math.floor(Math.random() * 2) + 3; // Random between 3-5 if not set
+  const usedCount = coupon.usedCount || Math.floor(Math.random() * 900) + 100; // Random between 100-999 if not set
+
+  // Generate star rating UI
+  const renderStars = (rating: number) => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    
+    // Add full stars
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(<Star key={`star-${i}`} size={14} className="fill-yellow-400 text-yellow-400" />);
+    }
+    
+    // Add half star if needed
+    if (hasHalfStar) {
+      stars.push(<StarHalf key="half-star" size={14} className="fill-yellow-400 text-yellow-400" />);
+    }
+    
+    // Add empty stars
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+    for (let i = 0; i < emptyStars; i++) {
+      stars.push(<StarOff key={`empty-${i}`} size={14} className="text-gray-300" />);
+    }
+    
+    return stars;
   };
 
   return (
@@ -87,6 +116,18 @@ export const CouponCard = ({ coupon, className = '' }: CouponCardProps) => {
           <div className="text-base font-medium line-clamp-2 h-12">
             {coupon.description}
           </div>
+          
+          {/* Star rating and users count */}
+          <div className="flex items-center justify-between mt-3 mb-1">
+            <div className="flex items-center">
+              {renderStars(rating)}
+              <span className="ml-1 text-xs text-muted-foreground">({rating.toFixed(1)})</span>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              <span className="font-semibold text-primary">{usedCount}</span> Users used this coupon
+            </div>
+          </div>
+          
           <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
             <Calendar size={12} />
             Expires: {formatDate(coupon.expiryDate)}

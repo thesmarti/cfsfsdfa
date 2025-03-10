@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { Coupon, SortOption, FilterOption, ContentLockerLink } from '@/types';
 import { useToast } from "@/components/ui/use-toast";
@@ -12,14 +11,16 @@ const defaultCoupons: Coupon[] = [
     description: 'Get 20% off any purchase over $50',
     discount: '20% OFF',
     expiryDate: '2023-12-31',
-    category: 'Electronics',
+    category: 'DISCOUNT CODE',
     featured: true,
     lastVerified: '2023-06-15',
     status: 'active',
     createdAt: '2023-01-15',
     updatedAt: '2023-06-15',
     redirectUrl: 'https://amazon.com',
-    image: 'https://images.unsplash.com/photo-1556740738-b6a63e27c4df?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1556740738-b6a63e27c4df?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    rating: 4.5,
+    usedCount: 754
   },
   {
     id: '2',
@@ -28,14 +29,16 @@ const defaultCoupons: Coupon[] = [
     description: '$30 off purchases of $100 or more',
     discount: '$30 OFF',
     expiryDate: '2023-08-31',
-    category: 'Electronics',
+    category: 'DISCOUNT CODE',
     featured: true,
     lastVerified: '2023-06-20',
     status: 'active',
     createdAt: '2023-05-10',
     updatedAt: '2023-06-20',
     redirectUrl: 'https://bestbuy.com',
-    image: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    rating: 4.0,
+    usedCount: 412
   },
   {
     id: '3',
@@ -44,14 +47,16 @@ const defaultCoupons: Coupon[] = [
     description: '25% off running shoes',
     discount: '25% OFF',
     expiryDate: '2023-09-15',
-    category: 'Fashion',
+    category: 'COUPON CODE',
     featured: false,
     lastVerified: '2023-06-10',
     status: 'active',
     createdAt: '2023-06-01',
     updatedAt: '2023-06-10',
     redirectUrl: 'https://nike.com',
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    rating: 3.5,
+    usedCount: 289
   },
   {
     id: '4',
@@ -60,14 +65,16 @@ const defaultCoupons: Coupon[] = [
     description: 'Free delivery on your first order',
     discount: 'FREE DELIVERY',
     expiryDate: '2023-12-31',
-    category: 'Food',
+    category: 'FREE CODE',
     featured: true,
     lastVerified: '2023-06-18',
     status: 'active',
     createdAt: '2023-06-05',
     updatedAt: '2023-06-18',
     redirectUrl: 'https://ubereats.com',
-    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    rating: 5.0,
+    usedCount: 967
   },
   {
     id: '5',
@@ -76,30 +83,34 @@ const defaultCoupons: Coupon[] = [
     description: '10% off your entire purchase',
     discount: '10% OFF',
     expiryDate: '2023-07-31',
-    category: 'Retail',
+    category: 'DISCOUNT CODE',
     featured: false,
     lastVerified: '2023-06-12',
     status: 'active',
     createdAt: '2023-04-22',
     updatedAt: '2023-06-12',
     redirectUrl: 'https://walmart.com',
-    image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    rating: 3.5,
+    usedCount: 213
   },
   {
     id: '6',
-    store: 'Target',
-    code: 'TARGET15',
-    description: '$15 off purchases of $75 or more',
-    discount: '$15 OFF',
+    store: 'Steam',
+    code: 'GAME15OFF',
+    description: '15% off select Steam games',
+    discount: '15% OFF',
     expiryDate: '2023-11-30',
-    category: 'Retail',
+    category: 'GAME CODE',
     featured: false,
     lastVerified: '2023-06-14',
     status: 'active',
     createdAt: '2023-05-30',
     updatedAt: '2023-06-14',
-    redirectUrl: 'https://target.com',
-    image: 'https://images.unsplash.com/photo-1521320226546-87b106cd7e38?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
+    redirectUrl: 'https://store.steampowered.com',
+    image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    rating: 4.5,
+    usedCount: 532
   }
 ];
 
@@ -238,6 +249,16 @@ export const useCoupons = () => {
   const addCoupon = useCallback(async (coupon: Omit<Coupon, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       setLoading(true);
+      
+      // If rating is not provided, set a default rating
+      if (!coupon.rating) {
+        coupon.rating = Math.floor(Math.random() * 2) + 3 + Math.random() * 0.5;
+      }
+      
+      // If usedCount is not provided, set a random default
+      if (!coupon.usedCount) {
+        coupon.usedCount = Math.floor(Math.random() * 900) + 100;
+      }
       
       const now = new Date().toISOString();
       const newCoupon: Coupon = {

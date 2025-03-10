@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Calendar, Tag, ArrowLeft, Lock } from 'lucide-react';
+import { ExternalLink, Calendar, Tag, ArrowLeft, Lock, Star, StarHalf, StarOff, Users } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { useCoupons } from '@/hooks/useCoupons';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
@@ -80,6 +81,35 @@ const CouponDetail = () => {
   const visiblePart = couponCode.substring(0, halfLength);
   const blurredPart = couponCode.substring(halfLength);
   
+  // Default rating and used count if not provided
+  const rating = coupon?.rating || Math.floor(Math.random() * 2) + 3; // Random between 3-5 if not set
+  const usedCount = coupon?.usedCount || Math.floor(Math.random() * 900) + 100; // Random between 100-999 if not set
+  
+  // Generate star rating UI
+  const renderStars = (rating: number) => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    
+    // Add full stars
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(<Star key={`star-${i}`} size={16} className="fill-yellow-400 text-yellow-400" />);
+    }
+    
+    // Add half star if needed
+    if (hasHalfStar) {
+      stars.push(<StarHalf key="half-star" size={16} className="fill-yellow-400 text-yellow-400" />);
+    }
+    
+    // Add empty stars
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+    for (let i = 0; i < emptyStars; i++) {
+      stars.push(<StarOff key={`empty-${i}`} size={16} className="text-gray-300" />);
+    }
+    
+    return stars;
+  };
+  
   return (
     <div className="min-h-screen pb-20">
       <Navbar />
@@ -140,6 +170,17 @@ const CouponDetail = () => {
               </CardHeader>
               
               <CardContent className="py-6">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center">
+                    {renderStars(rating)}
+                    <span className="ml-2 text-sm">({rating.toFixed(1)})</span>
+                  </div>
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Users size={16} className="mr-1" /> 
+                    <span className="font-semibold text-primary">{usedCount}</span> Users used this coupon
+                  </div>
+                </div>
+                
                 <div className="text-xl mb-8">
                   {coupon.description}
                 </div>

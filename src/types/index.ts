@@ -1,4 +1,3 @@
-
 export interface Coupon {
   id: string;
   store: string;
@@ -6,7 +5,7 @@ export interface Coupon {
   description: string;
   discount: string;
   expiryDate: string;
-  category: string;
+  category: 'GAME CODE' | 'DISCOUNT CODE' | 'COUPON CODE' | 'FREE CODE';
   featured?: boolean;
   lastVerified?: string;
   status: 'active' | 'expired' | 'upcoming';
@@ -14,8 +13,10 @@ export interface Coupon {
   updatedAt: string;
   redirectUrl?: string;
   image?: string;
-  contentLockerLinkId?: string; // Link to content locker
-  contentLockerLink?: ContentLockerLink; // Added direct reference to the content locker link
+  contentLockerLinkId?: string;
+  contentLockerLink?: ContentLockerLink;
+  rating?: number;
+  usedCount?: number;
 }
 
 export interface User {
@@ -74,7 +75,7 @@ export interface SiteSettings {
     beautyGradient?: string;
     homeGradient?: string;
     gradientPresets?: GradientPreset[];
-    uiGradient?: string; // Added UI gradient for application-wide use
+    uiGradient?: string;
   };
   general: {
     siteDescription: string;

@@ -8,9 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Coupon, ContentLockerLink } from '@/types';
-import { X, Upload, Image as ImageIcon, Link, Plus } from 'lucide-react';
+import { X, Upload, Image as ImageIcon, Link, Plus, Star } from 'lucide-react';
 import { useCoupons } from '@/hooks/useCoupons';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Slider } from "@/components/ui/slider";
 
 interface AdminCouponFormProps {
   editCoupon?: Coupon;
@@ -28,12 +29,14 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
     description: '',
     discount: '',
     expiryDate: '',
-    category: '',
+    category: 'COUPON CODE',
     featured: false,
     lastVerified: new Date().toISOString().split('T')[0],
     status: 'active',
     image: '',
-    contentLockerLinkId: undefined
+    contentLockerLinkId: undefined,
+    rating: 4.5,
+    usedCount: Math.floor(Math.random() * 900) + 100 // Random between 100-999
   });
   
   // For new content locker link functionality
@@ -85,6 +88,19 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
       }
     };
     reader.readAsDataURL(file);
+  };
+  
+  // Handle rating change
+  const handleRatingChange = (value: number[]) => {
+    setFormData(prev => ({ ...prev, rating: value[0] }));
+  };
+  
+  // Handle used count change
+  const handleUsedCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    if (!isNaN(value) && value >= 0) {
+      setFormData(prev => ({ ...prev, usedCount: value }));
+    }
   };
   
   // Handle new link form changes
@@ -199,13 +215,10 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Electronics">Electronics</SelectItem>
-                <SelectItem value="Fashion">Fashion</SelectItem>
-                <SelectItem value="Food">Food</SelectItem>
-                <SelectItem value="Travel">Travel</SelectItem>
-                <SelectItem value="Retail">Retail</SelectItem>
-                <SelectItem value="Beauty">Beauty</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
+                <SelectItem value="GAME CODE">GAME CODE</SelectItem>
+                <SelectItem value="DISCOUNT CODE">DISCOUNT CODE</SelectItem>
+                <SelectItem value="COUPON CODE">COUPON CODE</SelectItem>
+                <SelectItem value="FREE CODE">FREE CODE</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -269,6 +282,47 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
               </Button>
             </div>
           </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="usedCount">Users Used Count</Label>
+            <Input
+              id="usedCount"
+              name="usedCount"
+              type="number"
+              min="0"
+              value={formData.usedCount}
+              onChange={handleUsedCountChange}
+              placeholder="e.g. 250"
+            />
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="rating">Rating ({formData.rating?.toFixed(1)} stars)</Label>
+            <div className="flex items-center">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  size={16}
+                  className={`${
+                    star <= Math.floor(formData.rating || 0) 
+                      ? "fill-yellow-400 text-yellow-400" 
+                      : star <= (formData.rating || 0) 
+                        ? "fill-yellow-400 text-yellow-400" 
+                        : "text-gray-300"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+          <Slider
+            defaultValue={[formData.rating || 4.5]}
+            max={5}
+            step={0.5}
+            value={[formData.rating || 4.5]}
+            onValueChange={handleRatingChange}
+          />
         </div>
         
         <div className="space-y-2">
