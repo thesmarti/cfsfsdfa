@@ -92,8 +92,12 @@ export const Navbar = () => {
               {settings.navBar.buttons.filter(btn => btn.enabled).map(button => (
                 <Link key={button.id} to={button.path}>
                   <Button 
-                    variant="ghost"
-                    className={`${location.pathname === button.path ? 'bg-accent' : ''}`}
+                    variant={location.pathname === button.path ? 'default' : 'ghost'} 
+                    className={`${
+                      location.pathname === button.path 
+                        ? buttonGradientClass + ' text-white border-none' 
+                        : 'hover:text-transparent hover:bg-clip-text hover:' + buttonGradientClass
+                    }`}
                   >
                     {button.label}
                   </Button>
@@ -108,7 +112,7 @@ export const Navbar = () => {
                     className={`${
                       location.pathname === '/admin' 
                         ? buttonGradientClass + ' border-none text-white dark:text-white' 
-                        : ''
+                        : 'hover:text-transparent hover:bg-clip-text hover:' + buttonGradientClass
                     }`}
                   >
                     Admin
@@ -161,8 +165,12 @@ export const Navbar = () => {
               {settings.navBar.buttons.filter(btn => btn.enabled).map(button => (
                 <Link key={button.id} to={button.path}>
                   <Button 
-                    variant="ghost" 
-                    className={`w-full justify-start ${location.pathname === button.path ? 'bg-accent' : ''}`}
+                    variant={location.pathname === button.path ? 'default' : 'ghost'} 
+                    className={`w-full justify-start ${
+                      location.pathname === button.path 
+                        ? buttonGradientClass + ' border-none text-white dark:text-white' 
+                        : ''
+                    }`}
                   >
                     {button.label}
                   </Button>
