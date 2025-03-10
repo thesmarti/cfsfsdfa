@@ -553,6 +553,50 @@ export const useCoupons = () => {
     }
   }, [fetchLinks, toast]);
 
+  // Import coupons function
+  const importCoupons = useCallback(async (importedCoupons: Omit<Coupon, 'id' | 'createdAt' | 'updatedAt'>[]) => {
+    try {
+      setLoading(true);
+      
+      // Create new coupons with generated IDs and timestamps
+      const now = new Date().toISOString();
+      const newCoupons = importedCoupons.map(coupon => ({
+        ...coupon,
+        id: `imp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        createdAt: now,
+        updatedAt: now,
+        rating: coupon.rating ?? (Math.floor(Math.random() * 2) + 3 + Math.random() * 0.5),
+        usedCount: coupon.usedCount ?? Math.floor(Math.random() * 900) + 100
+      }));
+      
+      // Add the new coupons to our "database"
+      couponsDatabase = [...couponsDatabase, ...newCoupons];
+      
+      // Save to localStorage
+      saveToStorage('coupons', couponsDatabase);
+      
+      // Refresh the coupon list
+      await fetchCoupons();
+      
+      toast({
+        title: "Success",
+        description: `${newCoupons.length} coupons imported successfully!`,
+      });
+      
+      return newCoupons;
+    } catch (err) {
+      console.error('Error importing coupons:', err);
+      toast({
+        title: "Error",
+        description: "Failed to import coupons. Please check your file format.",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchCoupons, toast]);
+
   const getCouponById = useCallback((id: string) => {
     return couponsDatabase.find(c => c.id === id) || null;
   }, []);
@@ -576,6 +620,7 @@ export const useCoupons = () => {
     refreshCoupons: fetchCoupons,
     addLink,
     updateLink,
-    deleteLink
+    deleteLink,
+    importCoupons
   };
 };

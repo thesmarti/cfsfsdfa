@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Navbar } from '@/components/CustomNavbar';
 import { LoginForm } from '@/components/LoginForm';
@@ -34,7 +33,9 @@ import {
   ChevronDown,
   Settings,
   Palette,
-  Type
+  Type,
+  Upload,
+  Download
 } from 'lucide-react';
 
 const AdminPanel = () => {
@@ -51,7 +52,8 @@ const AdminPanel = () => {
     refreshCoupons,
     addLink,
     updateLink,
-    deleteLink
+    deleteLink,
+    importCoupons
   } = useCoupons();
   
   const [user, setUser] = useState<User | null>(null);
@@ -67,6 +69,8 @@ const AdminPanel = () => {
   const [bulkActionType, setBulkActionType] = useState<'status' | 'category' | 'featured' | 'delete' | 'contentLocker' | null>(null);
   const [bulkActionValue, setBulkActionValue] = useState<string>('');
   const [isBulkActionDialogOpen, setIsBulkActionDialogOpen] = useState(false);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -207,6 +211,69 @@ const AdminPanel = () => {
     setIsBulkActionDialogOpen(true);
   };
   
+  const handleExportCoupons = () => {
+    const couponData = selectedCoupons.length > 0 
+      ? coupons.filter(coupon => selectedCoupons.includes(coupon.id))
+      : coupons;
+    
+    const exportData = couponData.map(({ id, createdAt, updatedAt, ...rest }) => rest);
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `coupons-export-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    
+    URL.revokeObjectURL(url);
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Export Successful",
+      description: `${exportData.length} coupons exported to JSON file.`,
+    });
+  };
+  
+  const handleImportClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+  
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const content = e.target?.result as string;
+        const importData = JSON.parse(content);
+        
+        if (!Array.isArray(importData)) {
+          throw new Error('Invalid format: Expected an array of coupons');
+        }
+        
+        await importCoupons(importData);
+        
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } catch (error) {
+        console.error('Import error:', error);
+        toast({
+          title: "Import Failed",
+          description: "The selected file is not a valid coupon export. Please check the file format.",
+          variant: "destructive",
+        });
+      }
+    };
+    
+    reader.readAsText(file);
+  };
+  
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -340,7 +407,7 @@ const AdminPanel = () => {
             {adminSection === 'coupons' && (
               <div>
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-                  <div className="flex gap-2 w-full md:w-auto">
+                  <div className="flex gap-2 w-full md:w-auto flex-wrap">
                     <Button
                       onClick={() => setIsAddingCoupon(true)}
                       className="gap-2"
@@ -356,6 +423,32 @@ const AdminPanel = () => {
                     >
                       Refresh
                     </Button>
+                    
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      onClick={handleExportCoupons}
+                    >
+                      <Download size={16} />
+                      Export
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      onClick={handleImportClick}
+                    >
+                      <Upload size={16} />
+                      Import
+                    </Button>
+                    
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      accept=".json"
+                      onChange={handleFileUpload}
+                    />
                   </div>
                   
                   <div className="relative w-full md:w-80">
