@@ -30,7 +30,9 @@ const DEFAULT_SETTINGS: SiteSettings = {
     showAdminButton: false,
     enableParticles: false,
     particlesColor: '#ffffff',
-    particlesDensity: 50
+    particlesDensity: 50,
+    navStyle: 'default',
+    tagline: 'Save Money with Premium Coupon Codes'
   },
   colors: {
     primary: '#3b82f6',

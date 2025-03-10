@@ -48,6 +48,198 @@ export const Navbar = () => {
   const textGradientClass = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
   const buttonGradientClass = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
 
+  // Render the default navbar style
+  const renderDefaultNavbar = () => (
+    <div className="flex items-center justify-between">
+      {/* Logo and brand */}
+      <Link to="/" className="flex items-center space-x-2">
+        {settings.navBar.showLogo && (
+          <img 
+            src={settings.navBar.logoUrl} 
+            alt="Logo" 
+            className="h-8 w-auto" 
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/50x50?text=Logo';
+            }}
+          />
+        )}
+        {settings.navBar.showText && (
+          <span className={`font-display font-semibold text-xl bg-clip-text text-transparent ${textGradientClass}`}>
+            {settings.navBar.siteTitle}
+          </span>
+        )}
+        {!settings.navBar.showLogo && !settings.navBar.showText && (
+          <>
+            <Tag size={24} className={`text-transparent bg-clip-text ${textGradientClass}`} />
+            <span className={`font-display font-semibold text-xl bg-clip-text text-transparent ${textGradientClass}`}>
+              LOLCoupons
+            </span>
+          </>
+        )}
+      </Link>
+
+      {/* Desktop Navigation */}
+      {!isMobile && (
+        <nav className="flex items-center space-x-1">
+          {settings.navBar.buttons.filter(btn => btn.enabled).map(button => (
+            <Link key={button.id} to={button.path}>
+              <Button 
+                variant={location.pathname === button.path ? 'gradient' : 'ghost'} 
+                className={`${
+                  location.pathname === button.path 
+                    ? buttonGradientClass
+                    : `hover:text-transparent hover:bg-clip-text hover:${buttonGradientClass}`
+                }`}
+              >
+                {button.label}
+              </Button>
+            </Link>
+          ))}
+          
+          {/* Admin button */}
+          {settings.navBar.showAdminButton && (
+            <Link to="/admin">
+              <Button 
+                variant={location.pathname === '/admin' ? 'gradient' : 'ghost'} 
+                className={`${
+                  location.pathname === '/admin' 
+                    ? buttonGradientClass
+                    : `hover:text-transparent hover:bg-clip-text hover:${buttonGradientClass}`
+                }`}
+              >
+                Admin
+              </Button>
+            </Link>
+          )}
+
+          <div className="ml-2 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+            <Input 
+              placeholder="Search coupons..." 
+              className="pl-9 w-[200px] transition-all duration-300 focus:w-[300px]"
+            />
+          </div>
+        </nav>
+      )}
+
+      {/* Mobile Menu Button (without ThemeToggle) */}
+      {isMobile && (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle menu"
+            className={`hover:text-transparent hover:bg-clip-text hover:${buttonGradientClass}`}
+          >
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+
+  // Render the centered navbar style with large logo and tagline
+  const renderCenteredNavbar = () => (
+    <div className="flex flex-col items-center justify-center">
+      {/* Large centered logo */}
+      {settings.navBar.showLogo && (
+        <Link to="/" className="mb-2">
+          <img 
+            src={settings.navBar.logoUrl} 
+            alt="Logo" 
+            className="h-16 w-auto" 
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/100x100?text=Logo';
+            }}
+          />
+        </Link>
+      )}
+      
+      {/* Site title */}
+      {settings.navBar.showText && (
+        <Link to="/" className="mb-1">
+          <h1 className={`font-display font-bold text-2xl bg-clip-text text-transparent ${textGradientClass}`}>
+            {settings.navBar.siteTitle}
+          </h1>
+        </Link>
+      )}
+      
+      {/* Tagline */}
+      <p className="text-sm text-muted-foreground mb-4">{settings.navBar.tagline}</p>
+      
+      {/* Navigation links - desktop */}
+      {!isMobile && (
+        <nav className="flex items-center space-x-2 mt-2">
+          {settings.navBar.buttons.filter(btn => btn.enabled).map(button => (
+            <Link key={button.id} to={button.path}>
+              <Button 
+                variant={location.pathname === button.path ? 'gradient' : 'ghost'} 
+                className={`${
+                  location.pathname === button.path 
+                    ? buttonGradientClass
+                    : `hover:text-transparent hover:bg-clip-text hover:${buttonGradientClass}`
+                }`}
+              >
+                {button.label}
+              </Button>
+            </Link>
+          ))}
+          
+          {/* Admin button */}
+          {settings.navBar.showAdminButton && (
+            <Link to="/admin">
+              <Button 
+                variant={location.pathname === '/admin' ? 'gradient' : 'ghost'} 
+                className={`${
+                  location.pathname === '/admin' 
+                    ? buttonGradientClass
+                    : `hover:text-transparent hover:bg-clip-text hover:${buttonGradientClass}`
+                }`}
+              >
+                Admin
+              </Button>
+            </Link>
+          )}
+        </nav>
+      )}
+      
+      {/* Search bar - desktop */}
+      {!isMobile && (
+        <div className="relative w-full max-w-md mt-4">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+          <Input 
+            placeholder="Search coupons..." 
+            className="pl-9 w-full"
+          />
+        </div>
+      )}
+      
+      {/* Mobile menu button */}
+      {isMobile && (
+        <div className="flex items-center justify-between w-full px-4 pt-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle menu"
+            className={`hover:text-transparent hover:bg-clip-text hover:${buttonGradientClass}`}
+          >
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </Button>
+          
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+            <Input 
+              placeholder="Search..." 
+              className="pl-9 w-[180px]"
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -57,93 +249,7 @@ export const Navbar = () => {
       }`}
     >
       <div className="container mx-auto px-4 relative z-10">
-        <div className="flex items-center justify-between">
-          {/* Logo and brand */}
-          <Link to="/" className="flex items-center space-x-2">
-            {settings.navBar.showLogo && (
-              <img 
-                src={settings.navBar.logoUrl} 
-                alt="Logo" 
-                className="h-8 w-auto" 
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/50x50?text=Logo';
-                }}
-              />
-            )}
-            {settings.navBar.showText && (
-              <span className={`font-display font-semibold text-xl bg-clip-text text-transparent ${textGradientClass}`}>
-                {settings.navBar.siteTitle}
-              </span>
-            )}
-            {!settings.navBar.showLogo && !settings.navBar.showText && (
-              <>
-                <Tag size={24} className={`text-transparent bg-clip-text ${textGradientClass}`} />
-                <span className={`font-display font-semibold text-xl bg-clip-text text-transparent ${textGradientClass}`}>
-                  LOLCoupons
-                </span>
-              </>
-            )}
-          </Link>
-
-          {/* Desktop Navigation */}
-          {!isMobile && (
-            <nav className="flex items-center space-x-1">
-              {settings.navBar.buttons.filter(btn => btn.enabled).map(button => (
-                <Link key={button.id} to={button.path}>
-                  <Button 
-                    variant={location.pathname === button.path ? 'gradient' : 'ghost'} 
-                    className={`${
-                      location.pathname === button.path 
-                        ? buttonGradientClass
-                        : `hover:text-transparent hover:bg-clip-text hover:${buttonGradientClass}`
-                    }`}
-                  >
-                    {button.label}
-                  </Button>
-                </Link>
-              ))}
-              
-              {/* Admin button */}
-              {settings.navBar.showAdminButton && (
-                <Link to="/admin">
-                  <Button 
-                    variant={location.pathname === '/admin' ? 'gradient' : 'ghost'} 
-                    className={`${
-                      location.pathname === '/admin' 
-                        ? buttonGradientClass
-                        : `hover:text-transparent hover:bg-clip-text hover:${buttonGradientClass}`
-                    }`}
-                  >
-                    Admin
-                  </Button>
-                </Link>
-              )}
-
-              <div className="ml-2 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
-                <Input 
-                  placeholder="Search coupons..." 
-                  className="pl-9 w-[200px] transition-all duration-300 focus:w-[300px]"
-                />
-              </div>
-            </nav>
-          )}
-
-          {/* Mobile Menu Button (without ThemeToggle) */}
-          {isMobile && (
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                aria-label="Toggle menu"
-                className={`hover:text-transparent hover:bg-clip-text hover:${buttonGradientClass}`}
-              >
-                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-              </Button>
-            </div>
-          )}
-        </div>
+        {settings.navBar.navStyle === 'centered' ? renderCenteredNavbar() : renderDefaultNavbar()}
 
         {/* Mobile Navigation */}
         {isMobile && isMenuOpen && (
