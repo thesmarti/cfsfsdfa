@@ -8,8 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Coupon, ContentLockerLink } from '@/types';
-import { X, Upload, Image as ImageIcon, Link } from 'lucide-react';
+import { X, Upload, Image as ImageIcon, Link, Plus } from 'lucide-react';
 import { useCoupons } from '@/hooks/useCoupons';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 
 interface AdminCouponFormProps {
   editCoupon?: Coupon;
@@ -19,7 +20,7 @@ interface AdminCouponFormProps {
 
 export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponFormProps) => {
   const { toast } = useToast();
-  const { links } = useCoupons();
+  const { links, addLink } = useCoupons();
   
   const [formData, setFormData] = useState<Omit<Coupon, 'id' | 'createdAt' | 'updatedAt'>>({
     store: '',
@@ -33,6 +34,14 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
     status: 'active',
     image: '',
     contentLockerLinkId: undefined
+  });
+  
+  // For new content locker link functionality
+  const [showNewLinkDialog, setShowNewLinkDialog] = useState(false);
+  const [newLink, setNewLink] = useState<Omit<ContentLockerLink, 'id' | 'createdAt'>>({
+    name: '',
+    url: '',
+    active: true
   });
   
   // If we're editing a coupon, populate the form with its data
@@ -76,6 +85,36 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
       }
     };
     reader.readAsDataURL(file);
+  };
+  
+  // Handle new link form changes
+  const handleNewLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewLink(prev => ({ ...prev, [name]: value }));
+  };
+  
+  // Handle creating a new content locker link
+  const handleCreateLink = async () => {
+    if (!newLink.name || !newLink.url) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in both name and URL fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const createdLink = await addLink(newLink);
+    if (createdLink) {
+      setFormData(prev => ({ ...prev, contentLockerLinkId: createdLink.id }));
+      setShowNewLinkDialog(false);
+      setNewLink({ name: '', url: '', active: true });
+      
+      toast({
+        title: "Success",
+        description: "Content locker link created and selected.",
+      });
+    }
   };
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -213,27 +252,34 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
           
           <div className="space-y-2">
             <Label htmlFor="contentLockerLink">Content Locker Link</Label>
-            <Select
-              value={formData.contentLockerLinkId || ''}
-              onValueChange={(value) => handleSelectChange('contentLockerLinkId', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select content locker link" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">None</SelectItem>
-                {activeLinks.map(link => (
-                  <SelectItem key={link.id} value={link.id}>
-                    {link.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              {activeLinks.length === 0 
-                ? "No active content locker links available. Create them in the Content Locker Links section." 
-                : "Link this coupon to a content locker"}
-            </p>
+            <div className="flex gap-2">
+              <Select
+                value={formData.contentLockerLinkId || ''}
+                onValueChange={(value) => handleSelectChange('contentLockerLinkId', value)}
+                className="flex-1"
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select content locker link" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {activeLinks.map(link => (
+                    <SelectItem key={link.id} value={link.id}>
+                      {link.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="icon"
+                onClick={() => setShowNewLinkDialog(true)}
+                className="shrink-0"
+              >
+                <Plus size={16} />
+              </Button>
+            </div>
           </div>
         </div>
         
@@ -319,6 +365,54 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
           </Button>
         </div>
       </form>
+
+      {/* Dialog for adding a new content locker link */}
+      <Dialog open={showNewLinkDialog} onOpenChange={setShowNewLinkDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Content Locker Link</DialogTitle>
+            <DialogDescription>
+              Create a new link that users must complete before accessing the coupon code.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="linkName">Link Name</Label>
+              <Input
+                id="linkName"
+                name="name"
+                value={newLink.name}
+                onChange={handleNewLinkChange}
+                placeholder="e.g. Amazon Shop"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="linkUrl">URL</Label>
+              <Input
+                id="linkUrl"
+                name="url"
+                value={newLink.url}
+                onChange={handleNewLinkChange}
+                placeholder="e.g. https://example.com"
+              />
+              <p className="text-xs text-muted-foreground">
+                Users will need to visit this URL before seeing the coupon code.
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewLinkDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateLink}>
+              Create Link
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

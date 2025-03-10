@@ -14,7 +14,8 @@ export interface Coupon {
   updatedAt: string;
   redirectUrl?: string;
   image?: string;
-  contentLockerLinkId?: string; // New field to link to content locker
+  contentLockerLinkId?: string; // Link to content locker
+  contentLockerLink?: ContentLockerLink; // Added direct reference to the content locker link
 }
 
 export interface User {
