@@ -7,9 +7,10 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface FeaturedCouponsProps {
   coupons: Coupon[];
+  hideTitle?: boolean;
 }
 
-export const FeaturedCoupons = ({ coupons }: FeaturedCouponsProps) => {
+export const FeaturedCoupons = ({ coupons, hideTitle = true }: FeaturedCouponsProps) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [autoplay, setAutoplay] = useState(true);
   const autoplayRef = useRef<NodeJS.Timeout | null>(null);
@@ -74,11 +75,13 @@ export const FeaturedCoupons = ({ coupons }: FeaturedCouponsProps) => {
       onMouseLeave={handleMouseLeave}
     >
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-display font-semibold">
-          Featured Deals
-        </h2>
+        {!hideTitle && (
+          <h2 className="text-2xl font-display font-semibold">
+            Featured Deals
+          </h2>
+        )}
         
-        <div className="flex gap-2">
+        <div className={`flex gap-2 ${hideTitle ? 'ml-auto' : ''}`}>
           <Button
             variant="outline"
             size="icon"
