@@ -2,9 +2,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Search, Menu, X, Tag } from 'lucide-react';
+import { Menu, Tag } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 
@@ -118,18 +117,10 @@ export const Navbar = () => {
                   </Button>
                 </Link>
               )}
-
-              <div className="ml-2 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
-                <Input 
-                  placeholder="Search coupons..." 
-                  className="pl-9 w-[200px] transition-all duration-300 focus:w-[300px]"
-                />
-              </div>
             </nav>
           )}
 
-          {/* Mobile Menu Button (without ThemeToggle) */}
+          {/* Mobile Menu Button */}
           {isMobile && (
             <div className="flex items-center gap-2">
               <Button
@@ -139,7 +130,7 @@ export const Navbar = () => {
                 aria-label="Toggle menu"
                 className={`hover:text-transparent hover:bg-clip-text hover:${buttonGradientClass}`}
               >
-                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                {isMenuOpen ? <Menu size={24} className="rotate-90 transition-transform duration-200" /> : <Menu size={24} />}
               </Button>
             </div>
           )}
@@ -149,14 +140,6 @@ export const Navbar = () => {
         {isMobile && isMenuOpen && (
           <div className="absolute top-full left-0 right-0 bg-background/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-border animate-slide-down z-50">
             <div className="container py-4 px-4 flex flex-col space-y-2">
-              <div className="relative mb-2">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
-                <Input 
-                  placeholder="Search coupons..." 
-                  className="pl-9 w-full"
-                />
-              </div>
-              
               <Separator className="my-2" />
               
               {settings.navBar.buttons.filter(btn => btn.enabled).map(button => (

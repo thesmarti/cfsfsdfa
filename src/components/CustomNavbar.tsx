@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -17,14 +16,12 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { NavButton } from "@/types";
 import { ParticlesBackground } from "@/components/ParticlesBackground";
 import { cn } from "@/lib/utils";
-import { Menu, Search } from "lucide-react";
+import { Menu } from "lucide-react";
 
 export const Navbar = () => {
   const { settings } = useSiteSettings();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const location = useLocation();
   
   const isAdminPage = location.pathname === "/admin";
@@ -41,13 +38,6 @@ export const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-  
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle search functionality here
-    console.log("Searching for:", searchQuery);
-    setIsSearchOpen(false);
-  };
   
   // Filter out disabled nav buttons
   const enabledButtons = settings.navBar.buttons.filter(button => button.enabled);
@@ -98,15 +88,6 @@ export const Navbar = () => {
               </NavigationMenuList>
             </NavigationMenu>
             
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsSearchOpen(true)}
-              aria-label="Search"
-            >
-              <Search className="h-5 w-5" />
-            </Button>
-            
             {settings.navBar.showAdminButton && !isAdminPage && (
               <Button asChild>
                 <Link to="/admin">Admin</Link>
@@ -115,15 +96,6 @@ export const Navbar = () => {
           </div>
           
           <div className="md:hidden flex items-center gap-2 z-10">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsSearchOpen(true)}
-              aria-label="Search"
-            >
-              <Search className="h-5 w-5" />
-            </Button>
-            
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" aria-label="Menu">
@@ -158,33 +130,6 @@ export const Navbar = () => {
           </div>
         </div>
       </div>
-      
-      {/* Search overlay */}
-      {isSearchOpen && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-md z-50 flex items-start justify-center pt-20">
-          <div className="w-full max-w-2xl p-4">
-            <form onSubmit={handleSearch} className="relative">
-              <Input
-                type="search"
-                placeholder="Search for coupons..."
-                className="pr-10 text-lg py-6"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                autoFocus
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                onClick={() => setIsSearchOpen(false)}
-              >
-                ✕
-              </Button>
-            </form>
-          </div>
-        </div>
-      )}
     </header>
   );
 };
