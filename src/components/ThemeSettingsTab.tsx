@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CloudUpload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Json } from '@/integrations/supabase/types';
 
 type ThemeOption = "light" | "dark" | "system";
 
@@ -35,16 +36,15 @@ export const ThemeSettingsTab = () => {
           console.log('Theme loaded from Supabase:', data.theme);
           setCurrentTheme(data.theme as ThemeOption);
           applyThemeToDocument(data.theme as ThemeOption);
-        } else if (error && error.code === 'PGRST116') {
+        } else {
           // If no theme setting exists yet, set up with current theme
-          console.log('No theme setting found, creating default');
+          console.log('No theme setting found, using system default');
           // Get theme from localStorage for first-time migration
           const storedTheme = localStorage.getItem('theme');
           const initialTheme = storedTheme === 'dark' ? 'dark' : 
                               storedTheme === 'light' ? 'light' : 
                               'system';
           
-          await saveThemeToSupabase(initialTheme);
           setCurrentTheme(initialTheme);
           applyThemeToDocument(initialTheme);
         }
@@ -104,7 +104,7 @@ export const ThemeSettingsTab = () => {
         const { error } = await supabase
           .from('site_settings')
           .update({ 
-            theme: theme,
+            theme: theme as unknown as Json,
             updated_at: new Date().toISOString()
           })
           .eq('id', data.id);
@@ -119,7 +119,7 @@ export const ThemeSettingsTab = () => {
         const { error } = await supabase
           .from('site_settings')
           .insert({ 
-            theme: theme,
+            theme: theme as unknown as Json,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           });

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -5,12 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { SiteSettings } from '@/types';
 import { Save, CloudUpload } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
-import { Json } from '@/integrations/supabase/types';
 
 export const TextContentTab = () => {
   const { settings, updateTextContent } = useSiteSettings();
@@ -22,6 +22,7 @@ export const TextContentTab = () => {
   
   // Update local state when settings change
   useEffect(() => {
+    console.log('Settings textContent updated:', settings.textContent);
     setTextContent({...settings.textContent});
   }, [settings.textContent]);
 
@@ -65,8 +66,7 @@ export const TextContentTab = () => {
           updateTextContent(typedTextContent);
         } else if (error && error.code === 'PGRST116') {
           // If no settings exist yet, create a default one
-          console.log('No settings found, creating default');
-          await saveSettingsToSupabase(textContent);
+          console.log('No settings found, will use default values');
         }
       } catch (error) {
         console.error('Error loading settings:', error);
@@ -93,68 +93,26 @@ export const TextContentTab = () => {
   const saveSettingsToSupabase = async (content: Partial<SiteSettings['textContent']>) => {
     setIsSyncing(true);
     try {
-      console.log('Saving settings to Supabase:', content);
-      
-      // Check if settings record exists
-      const { data, error: fetchError } = await supabase
-        .from('site_settings')
-        .select('id')
-        .maybeSingle();
-      
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error('Error fetching settings:', fetchError);
-        throw fetchError;
-      }
+      console.log('Saving text content to Supabase:', content);
       
       // Ensure content has all required properties
       const safeContent: SiteSettings['textContent'] = {
-        heroTitle: content.heroTitle || '',
-        heroSubtitle: content.heroSubtitle || '',
-        featuredDealsTitle: content.featuredDealsTitle || '',
-        allCouponsTitle: content.allCouponsTitle || '',
-        categoriesSectionTitle: content.categoriesSectionTitle || '',
-        ctaButtonText: content.ctaButtonText || '',
-        noResultsText: content.noResultsText || '',
-        searchPlaceholder: content.searchPlaceholder || ''
+        heroTitle: content.heroTitle || textContent.heroTitle || '',
+        heroSubtitle: content.heroSubtitle || textContent.heroSubtitle || '',
+        featuredDealsTitle: content.featuredDealsTitle || textContent.featuredDealsTitle || '',
+        allCouponsTitle: content.allCouponsTitle || textContent.allCouponsTitle || '',
+        categoriesSectionTitle: content.categoriesSectionTitle || textContent.categoriesSectionTitle || '',
+        ctaButtonText: content.ctaButtonText || textContent.ctaButtonText || '',
+        noResultsText: content.noResultsText || textContent.noResultsText || '',
+        searchPlaceholder: content.searchPlaceholder || textContent.searchPlaceholder || ''
       };
       
-      if (data?.id) {
-        console.log('Updating existing record with ID:', data.id);
-        // Update existing record
-        const { error } = await supabase
-          .from('site_settings')
-          .update({ 
-            text_content: safeContent,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', data.id);
-          
-        if (error) {
-          console.error('Error updating settings:', error);
-          throw error;
-        }
-      } else {
-        console.log('Creating new settings record');
-        // Insert new record
-        const { error } = await supabase
-          .from('site_settings')
-          .insert({ 
-            text_content: safeContent,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
-          
-        if (error) {
-          console.error('Error inserting settings:', error);
-          throw error;
-        }
-      }
-      
-      updateTextContent(safeContent);
+      // Update using our site settings hook which will handle the Supabase integration
+      await updateTextContent(safeContent);
       
       toast({
         title: 'Success',
-        description: 'Settings saved to Supabase and synced across all devices.',
+        description: 'Text content saved and synced across all devices.',
       });
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -181,10 +139,7 @@ export const TextContentTab = () => {
       )
     ) as Partial<SiteSettings['textContent']>;
     
-    await saveSettingsToSupabase({
-      ...settings.textContent,
-      ...sectionData
-    });
+    await saveSettingsToSupabase(sectionData);
   };
 
   const handleSaveAll = async () => {

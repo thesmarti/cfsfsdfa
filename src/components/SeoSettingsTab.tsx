@@ -52,6 +52,9 @@ export const SeoSettingsTab = () => {
       const faviconUrl = await uploadFavicon(file);
       console.log("Uploaded favicon URL:", faviconUrl.substring(0, 50) + "...");
       
+      // Update local state with the new favicon URL
+      setSeoSettings(prev => ({...prev, favicon: faviconUrl}));
+      
       toast({
         title: "Favicon updated",
         description: "Your favicon has been updated successfully",
@@ -131,9 +134,9 @@ export const SeoSettingsTab = () => {
               <Label>Favicon</Label>
               <div className="flex items-start gap-4">
                 <div className="border rounded-md p-2 bg-muted/50 w-20 h-20 flex items-center justify-center">
-                  {settings.seo?.favicon ? (
+                  {seoSettings.favicon ? (
                     <img 
-                      src={settings.seo.favicon} 
+                      src={seoSettings.favicon} 
                       alt="Favicon" 
                       className="max-w-full max-h-full object-contain" 
                     />

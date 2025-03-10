@@ -81,17 +81,22 @@ export const useSiteSettings = () => {
     const fetchSettings = async () => {
       setLoading(true);
       try {
+        console.log('Fetching settings from Supabase');
         const { data, error } = await supabase
           .from('site_settings')
           .select('*')
           .maybeSingle();
         
         if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching settings:', error);
           throw error;
         }
         
         if (data) {
-          const mergedSettings = {
+          console.log('Received data from Supabase:', data);
+          
+          // Create a correctly structured merged settings object that matches our types
+          const mergedSettings: SiteSettings = {
             ...STATIC_SETTINGS,
             navBar: {
               ...STATIC_SETTINGS.navBar,
@@ -119,9 +124,11 @@ export const useSiteSettings = () => {
             mergedSettings.colors.gradientPresets = DEFAULT_GRADIENT_PRESETS;
           }
           
+          console.log('Merged settings:', mergedSettings);
           setSettings(mergedSettings);
           applySettings(mergedSettings);
         } else {
+          console.log('No settings found, using defaults');
           setSettings(STATIC_SETTINGS);
           applySettings(STATIC_SETTINGS);
         }
@@ -144,39 +151,58 @@ export const useSiteSettings = () => {
 
   const saveSettingsToSupabase = async (updatedSettings: SiteSettings) => {
     try {
+      console.log('Saving settings to Supabase:', updatedSettings);
+      
       const { data, error: fetchError } = await supabase
         .from('site_settings')
         .select('id')
         .maybeSingle();
       
       if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('Error checking for existing settings:', fetchError);
         throw fetchError;
       }
       
       // Transform the SiteSettings object to match Supabase's expected schema
+      // Make sure all complex objects are properly serializable as Json
       const supabaseSettings = {
-        colors: updatedSettings.colors as unknown as Json,
-        navbar: updatedSettings.navBar as unknown as Json,
-        general: updatedSettings.general as unknown as Json,
-        seo: updatedSettings.seo as unknown as Json,
-        text_content: updatedSettings.textContent as unknown as Json
+        colors: transformToJsonCompatible(updatedSettings.colors),
+        navbar: transformToJsonCompatible(updatedSettings.navBar),
+        general: transformToJsonCompatible(updatedSettings.general),
+        seo: transformToJsonCompatible(updatedSettings.seo),
+        text_content: transformToJsonCompatible(updatedSettings.textContent),
+        updated_at: new Date().toISOString()
       };
       
+      console.log('Transformed settings for Supabase:', supabaseSettings);
+      
       if (data?.id) {
+        console.log('Updating existing settings with ID:', data.id);
         const { error } = await supabase
           .from('site_settings')
           .update(supabaseSettings)
           .eq('id', data.id);
           
-        if (error) throw error;
+        if (error) {
+          console.error('Error updating settings:', error);
+          throw error;
+        }
       } else {
+        console.log('Creating new settings record');
         const { error } = await supabase
           .from('site_settings')
-          .insert(supabaseSettings);
+          .insert({
+            ...supabaseSettings,
+            created_at: new Date().toISOString()
+          });
           
-        if (error) throw error;
+        if (error) {
+          console.error('Error inserting settings:', error);
+          throw error;
+        }
       }
       
+      console.log('Settings saved successfully');
       return true;
     } catch (error) {
       console.error('Error saving settings to Supabase:', error);
@@ -189,7 +215,15 @@ export const useSiteSettings = () => {
     }
   };
 
+  // Helper function to transform complex objects to JSON-compatible format
+  const transformToJsonCompatible = (obj: any): Json => {
+    // Convert complex objects to simple key-value pairs
+    // This ensures compatibility with Supabase's Json type
+    return JSON.parse(JSON.stringify(obj)) as Json;
+  };
+
   const updateSettings = async (newSettings: SiteSettings) => {
+    console.log('Updating settings:', newSettings);
     if (!newSettings.colors.gradientPresets || newSettings.colors.gradientPresets.length === 0) {
       newSettings.colors.gradientPresets = DEFAULT_GRADIENT_PRESETS;
     }
@@ -263,6 +297,7 @@ export const useSiteSettings = () => {
   };
 
   const updateNavBarSettings = async (navBarSettings: Partial<SiteSettings['navBar']>) => {
+    console.log('Updating navbar settings:', navBarSettings);
     const updatedSettings = {
       ...settings,
       navBar: {
@@ -274,6 +309,7 @@ export const useSiteSettings = () => {
   };
 
   const updateNavButtons = async (buttons: NavButton[]) => {
+    console.log('Updating nav buttons:', buttons);
     const updatedSettings = {
       ...settings,
       navBar: {
@@ -285,6 +321,7 @@ export const useSiteSettings = () => {
   };
 
   const updateColorSettings = async (colorSettings: Partial<SiteSettings['colors']>) => {
+    console.log('Updating color settings:', colorSettings);
     if (!settings.colors.gradientPresets && !colorSettings.gradientPresets) {
       colorSettings.gradientPresets = DEFAULT_GRADIENT_PRESETS;
     }
@@ -300,6 +337,7 @@ export const useSiteSettings = () => {
   };
 
   const updateGeneralSettings = async (generalSettings: Partial<SiteSettings['general']>) => {
+    console.log('Updating general settings:', generalSettings);
     const updatedSettings = {
       ...settings,
       general: {
@@ -323,6 +361,7 @@ export const useSiteSettings = () => {
   };
 
   const updateTextContent = async (textContent: Partial<SiteSettings['textContent']>) => {
+    console.log('Updating text content:', textContent);
     const updatedSettings = {
       ...settings,
       textContent: {
@@ -335,7 +374,9 @@ export const useSiteSettings = () => {
 
   const uploadLogo = async (file: File): Promise<string> => {
     try {
+      console.log('Uploading logo file:', file.name);
       const base64Image = await readFileAsDataURL(file);
+      console.log('Logo converted to base64');
       
       await updateNavBarSettings({ logoUrl: base64Image });
       
@@ -348,6 +389,7 @@ export const useSiteSettings = () => {
 
   const uploadFavicon = async (file: File): Promise<string> => {
     try {
+      console.log('Uploading favicon file:', file.name);
       const base64Image = await readFileAsDataURL(file);
       console.log("Favicon base64:", base64Image.substring(0, 50) + "...");
       
@@ -436,6 +478,7 @@ export const useSiteSettings = () => {
   };
 
   const applyUIGradient = async (preset: GradientPreset) => {
+    console.log('Applying UI gradient:', preset);
     const updatedSettings = {
       ...settings,
       colors: {
