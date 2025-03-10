@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -144,95 +143,38 @@ export const Navbar = () => {
     </div>
   );
   
-  // Render centered navigation style with larger logo and tagline
+  // Render centered navigation style with larger logo and no text
   const renderCenteredNavigation = () => (
-    <div className="flex flex-col items-center">
-      <Link to="/" className="flex flex-col items-center z-10 mb-2">
-        {settings.navBar.showLogo && settings.navBar.logoUrl && (
-          <img
-            src={settings.navBar.logoUrl}
-            alt="Logo"
-            className="h-16 w-auto mb-2 transition-transform duration-300 hover:scale-105"
-          />
-        )}
-        {settings.navBar.showText && settings.navBar.siteTitle && (
-          <span className="text-2xl font-bold">{settings.navBar.siteTitle}</span>
-        )}
-        <span className="text-sm text-muted-foreground mt-1">{settings.navBar.tagline}</span>
-      </Link>
-      
-      <div className="hidden md:flex items-center gap-4 mt-2 z-10">
-        <NavigationMenu>
-          <NavigationMenuList>
-            {enabledButtons.map((button) => (
-              <NavigationMenuItem key={button.id}>
-                <Link to={button.path}>
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                    {button.label}
-                  </NavigationMenuLink>
-                </Link>
-              </NavigationMenuItem>
-            ))}
-          </NavigationMenuList>
-        </NavigationMenu>
-        
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsSearchOpen(true)}
-          aria-label="Search"
-        >
-          <Search className="h-5 w-5" />
-        </Button>
-        
-        {settings.navBar.showAdminButton && !isAdminPage && (
-          <Button asChild>
-            <Link to="/admin">Admin</Link>
+    <div className="flex flex-col items-center relative">
+      {/* Auth buttons on top right */}
+      <div className="absolute top-0 right-4 pt-2 flex items-center space-x-2 z-10">
+        <Link to="/login">
+          <Button variant="ghost" size="sm">Login</Button>
+        </Link>
+        <Link to="/register">
+          <Button variant="gradient" size="sm">
+            Register
           </Button>
-        )}
+        </Link>
       </div>
       
-      <div className="md:hidden flex items-center justify-between w-full px-4 mt-2 z-10">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsSearchOpen(true)}
-          aria-label="Search"
-        >
-          <Search className="h-5 w-5" />
-        </Button>
+      {/* Only show the logo */}
+      <div className="flex flex-col items-center">
+        {/* Large centered logo */}
+        {settings.navBar.showLogo && settings.navBar.logoUrl && (
+          <Link to="/" className="mb-2">
+            <img
+              src={settings.navBar.logoUrl}
+              alt="Logo"
+              className="h-24 w-auto transition-transform duration-300 hover:scale-105"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150x150?text=Logo';
+              }}
+            />
+          </Link>
+        )}
         
-        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="Menu">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="right">
-            <nav className="flex flex-col gap-4 mt-8">
-              {enabledButtons.map((button) => (
-                <Link
-                  key={button.id}
-                  to={button.path}
-                  className="px-4 py-2 hover:bg-secondary rounded-md transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {button.label}
-                </Link>
-              ))}
-              
-              {settings.navBar.showAdminButton && !isAdminPage && (
-                <Link
-                  to="/admin"
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-center"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Admin
-                </Link>
-              )}
-            </nav>
-          </SheetContent>
-        </Sheet>
+        {/* Removed site title text as requested */}
       </div>
     </div>
   );
