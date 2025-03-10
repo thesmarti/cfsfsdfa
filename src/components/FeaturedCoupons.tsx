@@ -1,15 +1,16 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Coupon } from '@/types';
 import { CouponCard } from './CouponCard';
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 interface FeaturedCouponsProps {
   coupons: Coupon[];
 }
 
 export const FeaturedCoupons = ({ coupons }: FeaturedCouponsProps) => {
+  const { settings } = useSiteSettings();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [autoplay, setAutoplay] = useState(true);
   const autoplayRef = useRef<NodeJS.Timeout | null>(null);
@@ -73,7 +74,10 @@ export const FeaturedCoupons = ({ coupons }: FeaturedCouponsProps) => {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="flex justify-end items-center mb-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-display font-semibold">
+          {settings.textContent.featuredDealsTitle}
+        </h2>
         <div className="flex gap-2">
           <Button
             variant="outline"
