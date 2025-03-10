@@ -58,26 +58,26 @@ export const Navbar = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="flex items-center justify-between">
           {/* Logo and brand */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-3">
             {settings.navBar.showLogo && (
               <img 
                 src={settings.navBar.logoUrl} 
                 alt="Logo" 
-                className="h-8 w-auto" 
+                className="h-14 w-auto transition-transform duration-300 hover:scale-105" 
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = 'https://via.placeholder.com/50x50?text=Logo';
                 }}
               />
             )}
             {settings.navBar.showText && (
-              <span className={`font-display font-semibold text-xl bg-clip-text text-transparent ${textGradientClass}`}>
+              <span className={`font-display font-semibold text-2xl bg-clip-text text-transparent ${textGradientClass}`}>
                 {settings.navBar.siteTitle}
               </span>
             )}
             {!settings.navBar.showLogo && !settings.navBar.showText && (
               <>
-                <Tag size={24} className={`text-transparent bg-clip-text ${textGradientClass}`} />
-                <span className={`font-display font-semibold text-xl bg-clip-text text-transparent ${textGradientClass}`}>
+                <Tag size={28} className={`text-transparent bg-clip-text ${textGradientClass}`} />
+                <span className={`font-display font-semibold text-2xl bg-clip-text text-transparent ${textGradientClass}`}>
                   LOLCoupons
                 </span>
               </>

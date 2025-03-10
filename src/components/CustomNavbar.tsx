@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -64,11 +65,11 @@ export const Navbar = () => {
               <img
                 src={settings.navBar.logoUrl}
                 alt="Logo"
-                className="h-14 w-auto transition-transform duration-300 hover:scale-110"
+                className="h-20 w-auto transition-transform duration-300 hover:scale-105"
               />
             )}
             {settings.navBar.showText && settings.navBar.siteTitle && (
-              <span className="text-2xl font-bold">{settings.navBar.siteTitle}</span>
+              <span className="text-3xl font-bold">{settings.navBar.siteTitle}</span>
             )}
           </Link>
           
