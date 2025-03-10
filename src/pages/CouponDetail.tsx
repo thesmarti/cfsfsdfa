@@ -75,17 +75,22 @@ const CouponDetail = () => {
 
   const gradientClass = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
   
+  // Extract the color values from the gradient class for hover effects
   const extractColorsFromGradient = (gradientClass: string) => {
     const fromMatch = gradientClass.match(/from-([a-z]+-[0-9]+)/);
     const toMatch = gradientClass.match(/to-([a-z]+-[0-9]+)/);
     
-    const fromColor = fromMatch ? fromMatch[1] : 'indigo-50';
-    const toColor = toMatch ? toMatch[1] : 'purple-50';
+    const fromColor = fromMatch ? fromMatch[1] : 'indigo-500';
+    const toColor = toMatch ? toMatch[1] : 'purple-600';
     
     return {
       light: {
         from: `bg-${fromColor}/10`,
         to: `bg-${toColor}/5`,
+      },
+      hover: {
+        from: `hover:bg-${fromColor}/15`,
+        to: `hover:bg-${toColor}/10`,
       },
       border: {
         from: `border-${fromColor}/20`,
@@ -96,6 +101,7 @@ const CouponDetail = () => {
   
   const gradientColors = extractColorsFromGradient(gradientClass);
   const couponBgClass = `bg-gradient-to-br ${gradientColors.light.from} ${gradientColors.light.to} border ${gradientColors.border.from}`;
+  const buttonHoverClass = `${gradientColors.hover.from} transition-colors duration-200`;
   
   const couponCode = coupon?.code || "SAVE25NOW";
   const codeLength = couponCode.length;
@@ -136,7 +142,7 @@ const CouponDetail = () => {
         <Button 
           variant="ghost" 
           size="sm"
-          className="mb-6"
+          className={`mb-6 ${buttonHoverClass}`}
           onClick={() => navigate(-1)}
         >
           <ArrowLeft size={16} className="mr-1" /> Back
@@ -223,7 +229,7 @@ const CouponDetail = () => {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="flex-1 button-press"
+                  className={`flex-1 button-press ${buttonHoverClass}`}
                   onClick={handleShowRestriction}
                   disabled={isExpired}
                 >
