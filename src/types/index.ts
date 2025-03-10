@@ -14,12 +14,19 @@ export interface Coupon {
   discount: string;
   category: 'GAME CODE' | 'DISCOUNT CODE' | 'COUPON CODE' | 'FREE CODE';
   expiryDate: string;
-  link: string;
+  link?: string;
   status: 'active' | 'expired' | 'upcoming';
   featured: boolean;
   verified: boolean;
   createdAt: string;
   updatedAt: string;
+  // Missing properties being used in the codebase
+  lastVerified?: string;
+  redirectUrl?: string;
+  image?: string;
+  rating?: number;
+  usedCount?: number;
+  contentLockerLinkId?: string;
 }
 
 export interface ContentLockerLink {
@@ -27,6 +34,7 @@ export interface ContentLockerLink {
   name: string;
   url: string;
   active: boolean;
+  createdAt: string;
 }
 
 export interface NavButton {
@@ -82,3 +90,7 @@ export interface SiteSettings {
     favicon: string;
   };
 }
+
+// Adding missing types for sort and filter options
+export type SortOption = 'newest' | 'popular' | 'expiringSoon';
+export type FilterOption = 'all' | 'active' | 'expired' | 'upcoming' | 'GAME CODE' | 'DISCOUNT CODE' | 'COUPON CODE' | 'FREE CODE' | 'Electronics' | 'Fashion' | 'Food' | 'Retail';
