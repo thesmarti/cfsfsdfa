@@ -1,41 +1,25 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from '@/integrations/supabase/client';
-import { Image, ArrowUpCircle, Save } from 'lucide-react';
-import { SiteSettings } from '@/types';
+import { useToast } from "@/components/ui/use-toast";
+import { Image, ArrowUpCircle } from 'lucide-react';
 
 export const SeoSettingsTab = () => {
   const { settings, updateSeoSettings, uploadFavicon } = useSiteSettings();
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [seoSettings, setSeoSettings] = useState({
-    title: settings.seo?.title || '',
-    description: settings.seo?.description || '',
-    favicon: settings.seo?.favicon || ''
-  });
-  
-  useEffect(() => {
-    setSeoSettings({
-      title: settings.seo?.title || '',
-      description: settings.seo?.description || '',
-      favicon: settings.seo?.favicon || ''
-    });
-  }, [settings.seo]);
   
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSeoSettings({...seoSettings, title: e.target.value});
+    updateSeoSettings({ title: e.target.value });
   };
   
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setSeoSettings({...seoSettings, description: e.target.value});
+    updateSeoSettings({ description: e.target.value });
   };
   
   const handleFaviconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,52 +30,11 @@ export const SeoSettingsTab = () => {
     
     try {
       await uploadFavicon(file);
-      
-      // Save to Supabase
-      const { data, error: fetchError } = await supabase
-        .from('site_settings')
-        .select('id, seo')
-        .maybeSingle();
-      
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        throw fetchError;
-      }
-      
-      const newSeoSettings = {
-        ...(data?.seo as SiteSettings['seo'] || {}),
-        favicon: settings.seo?.favicon
-      };
-      
-      if (data?.id) {
-        // Update existing record
-        const { error } = await supabase
-          .from('site_settings')
-          .update({ 
-            seo: newSeoSettings,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', data.id);
-          
-        if (error) throw error;
-      } else {
-        // Insert new record
-        const { error } = await supabase
-          .from('site_settings')
-          .insert({ 
-            seo: newSeoSettings,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
-          
-        if (error) throw error;
-      }
-      
       toast({
         title: "Favicon updated",
         description: "Your favicon has been updated successfully",
       });
     } catch (error) {
-      console.error('Error saving favicon to Supabase:', error);
       toast({
         title: "Error uploading favicon",
         description: error instanceof Error ? error.message : "An unknown error occurred",
@@ -99,71 +42,6 @@ export const SeoSettingsTab = () => {
       });
     } finally {
       setIsUploading(false);
-    }
-  };
-  
-  const handleSaveSeoSettings = async () => {
-    setIsSaving(true);
-    try {
-      // Update local state first
-      updateSeoSettings({
-        title: seoSettings.title,
-        description: seoSettings.description
-      });
-      
-      // Save to Supabase
-      const { data, error: fetchError } = await supabase
-        .from('site_settings')
-        .select('id, seo')
-        .maybeSingle();
-      
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        throw fetchError;
-      }
-      
-      const newSeoSettings = {
-        title: seoSettings.title,
-        description: seoSettings.description,
-        favicon: settings.seo?.favicon || ''
-      };
-      
-      if (data?.id) {
-        // Update existing record
-        const { error } = await supabase
-          .from('site_settings')
-          .update({ 
-            seo: newSeoSettings,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', data.id);
-          
-        if (error) throw error;
-      } else {
-        // Insert new record
-        const { error } = await supabase
-          .from('site_settings')
-          .insert({ 
-            seo: newSeoSettings,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
-          
-        if (error) throw error;
-      }
-      
-      toast({
-        title: "SEO Settings Saved",
-        description: "Your SEO settings have been updated successfully",
-      });
-    } catch (error) {
-      console.error('Error saving SEO settings to Supabase:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save SEO settings. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
     }
   };
   
@@ -177,7 +55,7 @@ export const SeoSettingsTab = () => {
               <Input
                 id="seo-title"
                 placeholder="Site Title for SEO"
-                value={seoSettings.title}
+                value={settings.seo?.title || ''}
                 onChange={handleTitleChange}
               />
               <p className="text-xs text-muted-foreground">
@@ -190,7 +68,7 @@ export const SeoSettingsTab = () => {
               <Textarea
                 id="seo-description"
                 placeholder="Enter a description for search engines"
-                value={seoSettings.description}
+                value={settings.seo?.description || ''}
                 onChange={handleDescriptionChange}
                 rows={3}
               />
@@ -241,12 +119,6 @@ export const SeoSettingsTab = () => {
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex justify-end">
-          <Button onClick={handleSaveSeoSettings} className="gap-2">
-            <Save size={16} />
-            Save SEO Settings
-          </Button>
-        </CardFooter>
       </Card>
     </div>
   );

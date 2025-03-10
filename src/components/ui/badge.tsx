@@ -1,8 +1,8 @@
 
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
+
 import { cn } from "@/lib/utils"
-import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const badgeVariants = cva(
   "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
@@ -20,7 +20,7 @@ const badgeVariants = cva(
       },
     },
     defaultVariants: {
-      variant: "gradient",
+      variant: "default",
     },
   }
 )
@@ -30,17 +30,8 @@ export interface BadgeProps
     VariantProps<typeof badgeVariants> {}
 
 function Badge({ className, variant, ...props }: BadgeProps) {
-  const { settings } = useSiteSettings();
-  
-  // Apply gradient styling if uiGradient is available
-  const badgeGradient = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600';
-  
   return (
-    <div className={cn(
-      badgeVariants({ variant }), 
-      variant === 'gradient' ? badgeGradient : undefined,
-      className
-    )} {...props} />
+    <div className={cn(badgeVariants({ variant }), className)} {...props} />
   )
 }
 

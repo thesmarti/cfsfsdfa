@@ -37,12 +37,15 @@ export const Navbar = () => {
   const isAdmin = location.pathname.includes('/admin');
   
   // Determine what gradient to use for UI elements
-  const getGradient = () => {
-    return settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
+  const getUiGradient = () => {
+    if (settings.colors.uiGradient) {
+      return settings.colors.uiGradient;
+    }
+    return 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
   };
 
-  const textGradientClass = getGradient();
-  const buttonGradientClass = getGradient();
+  const textGradientClass = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
+  const buttonGradientClass = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
 
   return (
     <header

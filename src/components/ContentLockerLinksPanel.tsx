@@ -1,5 +1,5 @@
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,24 +9,20 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { ContentLockerLink } from '@/types';
-import { Plus, Edit, Trash2, Link, ExternalLink, AlertTriangle, Download, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, Link, ExternalLink, AlertTriangle } from 'lucide-react';
 
 interface ContentLockerLinksPanelProps {
   links: ContentLockerLink[];
   onAddLink: (link: Omit<ContentLockerLink, 'id' | 'createdAt'>) => Promise<ContentLockerLink | null>;
   onUpdateLink: (id: string, updates: Partial<ContentLockerLink>) => Promise<ContentLockerLink | null>;
   onDeleteLink: (id: string) => Promise<boolean>;
-  importLinks?: (links: Omit<ContentLockerLink, 'id' | 'createdAt'>[]) => Promise<ContentLockerLink[] | null>;
-  exportLinks?: () => Omit<ContentLockerLink, 'id' | 'createdAt'>[];
 }
 
 export const ContentLockerLinksPanel = ({ 
   links, 
   onAddLink, 
   onUpdateLink, 
-  onDeleteLink,
-  importLinks,
-  exportLinks
+  onDeleteLink 
 }: ContentLockerLinksPanelProps) => {
   const { toast } = useToast();
   
@@ -39,8 +35,6 @@ export const ContentLockerLinksPanel = ({
     url: '',
     active: true
   });
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const resetForm = () => {
     setFormData({
@@ -117,69 +111,6 @@ export const ContentLockerLinksPanel = ({
       }
     }
   };
-
-  const handleExportLinks = () => {
-    if (!exportLinks) return;
-    
-    const exportData = exportLinks();
-    
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `content-locker-links-export-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(link);
-    link.click();
-    
-    URL.revokeObjectURL(url);
-    document.body.removeChild(link);
-    
-    toast({
-      title: "Export Successful",
-      description: `${exportData.length} content locker links exported to JSON file.`,
-    });
-  };
-  
-  const handleImportClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-  
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!importLinks) return;
-    
-    const file = event.target.files?.[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const content = e.target?.result as string;
-        const importData = JSON.parse(content);
-        
-        if (!Array.isArray(importData)) {
-          throw new Error('Invalid format: Expected an array of links');
-        }
-        
-        await importLinks(importData);
-        
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-      } catch (error) {
-        console.error('Import error:', error);
-        toast({
-          title: "Import Failed",
-          description: "The selected file is not a valid links export. Please check the file format.",
-          variant: "destructive",
-        });
-      }
-    };
-    
-    reader.readAsText(file);
-  };
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -194,43 +125,10 @@ export const ContentLockerLinksPanel = ({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-xl">Content Locker Links</CardTitle>
-        <div className="flex gap-2">
-          <Button onClick={handleOpenAddDialog} size="sm" className="gap-1">
-            <Plus size={16} />
-            Add Link
-          </Button>
-          {exportLinks && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1"
-              onClick={handleExportLinks}
-            >
-              <Download size={16} />
-              Export
-            </Button>
-          )}
-          {importLinks && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1"
-              onClick={handleImportClick}
-            >
-              <Upload size={16} />
-              Import
-            </Button>
-          )}
-          {importLinks && (
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept=".json"
-              onChange={handleFileUpload}
-            />
-          )}
-        </div>
+        <Button onClick={handleOpenAddDialog} size="sm" className="gap-1">
+          <Plus size={16} />
+          Add Link
+        </Button>
       </CardHeader>
       
       <CardContent>

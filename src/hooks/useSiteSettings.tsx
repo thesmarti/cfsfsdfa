@@ -16,7 +16,7 @@ const DEFAULT_GRADIENT_PRESETS: GradientPreset[] = [
   { id: 'blue-indigo', name: 'Blue to Indigo', value: 'bg-gradient-to-br from-blue-500 to-indigo-600', category: 'electronics' },
 ];
 
-const STATIC_SETTINGS: SiteSettings = {
+const DEFAULT_SETTINGS: SiteSettings = {
   navBar: {
     showLogo: true,
     showText: true,
@@ -36,7 +36,7 @@ const STATIC_SETTINGS: SiteSettings = {
     primary: '#3b82f6',
     secondary: '#8b5cf6',
     accent: '#ec4899',
-    useCustomGradients: true,
+    useCustomGradients: false,
     defaultGradient: 'bg-gradient-to-br from-violet-500 to-purple-600',
     fashionGradient: 'bg-gradient-to-br from-pink-500 to-purple-600',
     foodGradient: 'bg-gradient-to-br from-orange-400 to-red-500',
@@ -69,12 +69,50 @@ const STATIC_SETTINGS: SiteSettings = {
 };
 
 export const useSiteSettings = () => {
-  const [settings, setSettings] = useState<SiteSettings>(STATIC_SETTINGS);
+  const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    applySettings(STATIC_SETTINGS);
-    setLoading(false);
+    const loadSettings = () => {
+      const savedSettings = localStorage.getItem('siteSettings');
+      if (savedSettings) {
+        try {
+          const parsedSettings = JSON.parse(savedSettings);
+          const mergedSettings = {
+            ...DEFAULT_SETTINGS,
+            ...parsedSettings,
+            navBar: {
+              ...DEFAULT_SETTINGS.navBar,
+              ...parsedSettings.navBar,
+              buttons: parsedSettings.navBar?.buttons || DEFAULT_SETTINGS.navBar.buttons,
+            },
+            colors: {
+              ...DEFAULT_SETTINGS.colors,
+              ...parsedSettings.colors,
+            },
+            general: {
+              ...DEFAULT_SETTINGS.general,
+              ...parsedSettings.general,
+            },
+            seo: {
+              ...DEFAULT_SETTINGS.seo,
+              ...parsedSettings.seo,
+            },
+            textContent: {
+              ...DEFAULT_SETTINGS.textContent,
+              ...parsedSettings.textContent,
+            }
+          };
+          setSettings(mergedSettings);
+        } catch (error) {
+          console.error('Error parsing site settings:', error);
+          setSettings(DEFAULT_SETTINGS);
+        }
+      }
+      setLoading(false);
+    };
+
+    loadSettings();
   }, []);
 
   const updateSettings = (newSettings: SiteSettings) => {
@@ -83,9 +121,7 @@ export const useSiteSettings = () => {
     }
     
     setSettings(newSettings);
-    
-    console.log('NOTE: Changes will only be visible on this device/session');
-    
+    localStorage.setItem('siteSettings', JSON.stringify(newSettings));
     applySettings(newSettings);
   };
 
@@ -94,7 +130,7 @@ export const useSiteSettings = () => {
     document.documentElement.style.setProperty('--custom-secondary', appliedSettings.colors.secondary);
     document.documentElement.style.setProperty('--custom-accent', appliedSettings.colors.accent);
     
-    if (appliedSettings.colors.useCustomGradients && appliedSettings.colors.uiGradient) {
+    if (appliedSettings.colors.uiGradient) {
       document.documentElement.style.setProperty('--ui-gradient', appliedSettings.colors.uiGradient);
       
       const oldClasses = Array.from(document.documentElement.classList)
@@ -110,15 +146,6 @@ export const useSiteSettings = () => {
         .replace(/[^a-zA-Z0-9-]/g, '-');
       
       document.documentElement.classList.add(cleanClassName);
-    } else {
-      const oldClasses = Array.from(document.documentElement.classList)
-        .filter(c => c.startsWith('ui-gradient-'));
-      
-      if (oldClasses.length > 0) {
-        oldClasses.forEach(c => document.documentElement.classList.remove(c));
-      }
-      
-      document.documentElement.style.removeProperty('--ui-gradient');
     }
     
     try {
@@ -150,6 +177,12 @@ export const useSiteSettings = () => {
       }
     }
   };
+
+  useEffect(() => {
+    if (!loading) {
+      applySettings(settings);
+    }
+  }, [loading, settings]);
 
   const updateNavBarSettings = (navBarSettings: Partial<SiteSettings['navBar']>) => {
     const updatedSettings = {
@@ -361,3 +394,4 @@ export const useSiteSettings = () => {
     applyUIGradient,
   };
 };
+
