@@ -78,6 +78,13 @@ const CouponDetail = () => {
 
   const gradientClass = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
   
+  // Process the coupon code for partial blurring
+  const couponCode = coupon?.code || "SAVE25NOW";
+  const codeLength = couponCode.length;
+  const halfLength = Math.ceil(codeLength / 2);
+  const visiblePart = couponCode.substring(0, halfLength);
+  const blurredPart = couponCode.substring(halfLength);
+  
   return (
     <div className="min-h-screen pb-20">
       <Navbar />
@@ -142,9 +149,15 @@ const CouponDetail = () => {
                   {coupon.description}
                 </div>
                 
-                <div className="bg-secondary border border-border px-6 py-4 rounded-md font-mono text-center text-lg relative overflow-hidden blur-md">
-                  <Lock className="inline-block mr-2" size={16} />
-                  <span>Coupon is locked</span>
+                <div className="bg-secondary border border-border px-6 py-4 rounded-md font-mono text-center text-lg relative overflow-hidden flex justify-center">
+                  <span className="inline-block">{visiblePart}</span>
+                  <span className="inline-block blur-md">{blurredPart}</span>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-black/10 dark:bg-white/10 backdrop-blur-sm p-2 rounded">
+                      <Lock className="inline-block" size={16} />
+                      <span className="ml-1 text-sm font-medium">Complete tasks to reveal full code</span>
+                    </div>
+                  </div>
                 </div>
                 
                 <div className="text-xs text-muted-foreground mt-3 text-center">
