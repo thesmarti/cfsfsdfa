@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
-import { Navbar } from '@/components/Navbar';
+import { Navbar } from '@/components/CustomNavbar';
 import { LoginForm } from '@/components/LoginForm';
 import { AdminCouponForm } from '@/components/AdminCouponForm';
 import { ContentLockerLinksPanel } from '@/components/ContentLockerLinksPanel';

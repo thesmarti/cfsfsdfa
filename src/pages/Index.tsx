@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from 'react';
-import { Navbar } from '@/components/Navbar';
+import { Navbar } from '@/components/CustomNavbar';
 import { CouponCard } from '@/components/CouponCard';
 import { FeaturedCoupons } from '@/components/FeaturedCoupons';
 import { Button } from "@/components/ui/button";
@@ -32,7 +31,6 @@ const Index = () => {
   
   const gradientClass = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
 
-  // Apply search filter on coupons
   useEffect(() => {
     if (searchTerm.trim() === '') {
       setFilteredCoupons(coupons);
