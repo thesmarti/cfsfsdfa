@@ -64,13 +64,18 @@ const App = () => {
     }
   }, [settings]);
   
-  // Apply dynamic colors from site settings
+  // Apply dynamic colors and gradients from site settings
   useEffect(() => {
     if (settings.colors) {
       // Apply CSS variables
       document.documentElement.style.setProperty('--custom-primary', settings.colors.primary);
       document.documentElement.style.setProperty('--custom-secondary', settings.colors.secondary);
       document.documentElement.style.setProperty('--custom-accent', settings.colors.accent);
+      
+      // Apply UI gradient as a CSS variable if it exists
+      if (settings.colors.uiGradient) {
+        document.documentElement.style.setProperty('--ui-gradient', settings.colors.uiGradient);
+      }
     }
   }, [settings.colors]);
   

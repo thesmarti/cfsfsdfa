@@ -37,6 +37,14 @@ export const Navbar = () => {
 
   // Check if the user is on the admin panel
   const isAdmin = location.pathname.includes('/admin');
+  
+  // Determine what gradient to use for UI elements
+  const getUiGradient = () => {
+    if (settings.colors.uiGradient) {
+      return settings.colors.uiGradient;
+    }
+    return 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
+  };
 
   return (
     <header
@@ -61,14 +69,16 @@ export const Navbar = () => {
               />
             )}
             {settings.navBar.showText && (
-              <span className="font-display font-semibold text-xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500">
+              <span className={`font-display font-semibold text-xl bg-clip-text text-transparent ${getUiGradient()}`}>
                 {settings.navBar.siteTitle}
               </span>
             )}
             {!settings.navBar.showLogo && !settings.navBar.showText && (
               <>
-                <Tag size={24} className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-400 dark:to-indigo-500" />
-                <span className="font-display font-semibold text-xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500">LOLCoupons</span>
+                <Tag size={24} className={`text-transparent bg-clip-text ${getUiGradient()}`} />
+                <span className={`font-display font-semibold text-xl bg-clip-text text-transparent ${getUiGradient()}`}>
+                  LOLCoupons
+                </span>
               </>
             )}
           </Link>
@@ -90,7 +100,14 @@ export const Navbar = () => {
               {/* Admin button - only visible if settings allow it */}
               {settings.navBar.showAdminButton && (
                 <Link to="/admin">
-                  <Button variant="ghost" className={`${location.pathname === '/admin' ? 'bg-accent' : ''}`}>
+                  <Button 
+                    variant={location.pathname === '/admin' ? 'default' : 'ghost'} 
+                    className={`${
+                      location.pathname === '/admin' 
+                        ? getUiGradient() + ' border-none' 
+                        : ''
+                    }`}
+                  >
                     Admin
                   </Button>
                 </Link>
@@ -153,8 +170,12 @@ export const Navbar = () => {
               {settings.navBar.showAdminButton && (
                 <Link to="/admin">
                   <Button 
-                    variant="ghost" 
-                    className={`w-full justify-start ${location.pathname === '/admin' ? 'bg-accent' : ''}`}
+                    variant={location.pathname === '/admin' ? 'default' : 'ghost'} 
+                    className={`w-full justify-start ${
+                      location.pathname === '/admin' 
+                        ? getUiGradient() + ' border-none' 
+                        : ''
+                    }`}
                   >
                     Admin
                   </Button>

@@ -41,6 +41,11 @@ export const CouponCard = ({ coupon, className = '' }: CouponCardProps) => {
   
   // Get gradient based on category and site settings
   const getGradient = () => {
+    // First check if we should use the UI gradient for all elements
+    if (settings.colors.uiGradient) {
+      return settings.colors.uiGradient;
+    }
+    
     const category = coupon.category.toLowerCase();
     
     if (settings.colors.useCustomGradients) {

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { SiteSettings, NavButton, GradientPreset } from '@/types';
 
@@ -46,6 +45,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
     beautyGradient: 'bg-gradient-to-br from-fuchsia-400 to-pink-500',
     homeGradient: 'bg-gradient-to-br from-amber-400 to-yellow-500',
     gradientPresets: DEFAULT_GRADIENT_PRESETS,
+    uiGradient: undefined,
   },
   general: {
     siteDescription: 'Find the best coupons and discounts online',
@@ -102,7 +102,6 @@ export const useSiteSettings = () => {
   }, []);
 
   const updateSettings = (newSettings: SiteSettings) => {
-    // Initialize gradientPresets if they don't exist
     if (!newSettings.colors.gradientPresets) {
       newSettings.colors.gradientPresets = DEFAULT_GRADIENT_PRESETS;
     }
@@ -117,6 +116,10 @@ export const useSiteSettings = () => {
     document.documentElement.style.setProperty('--custom-secondary', appliedSettings.colors.secondary);
     document.documentElement.style.setProperty('--custom-accent', appliedSettings.colors.accent);
     
+    if (appliedSettings.colors.uiGradient) {
+      document.documentElement.style.setProperty('--ui-gradient', appliedSettings.colors.uiGradient);
+    }
+    
     try {
       document.documentElement.style.setProperty('--primary', hexToHsl(appliedSettings.colors.primary));
       document.documentElement.style.setProperty('--secondary', hexToHsl(appliedSettings.colors.secondary));
@@ -125,13 +128,11 @@ export const useSiteSettings = () => {
       console.error('Error converting hex to HSL:', error);
     }
 
-    // Apply SEO settings
     if (appliedSettings.seo) {
       if (appliedSettings.seo.title) {
         document.title = appliedSettings.seo.title;
       }
       
-      // Update meta description
       let metaDescription = document.querySelector('meta[name="description"]');
       if (metaDescription) {
         metaDescription.setAttribute('content', appliedSettings.seo.description);
@@ -142,7 +143,6 @@ export const useSiteSettings = () => {
         document.head.appendChild(metaDescription);
       }
       
-      // Update favicon
       let favIcon = document.querySelector('link[rel="icon"]');
       if (favIcon) {
         favIcon.setAttribute('href', appliedSettings.seo.favicon);
@@ -179,7 +179,6 @@ export const useSiteSettings = () => {
   };
 
   const updateColorSettings = (colorSettings: Partial<SiteSettings['colors']>) => {
-    // Initialize gradientPresets if they don't exist
     if (!settings.colors.gradientPresets && !colorSettings.gradientPresets) {
       colorSettings.gradientPresets = DEFAULT_GRADIENT_PRESETS;
     }
@@ -330,6 +329,17 @@ export const useSiteSettings = () => {
     return hslValue;
   };
 
+  const applyUIGradient = (gradient: string) => {
+    const updatedSettings = {
+      ...settings,
+      colors: {
+        ...settings.colors,
+        uiGradient: gradient,
+      },
+    };
+    updateSettings(updatedSettings);
+  };
+
   return {
     settings,
     loading,
@@ -341,5 +351,6 @@ export const useSiteSettings = () => {
     updateSeoSettings,
     uploadLogo,
     uploadFavicon,
+    applyUIGradient,
   };
 };

@@ -74,6 +74,7 @@ export interface SiteSettings {
     beautyGradient?: string;
     homeGradient?: string;
     gradientPresets?: GradientPreset[];
+    uiGradient?: string; // Added UI gradient for application-wide use
   };
   general: {
     siteDescription: string;
