@@ -184,7 +184,7 @@ const CouponDetail = () => {
                   onClick={handleGetCoupon}
                   disabled={isExpired}
                 >
-                  <ExternalLink size={18} className="mr-2" /> Go to Website
+                  <ExternalLink size={18} className="mr-2" /> Unlock Coupon
                 </Button>
               </CardFooter>
             </Card>
@@ -196,7 +196,7 @@ const CouponDetail = () => {
               <ol className="text-left max-w-xl mx-auto space-y-4 text-muted-foreground">
                 <li className="flex gap-2">
                   <span className={`rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-white ${gradientClass}`}>1</span>
-                  <span>Click on <strong>"Go to Website"</strong> button to go to the store website.</span>
+                  <span>Click on <strong>"Unlock Coupon"</strong> button to go to the store website.</span>
                 </li>
                 <li className="flex gap-2">
                   <span className={`rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-white ${gradientClass}`}>2</span>
