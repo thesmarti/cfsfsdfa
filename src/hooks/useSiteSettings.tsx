@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { SiteSettings, NavButton } from '@/types';
 
@@ -13,7 +12,10 @@ const DEFAULT_SETTINGS: SiteSettings = {
       { id: 'categories', label: 'Categories', path: '/categories', enabled: true },
       { id: 'stores', label: 'Stores', path: '/stores', enabled: true }
     ],
-    showAdminButton: false
+    showAdminButton: false,
+    enableParticles: false,
+    particlesColor: '#ffffff',
+    particlesDensity: 50
   },
   colors: {
     primary: '#3b82f6',
