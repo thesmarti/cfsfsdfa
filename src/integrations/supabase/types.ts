@@ -9,7 +9,126 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      content_locker_links: {
+        Row: {
+          active: boolean | null
+          createdat: string | null
+          id: string
+          name: string
+          url: string
+        }
+        Insert: {
+          active?: boolean | null
+          createdat?: string | null
+          id?: string
+          name: string
+          url: string
+        }
+        Update: {
+          active?: boolean | null
+          createdat?: string | null
+          id?: string
+          name?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      coupons: {
+        Row: {
+          category: string | null
+          code: string
+          contentlockerlinkid: string | null
+          createdat: string | null
+          description: string | null
+          discount: string | null
+          expirydate: string | null
+          featured: boolean | null
+          id: string
+          image: string | null
+          lastverified: string | null
+          rating: number | null
+          redirecturl: string | null
+          status: string | null
+          store: string
+          updatedat: string | null
+          usedcount: number | null
+        }
+        Insert: {
+          category?: string | null
+          code: string
+          contentlockerlinkid?: string | null
+          createdat?: string | null
+          description?: string | null
+          discount?: string | null
+          expirydate?: string | null
+          featured?: boolean | null
+          id?: string
+          image?: string | null
+          lastverified?: string | null
+          rating?: number | null
+          redirecturl?: string | null
+          status?: string | null
+          store: string
+          updatedat?: string | null
+          usedcount?: number | null
+        }
+        Update: {
+          category?: string | null
+          code?: string
+          contentlockerlinkid?: string | null
+          createdat?: string | null
+          description?: string | null
+          discount?: string | null
+          expirydate?: string | null
+          featured?: boolean | null
+          id?: string
+          image?: string | null
+          lastverified?: string | null
+          rating?: number | null
+          redirecturl?: string | null
+          status?: string | null
+          store?: string
+          updatedat?: string | null
+          usedcount?: number | null
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          colors: Json | null
+          created_at: string | null
+          general: Json | null
+          id: string
+          navbar: Json | null
+          seo: Json | null
+          text_content: Json | null
+          theme: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          colors?: Json | null
+          created_at?: string | null
+          general?: Json | null
+          id?: string
+          navbar?: Json | null
+          seo?: Json | null
+          text_content?: Json | null
+          theme?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          colors?: Json | null
+          created_at?: string | null
+          general?: Json | null
+          id?: string
+          navbar?: Json | null
+          seo?: Json | null
+          text_content?: Json | null
+          theme?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
