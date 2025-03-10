@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
@@ -36,7 +35,7 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
     image: '',
     contentLockerLinkId: undefined,
     rating: 4.5,
-    usedCount: 0
+    usedCount: undefined
   });
   
   const [showNewLinkDialog, setShowNewLinkDialog] = useState(false);
@@ -282,7 +281,7 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
               name="usedCount"
               type="number"
               min="0"
-              value={formData.usedCount || 0}
+              value={formData.usedCount}
               onChange={handleUsedCountChange}
               placeholder="e.g. 250"
             />
