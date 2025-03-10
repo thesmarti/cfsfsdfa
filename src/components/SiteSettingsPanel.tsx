@@ -6,12 +6,24 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Check, Copy, Trash, AlertCircle, Edit, ArrowUpCircle, Plus, Image, Palette, Tag, Save } from 'lucide-react';
+import { 
+  Check, Copy, Trash, AlertCircle, Edit, ArrowUpCircle, 
+  Plus, Image, Palette, Tag, Save, X 
+} from 'lucide-react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { NavButton, GradientPreset } from '@/types';
 import { useToast } from "@/components/ui/use-toast";
 import { SeoSettingsTab } from './SeoSettingsTab';
 import { GradientPresets } from './GradientPresets';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export const SiteSettingsPanel = () => {
   const { settings, updateNavBarSettings, updateColorSettings, updateGeneralSettings, updateNavButtons, uploadLogo, applyUIGradient } = useSiteSettings();
@@ -19,6 +31,10 @@ export const SiteSettingsPanel = () => {
   const [newButtonLabel, setNewButtonLabel] = useState('');
   const [newButtonPath, setNewButtonPath] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [editingButton, setEditingButton] = useState<NavButton | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [buttonToDelete, setButtonToDelete] = useState<NavButton | null>(null);
   
   const [navbarSettings, setNavbarSettings] = useState({ ...settings.navBar });
   const [colorSettings, setColorSettings] = useState({ ...settings.colors });
@@ -76,6 +92,52 @@ export const SiteSettingsPanel = () => {
       });
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleEditButton = (button: NavButton) => {
+    setEditingButton({...button});
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveEditedButton = () => {
+    if (editingButton && editingButton.label && editingButton.path) {
+      const updatedButtons = settings.navBar.buttons.map(btn => 
+        btn.id === editingButton.id ? editingButton : btn
+      );
+      updateNavButtons(updatedButtons);
+      setEditDialogOpen(false);
+      setEditingButton(null);
+      toast({
+        title: "Button Updated",
+        description: "Navigation button has been updated successfully.",
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteButton = (button: NavButton) => {
+    setButtonToDelete(button);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteButton = () => {
+    if (buttonToDelete) {
+      const updatedButtons = settings.navBar.buttons.filter(btn => 
+        btn.id !== buttonToDelete.id
+      );
+      updateNavButtons(updatedButtons);
+      setDeleteDialogOpen(false);
+      setButtonToDelete(null);
+      toast({
+        title: "Button Deleted",
+        description: "Navigation button has been removed successfully.",
+      });
     }
   };
 
@@ -297,38 +359,62 @@ export const SiteSettingsPanel = () => {
               </div>
               
               <div>
-                <h3 className="text-sm font-medium">Navigation Buttons</h3>
-                <ul className="mt-2 space-y-1">
-                  {settings.navBar.buttons.map((button) => (
-                    <li key={button.id} className="flex items-center justify-between">
-                      <span>{button.label} ({button.path})</span>
-                      <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="icon">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon">
-                          <Trash className="h-4 w-4" />
-                        </Button>
+                <h3 className="text-sm font-medium mb-2">Navigation Buttons</h3>
+                <div className="border rounded-md divide-y">
+                  {settings.navBar.buttons.length === 0 ? (
+                    <div className="p-3 text-sm text-muted-foreground italic">
+                      No navigation buttons added yet
+                    </div>
+                  ) : (
+                    settings.navBar.buttons.map((button) => (
+                      <div key={button.id} className="flex items-center justify-between p-3">
+                        <div className="flex flex-col">
+                          <span className="font-medium">{button.label}</span>
+                          <span className="text-xs text-muted-foreground">{button.path}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Switch 
+                            checked={button.enabled} 
+                            onCheckedChange={(checked) => {
+                              const updatedButtons = settings.navBar.buttons.map(btn => 
+                                btn.id === button.id ? {...btn, enabled: checked} : btn
+                              );
+                              updateNavButtons(updatedButtons);
+                            }} 
+                          />
+                          <Button variant="ghost" size="icon" onClick={() => handleEditButton(button)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleDeleteButton(button)}>
+                            <Trash className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
                       </div>
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-4 flex space-x-2">
-                  <Input
-                    type="text"
-                    placeholder="Label"
-                    value={newButtonLabel}
-                    onChange={(e) => setNewButtonLabel(e.target.value)}
-                  />
-                  <Input
-                    type="text"
-                    placeholder="Path"
-                    value={newButtonPath}
-                    onChange={(e) => setNewButtonPath(e.target.value)}
-                  />
-                  <Button size="sm" onClick={handleAddNavButton}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add
+                    ))
+                  )}
+                </div>
+                <div className="mt-4 space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      type="text"
+                      placeholder="Label"
+                      value={newButtonLabel}
+                      onChange={(e) => setNewButtonLabel(e.target.value)}
+                    />
+                    <Input
+                      type="text"
+                      placeholder="Path"
+                      value={newButtonPath}
+                      onChange={(e) => setNewButtonPath(e.target.value)}
+                    />
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-center gap-2"
+                    onClick={handleAddNavButton}
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Navigation Button
                   </Button>
                 </div>
               </div>
@@ -571,6 +657,63 @@ export const SiteSettingsPanel = () => {
           </TabsContent>
         </Tabs>
       </CardContent>
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Navigation Button</DialogTitle>
+            <DialogDescription>
+              Make changes to the navigation button.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-label">Button Label</Label>
+              <Input 
+                id="edit-label" 
+                value={editingButton?.label || ''} 
+                onChange={(e) => setEditingButton(prev => prev ? {...prev, label: e.target.value} : null)} 
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-path">Button Path</Label>
+              <Input 
+                id="edit-path" 
+                value={editingButton?.path || ''} 
+                onChange={(e) => setEditingButton(prev => prev ? {...prev, path: e.target.value} : null)} 
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="edit-enabled" className="flex-grow">Enabled</Label>
+              <Switch 
+                id="edit-enabled" 
+                checked={editingButton?.enabled} 
+                onCheckedChange={(checked) => setEditingButton(prev => prev ? {...prev, enabled: checked} : null)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleSaveEditedButton}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Navigation Button</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the "{buttonToDelete?.label}" button?
+              This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDeleteButton}>Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
