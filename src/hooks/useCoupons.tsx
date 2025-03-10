@@ -597,6 +597,50 @@ export const useCoupons = () => {
     }
   }, [fetchCoupons, toast]);
 
+  // Export links function
+  const exportLinks = useCallback(() => {
+    // Filter out internal IDs, just like with coupons
+    const exportData = linksDatabase.map(({ id, createdAt, ...rest }) => rest);
+    return exportData;
+  }, []);
+
+  // Import links function
+  const importLinks = useCallback(async (importedLinks: Omit<ContentLockerLink, 'id' | 'createdAt'>[]) => {
+    try {
+      // Create new links with generated IDs and timestamps
+      const now = new Date().toISOString();
+      const newLinks = importedLinks.map(link => ({
+        ...link,
+        id: `imp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        createdAt: now
+      }));
+      
+      // Add the new links to our "database"
+      linksDatabase = [...linksDatabase, ...newLinks];
+      
+      // Save to localStorage
+      saveToStorage('links', linksDatabase);
+      
+      // Refresh the links list
+      await fetchLinks();
+      
+      toast({
+        title: "Success",
+        description: `${newLinks.length} content locker links imported successfully!`,
+      });
+      
+      return newLinks;
+    } catch (err) {
+      console.error('Error importing links:', err);
+      toast({
+        title: "Error",
+        description: "Failed to import links. Please check your file format.",
+        variant: "destructive",
+      });
+      return null;
+    }
+  }, [fetchLinks, toast]);
+
   const getCouponById = useCallback((id: string) => {
     return couponsDatabase.find(c => c.id === id) || null;
   }, []);
@@ -621,6 +665,8 @@ export const useCoupons = () => {
     addLink,
     updateLink,
     deleteLink,
-    importCoupons
+    importCoupons,
+    exportLinks,
+    importLinks
   };
 };

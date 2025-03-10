@@ -53,7 +53,9 @@ const AdminPanel = () => {
     addLink,
     updateLink,
     deleteLink,
-    importCoupons
+    importCoupons,
+    exportLinks,
+    importLinks
   } = useCoupons();
   
   const [user, setUser] = useState<User | null>(null);
@@ -640,6 +642,8 @@ const AdminPanel = () => {
                 onAddLink={addLink}
                 onUpdateLink={updateLink}
                 onDeleteLink={deleteLink}
+                exportLinks={exportLinks}
+                importLinks={importLinks}
               />
             )}
             
