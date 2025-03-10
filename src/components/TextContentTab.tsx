@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { SiteSettings } from '@/types';
 import { Save } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const TextContentTab = () => {
   const { settings, updateTextContent } = useSiteSettings();
@@ -60,6 +61,12 @@ export const TextContentTab = () => {
 
   return (
     <div className="space-y-6">
+      <Alert variant="destructive" className="mb-4">
+        <AlertDescription>
+          Note: Settings changes are temporary and not synced across devices. They will only be visible in your current browser session.
+        </AlertDescription>
+      </Alert>
+      
       <Card>
         <CardHeader>
           <CardTitle>Hero Section</CardTitle>

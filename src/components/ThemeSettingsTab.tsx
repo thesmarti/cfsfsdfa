@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { ThemeSelector } from './ThemeSelector';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 type ThemeOption = "light" | "dark" | "system";
 
@@ -47,6 +48,12 @@ export const ThemeSettingsTab = () => {
         <CardTitle>Theme Settings</CardTitle>
       </CardHeader>
       <CardContent>
+        <Alert className="mb-4">
+          <AlertDescription>
+            Note: Theme settings are saved locally in your browser and not synced across devices.
+          </AlertDescription>
+        </Alert>
+        
         <ThemeSelector 
           currentTheme={currentTheme} 
           onThemeChange={handleThemeChange} 

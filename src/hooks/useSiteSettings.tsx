@@ -16,7 +16,7 @@ const DEFAULT_GRADIENT_PRESETS: GradientPreset[] = [
   { id: 'blue-indigo', name: 'Blue to Indigo', value: 'bg-gradient-to-br from-blue-500 to-indigo-600', category: 'electronics' },
 ];
 
-const DEFAULT_SETTINGS: SiteSettings = {
+const STATIC_SETTINGS: SiteSettings = {
   navBar: {
     showLogo: true,
     showText: true,
@@ -36,7 +36,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
     primary: '#3b82f6',
     secondary: '#8b5cf6',
     accent: '#ec4899',
-    useCustomGradients: false,
+    useCustomGradients: true,
     defaultGradient: 'bg-gradient-to-br from-violet-500 to-purple-600',
     fashionGradient: 'bg-gradient-to-br from-pink-500 to-purple-600',
     foodGradient: 'bg-gradient-to-br from-orange-400 to-red-500',
@@ -69,80 +69,23 @@ const DEFAULT_SETTINGS: SiteSettings = {
 };
 
 export const useSiteSettings = () => {
-  const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<SiteSettings>(STATIC_SETTINGS);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadSettings = () => {
-      try {
-        const savedSettings = localStorage.getItem('siteSettings');
-        
-        if (savedSettings) {
-          const parsedSettings = JSON.parse(savedSettings);
-          
-          // Create a deep merged object with all properties
-          const mergedSettings = {
-            ...DEFAULT_SETTINGS,
-            ...parsedSettings,
-            navBar: {
-              ...DEFAULT_SETTINGS.navBar,
-              ...(parsedSettings.navBar || {}),
-              buttons: parsedSettings.navBar?.buttons || DEFAULT_SETTINGS.navBar.buttons,
-            },
-            colors: {
-              ...DEFAULT_SETTINGS.colors,
-              ...(parsedSettings.colors || {}),
-              gradientPresets: parsedSettings.colors?.gradientPresets || DEFAULT_GRADIENT_PRESETS,
-            },
-            general: {
-              ...DEFAULT_SETTINGS.general,
-              ...(parsedSettings.general || {}),
-            },
-            seo: {
-              ...DEFAULT_SETTINGS.seo,
-              ...(parsedSettings.seo || {}),
-            },
-            textContent: {
-              ...DEFAULT_SETTINGS.textContent,
-              ...(parsedSettings.textContent || {}),
-            }
-          };
-          
-          setSettings(mergedSettings);
-          console.log('Loaded settings from localStorage:', mergedSettings);
-        } else {
-          console.log('No saved settings found, using defaults');
-          setSettings(DEFAULT_SETTINGS);
-        }
-      } catch (error) {
-        console.error('Error loading site settings:', error);
-        setSettings(DEFAULT_SETTINGS);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadSettings();
+    applySettings(STATIC_SETTINGS);
+    setLoading(false);
   }, []);
 
   const updateSettings = (newSettings: SiteSettings) => {
-    // Ensure gradient presets are included
     if (!newSettings.colors.gradientPresets) {
       newSettings.colors.gradientPresets = DEFAULT_GRADIENT_PRESETS;
     }
     
-    // Update state
     setSettings(newSettings);
     
-    // Store in localStorage
-    try {
-      localStorage.setItem('siteSettings', JSON.stringify(newSettings));
-      console.log('Saved settings to localStorage:', newSettings);
-    } catch (error) {
-      console.error('Error saving settings to localStorage:', error);
-    }
+    console.log('NOTE: Changes will only be visible on this device/session');
     
-    // Apply settings to DOM
     applySettings(newSettings);
   };
 
@@ -151,7 +94,6 @@ export const useSiteSettings = () => {
     document.documentElement.style.setProperty('--custom-secondary', appliedSettings.colors.secondary);
     document.documentElement.style.setProperty('--custom-accent', appliedSettings.colors.accent);
     
-    // Apply UI gradient or use primary color based on useCustomGradients setting
     if (appliedSettings.colors.useCustomGradients && appliedSettings.colors.uiGradient) {
       document.documentElement.style.setProperty('--ui-gradient', appliedSettings.colors.uiGradient);
       
@@ -169,7 +111,6 @@ export const useSiteSettings = () => {
       
       document.documentElement.classList.add(cleanClassName);
     } else {
-      // Remove gradient classes when not using custom gradients
       const oldClasses = Array.from(document.documentElement.classList)
         .filter(c => c.startsWith('ui-gradient-'));
       
@@ -177,7 +118,6 @@ export const useSiteSettings = () => {
         oldClasses.forEach(c => document.documentElement.classList.remove(c));
       }
       
-      // Also clear the CSS variable when gradients are turned off
       document.documentElement.style.removeProperty('--ui-gradient');
     }
     
@@ -210,12 +150,6 @@ export const useSiteSettings = () => {
       }
     }
   };
-
-  useEffect(() => {
-    if (!loading) {
-      applySettings(settings);
-    }
-  }, [loading, settings]);
 
   const updateNavBarSettings = (navBarSettings: Partial<SiteSettings['navBar']>) => {
     const updatedSettings = {
