@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-import { Settings, Palette, Type, Image, Paintbrush } from 'lucide-react';
+import { Settings, Palette, Type, Image, Paintbrush, User } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
@@ -43,7 +42,20 @@ export const SiteSettingsPanel = () => {
     footerText: settings.general.footerText,
   });
 
-  // Update form values when settings change
+  const [adminForm, setAdminForm] = useState({
+    email: '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+
+  useEffect(() => {
+    const storedEmail = localStorage.getItem('adminEmail');
+    if (storedEmail) {
+      setAdminForm(prev => ({ ...prev, email: storedEmail }));
+    }
+  }, []);
+
   useEffect(() => {
     setNavBarForm({
       showLogo: settings.navBar.showLogo,
@@ -98,8 +110,57 @@ export const SiteSettingsPanel = () => {
       description: "General settings updated successfully",
     });
   };
-  
-  // Predefined gradient options
+
+  const handleAdminCredentialsSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!adminForm.email) {
+      toast({
+        title: "Error",
+        description: "Admin email is required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const storedPassword = localStorage.getItem('adminPassword');
+    if (adminForm.currentPassword !== storedPassword) {
+      toast({
+        title: "Error",
+        description: "Current password is incorrect.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (adminForm.newPassword) {
+      if (adminForm.newPassword !== adminForm.confirmPassword) {
+        toast({
+          title: "Error",
+          description: "New passwords don't match.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      localStorage.setItem('adminPassword', adminForm.newPassword);
+    }
+
+    localStorage.setItem('adminEmail', adminForm.email);
+
+    setAdminForm(prev => ({
+      ...prev,
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    }));
+
+    toast({
+      title: "Success",
+      description: "Admin credentials updated successfully.",
+    });
+  };
+
   const gradientOptions = [
     { value: 'bg-gradient-to-r from-blue-500 to-indigo-600', label: 'Blue to Indigo' },
     { value: 'bg-gradient-to-r from-purple-500 to-pink-500', label: 'Purple to Pink' },
@@ -111,21 +172,19 @@ export const SiteSettingsPanel = () => {
     { value: 'bg-gradient-to-r from-rose-500 to-red-500', label: 'Rose to Red' },
   ];
 
-  // Render gradient preview
   const renderGradientPreview = (gradientClass: string) => {
     return (
       <div className={`h-8 rounded-md ${gradientClass}`}></div>
     );
   };
 
-  // Handle gradient selection
   const handleGradientChange = (category: keyof typeof colorForm, gradientClass: string) => {
     setColorForm({
       ...colorForm,
       [category]: gradientClass
     });
   };
-  
+
   return (
     <Card className="shadow-md">
       <CardHeader>
@@ -139,7 +198,7 @@ export const SiteSettingsPanel = () => {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="navbar">
-          <TabsList className="grid grid-cols-3 mb-6">
+          <TabsList className="grid grid-cols-4 mb-6">
             <TabsTrigger value="navbar" className="flex items-center gap-1">
               <Image size={14} />
               <span>Navigation</span>
@@ -151,6 +210,10 @@ export const SiteSettingsPanel = () => {
             <TabsTrigger value="general" className="flex items-center gap-1">
               <Type size={14} />
               <span>Content</span>
+            </TabsTrigger>
+            <TabsTrigger value="admin" className="flex items-center gap-1">
+              <User size={14} />
+              <span>Admin</span>
             </TabsTrigger>
           </TabsList>
           
@@ -519,8 +582,75 @@ export const SiteSettingsPanel = () => {
               <Button type="submit" className="w-full">Save Content Settings</Button>
             </form>
           </TabsContent>
+
+          <TabsContent value="admin">
+            <form onSubmit={handleAdminCredentialsSubmit} className="space-y-4">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Admin Credentials</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Update your admin login information
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="adminEmail">Admin Email</Label>
+                    <Input 
+                      id="adminEmail"
+                      type="email"
+                      placeholder="admin@example.com"
+                      value={adminForm.email}
+                      onChange={(e) => setAdminForm({...adminForm, email: e.target.value})}
+                      required
+                    />
+                  </div>
+                  
+                  <Separator className="my-4" />
+                  
+                  <div className="space-y-1">
+                    <Label htmlFor="currentPassword">Current Password</Label>
+                    <Input 
+                      id="currentPassword"
+                      type="password"
+                      placeholder="Enter current password"
+                      value={adminForm.currentPassword}
+                      onChange={(e) => setAdminForm({...adminForm, currentPassword: e.target.value})}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <Label htmlFor="newPassword">New Password (leave blank to keep current)</Label>
+                    <Input 
+                      id="newPassword"
+                      type="password"
+                      placeholder="Enter new password"
+                      value={adminForm.newPassword}
+                      onChange={(e) => setAdminForm({...adminForm, newPassword: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                    <Input 
+                      id="confirmPassword"
+                      type="password"
+                      placeholder="Confirm new password"
+                      value={adminForm.confirmPassword}
+                      onChange={(e) => setAdminForm({...adminForm, confirmPassword: e.target.value})}
+                      disabled={!adminForm.newPassword}
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <Button type="submit" className="w-full">Update Admin Credentials</Button>
+            </form>
+          </TabsContent>
         </Tabs>
       </CardContent>
     </Card>
   );
 };
+
