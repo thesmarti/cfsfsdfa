@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { SiteSettings } from '@/types';
+import { SiteSettings, NavButton } from '@/types';
 
 const DEFAULT_SETTINGS: SiteSettings = {
   navBar: {
@@ -7,6 +8,15 @@ const DEFAULT_SETTINGS: SiteSettings = {
     showText: true,
     logoUrl: 'https://static.vecteezy.com/system/resources/thumbnails/012/872/334/small_2x/discount-coupon-3d-png.png',
     siteTitle: 'GlowCoupons',
+    buttons: [
+      { id: 'home', label: 'Home', path: '/', enabled: true },
+      { id: 'categories', label: 'Categories', path: '/categories', enabled: true },
+      { id: 'stores', label: 'Stores', path: '/stores', enabled: true }
+    ],
+    showAdminButton: false,
+    enableParticles: true,
+    particlesColor: '#8b5cf6',
+    particlesDensity: 50
   },
   colors: {
     primary: '#3b82f6',
@@ -43,6 +53,7 @@ export const useSiteSettings = () => {
             navBar: {
               ...DEFAULT_SETTINGS.navBar,
               ...parsedSettings.navBar,
+              buttons: parsedSettings.navBar?.buttons || DEFAULT_SETTINGS.navBar.buttons,
             },
             colors: {
               ...DEFAULT_SETTINGS.colors,
@@ -97,6 +108,17 @@ export const useSiteSettings = () => {
       navBar: {
         ...settings.navBar,
         ...navBarSettings,
+      },
+    };
+    updateSettings(updatedSettings);
+  };
+
+  const updateNavButtons = (buttons: NavButton[]) => {
+    const updatedSettings = {
+      ...settings,
+      navBar: {
+        ...settings.navBar,
+        buttons,
       },
     };
     updateSettings(updatedSettings);
@@ -206,6 +228,7 @@ export const useSiteSettings = () => {
     loading,
     updateSettings,
     updateNavBarSettings,
+    updateNavButtons,
     updateColorSettings,
     updateGeneralSettings,
     uploadLogo,

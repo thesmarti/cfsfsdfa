@@ -35,12 +35,24 @@ export interface ContentLockerLink {
   createdAt: string;
 }
 
+export interface NavButton {
+  id: string;
+  label: string;
+  path: string;
+  enabled: boolean;
+}
+
 export interface SiteSettings {
   navBar: {
     showLogo: boolean;
     showText: boolean;
     logoUrl: string;
     siteTitle: string;
+    buttons: NavButton[];
+    showAdminButton: boolean;
+    enableParticles: boolean;
+    particlesColor: string;
+    particlesDensity: number;
   };
   colors: {
     primary: string;

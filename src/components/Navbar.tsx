@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,9 @@ import { Search, Menu, X, Tag } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
+import Particles, { initParticlesEngine } from "@tsparticles/react";
+import { type Container, type ISourceOptions } from "@tsparticles/engine";
+import { loadSlim } from "@tsparticles/slim";
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -15,9 +18,20 @@ export const Navbar = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
   const { settings } = useSiteSettings();
+  const [init, setInit] = useState(false);
+  
+  const particlesRef = useRef<Container | null>(null);
 
-  // Check if the user is on the admin panel
-  const isAdmin = location.pathname.includes('/admin');
+  // Initialize particles engine
+  useEffect(() => {
+    const initEngine = async () => {
+      await initParticlesEngine(async (engine) => {
+        await loadSlim(engine);
+      });
+      setInit(true);
+    };
+    initEngine();
+  }, []);
 
   // Handle scroll events for navbar styling
   useEffect(() => {
@@ -38,15 +52,99 @@ export const Navbar = () => {
     setIsMenuOpen(false);
   }, [location.pathname]);
 
+  // Set up particles options
+  const particlesOptions: ISourceOptions = {
+    particles: {
+      number: {
+        value: settings.navBar.particlesDensity,
+        density: {
+          enable: true,
+          value_area: 800
+        }
+      },
+      color: {
+        value: settings.navBar.particlesColor
+      },
+      opacity: {
+        value: 0.3,
+        random: true,
+        anim: {
+          enable: true,
+          speed: 1,
+          opacity_min: 0.1,
+          sync: false
+        }
+      },
+      size: {
+        value: 3,
+        random: true
+      },
+      links: {
+        enable: true,
+        distance: 150,
+        color: settings.navBar.particlesColor,
+        opacity: 0.2,
+        width: 1
+      },
+      move: {
+        enable: true,
+        speed: 1,
+        direction: "none",
+        random: true,
+        straight: false,
+        out_mode: "out",
+        bounce: false
+      }
+    },
+    interactivity: {
+      events: {
+        onhover: {
+          enable: true,
+          mode: "grab"
+        },
+        onclick: {
+          enable: true,
+          mode: "push"
+        },
+        resize: true
+      },
+      modes: {
+        grab: {
+          distance: 140,
+          links: {
+            opacity: 0.3
+          }
+        },
+        push: {
+          particles_nb: 3
+        }
+      }
+    },
+    retina_detect: true
+  };
+
+  // Check if the user is on the admin panel
+  const isAdmin = location.pathname.includes('/admin');
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled 
           ? 'py-3 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm' 
           : 'py-5 bg-transparent'
-      }`}
+      } overflow-hidden`}
     >
-      <div className="container mx-auto px-4">
+      {init && settings.navBar.enableParticles && (
+        <div className="absolute inset-0 overflow-hidden">
+          <Particles
+            id="tsparticles"
+            options={particlesOptions}
+            className="absolute inset-0 w-full h-full"
+          />
+        </div>
+      )}
+      
+      <div className="container mx-auto px-4 relative z-10">
         <div className="flex items-center justify-between">
           {/* Logo and brand */}
           <Link to="/" className="flex items-center space-x-2">
@@ -76,26 +174,25 @@ export const Navbar = () => {
           {/* Desktop Navigation */}
           {!isMobile && (
             <nav className="flex items-center space-x-1">
-              <Link to="/">
-                <Button variant="ghost" className={`${location.pathname === '/' ? 'bg-accent' : ''}`}>
-                  Home
-                </Button>
-              </Link>
-              <Link to="/categories">
-                <Button variant="ghost" className={`${location.pathname === '/categories' ? 'bg-accent' : ''}`}>
-                  Categories
-                </Button>
-              </Link>
-              <Link to="/stores">
-                <Button variant="ghost" className={`${location.pathname === '/stores' ? 'bg-accent' : ''}`}>
-                  Stores
-                </Button>
-              </Link>
-              <Link to="/admin">
-                <Button variant="ghost" className={`${location.pathname === '/admin' ? 'bg-accent' : ''}`}>
-                  Admin
-                </Button>
-              </Link>
+              {settings.navBar.buttons.filter(btn => btn.enabled).map(button => (
+                <Link key={button.id} to={button.path}>
+                  <Button 
+                    variant="ghost"
+                    className={`${location.pathname === button.path ? 'bg-accent' : ''}`}
+                  >
+                    {button.label}
+                  </Button>
+                </Link>
+              ))}
+              
+              {/* Admin button - only visible if settings allow it */}
+              {settings.navBar.showAdminButton && (
+                <Link to="/admin">
+                  <Button variant="ghost" className={`${location.pathname === '/admin' ? 'bg-accent' : ''}`}>
+                    Admin
+                  </Button>
+                </Link>
+              )}
 
               <div className="ml-2 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
@@ -139,38 +236,28 @@ export const Navbar = () => {
               
               <Separator className="my-2" />
               
-              <Link to="/">
-                <Button 
-                  variant="ghost" 
-                  className={`w-full justify-start ${location.pathname === '/' ? 'bg-accent' : ''}`}
-                >
-                  Home
-                </Button>
-              </Link>
-              <Link to="/categories">
-                <Button 
-                  variant="ghost" 
-                  className={`w-full justify-start ${location.pathname === '/categories' ? 'bg-accent' : ''}`}
-                >
-                  Categories
-                </Button>
-              </Link>
-              <Link to="/stores">
-                <Button 
-                  variant="ghost" 
-                  className={`w-full justify-start ${location.pathname === '/stores' ? 'bg-accent' : ''}`}
-                >
-                  Stores
-                </Button>
-              </Link>
-              <Link to="/admin">
-                <Button 
-                  variant="ghost" 
-                  className={`w-full justify-start ${location.pathname === '/admin' ? 'bg-accent' : ''}`}
-                >
-                  Admin
-                </Button>
-              </Link>
+              {settings.navBar.buttons.filter(btn => btn.enabled).map(button => (
+                <Link key={button.id} to={button.path}>
+                  <Button 
+                    variant="ghost" 
+                    className={`w-full justify-start ${location.pathname === button.path ? 'bg-accent' : ''}`}
+                  >
+                    {button.label}
+                  </Button>
+                </Link>
+              ))}
+              
+              {/* Admin button - only visible if settings allow it */}
+              {settings.navBar.showAdminButton && (
+                <Link to="/admin">
+                  <Button 
+                    variant="ghost" 
+                    className={`w-full justify-start ${location.pathname === '/admin' ? 'bg-accent' : ''}`}
+                  >
+                    Admin
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         )}

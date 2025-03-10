@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,14 +9,16 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-import { Settings, Palette, Type, Image, Paintbrush, User, Upload } from 'lucide-react';
+import { Settings, Palette, Type, Image, Paintbrush, User, Upload, Menu, Plus, Trash2, Sparkles } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Progress } from "@/components/ui/progress";
+import { NavButton } from '@/types';
+import { v4 as uuidv4 } from 'uuid';
 
 export const SiteSettingsPanel = () => {
   const { toast } = useToast();
-  const { settings, updateNavBarSettings, updateColorSettings, updateGeneralSettings, uploadLogo } = useSiteSettings();
+  const { settings, updateNavBarSettings, updateNavButtons, updateColorSettings, updateGeneralSettings, uploadLogo } = useSiteSettings();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [navBarForm, setNavBarForm] = useState({
@@ -23,7 +26,15 @@ export const SiteSettingsPanel = () => {
     showText: settings.navBar.showText,
     logoUrl: settings.navBar.logoUrl,
     siteTitle: settings.navBar.siteTitle,
+    showAdminButton: settings.navBar.showAdminButton,
+    enableParticles: settings.navBar.enableParticles,
+    particlesColor: settings.navBar.particlesColor,
+    particlesDensity: settings.navBar.particlesDensity
   });
+  
+  const [navButtons, setNavButtons] = useState<NavButton[]>(
+    settings.navBar.buttons || []
+  );
   
   const [colorForm, setColorForm] = useState({
     primary: settings.colors.primary,
@@ -53,6 +64,10 @@ export const SiteSettingsPanel = () => {
 
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [newButtonData, setNewButtonData] = useState({
+    label: '',
+    path: ''
+  });
 
   useEffect(() => {
     const storedEmail = localStorage.getItem('adminEmail');
@@ -67,7 +82,13 @@ export const SiteSettingsPanel = () => {
       showText: settings.navBar.showText,
       logoUrl: settings.navBar.logoUrl,
       siteTitle: settings.navBar.siteTitle,
+      showAdminButton: settings.navBar.showAdminButton,
+      enableParticles: settings.navBar.enableParticles,
+      particlesColor: settings.navBar.particlesColor,
+      particlesDensity: settings.navBar.particlesDensity
     });
+    
+    setNavButtons(settings.navBar.buttons || []);
     
     setColorForm({
       primary: settings.colors.primary,
@@ -91,7 +112,15 @@ export const SiteSettingsPanel = () => {
   
   const handleNavBarSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateNavBarSettings(navBarForm);
+    
+    const updatedSettings = {
+      ...navBarForm,
+      buttons: navButtons
+    };
+    
+    updateNavBarSettings(updatedSettings);
+    updateNavButtons(navButtons);
+    
     toast({
       title: "Success",
       description: "Navigation bar settings updated successfully",
@@ -210,6 +239,50 @@ export const SiteSettingsPanel = () => {
     }
   };
 
+  const addNavButton = () => {
+    if (newButtonData.label.trim() === '' || newButtonData.path.trim() === '') {
+      toast({
+        title: 'Error',
+        description: 'Button label and path are required',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    const newButton: NavButton = {
+      id: uuidv4(),
+      label: newButtonData.label,
+      path: newButtonData.path,
+      enabled: true
+    };
+    
+    const updatedButtons = [...navButtons, newButton];
+    setNavButtons(updatedButtons);
+    setNewButtonData({ label: '', path: '' });
+    
+    toast({
+      title: 'Success',
+      description: `Added button: ${newButtonData.label}`
+    });
+  };
+  
+  const removeNavButton = (id: string) => {
+    const updatedButtons = navButtons.filter(button => button.id !== id);
+    setNavButtons(updatedButtons);
+    
+    toast({
+      title: 'Success',
+      description: 'Navigation button removed'
+    });
+  };
+  
+  const toggleNavButton = (id: string) => {
+    const updatedButtons = navButtons.map(button => 
+      button.id === id ? { ...button, enabled: !button.enabled } : button
+    );
+    setNavButtons(updatedButtons);
+  };
+
   const triggerFileInput = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
@@ -292,6 +365,15 @@ export const SiteSettingsPanel = () => {
                       onCheckedChange={(checked) => setNavBarForm({...navBarForm, showText: checked as boolean})}
                     />
                     <Label htmlFor="showText">Show Site Title</Label>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="showAdminButton" 
+                      checked={navBarForm.showAdminButton}
+                      onCheckedChange={(checked) => setNavBarForm({...navBarForm, showAdminButton: checked as boolean})}
+                    />
+                    <Label htmlFor="showAdminButton">Show Admin Button (in Navigation)</Label>
                   </div>
                 </div>
                 
@@ -391,6 +473,135 @@ export const SiteSettingsPanel = () => {
                     onChange={(e) => setNavBarForm({...navBarForm, siteTitle: e.target.value})}
                     disabled={!navBarForm.showText}
                   />
+                </div>
+              </div>
+              
+              <Separator className="my-4" />
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Menu size={18} />
+                    <h3 className="text-base font-medium">Navigation Buttons</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Configure which buttons appear in the navigation bar
+                  </p>
+                </div>
+                
+                <div className="space-y-3">
+                  {navButtons.map((button) => (
+                    <div key={button.id} className="flex items-center gap-3 p-3 border rounded-md">
+                      <div className="flex-1">
+                        <div className="font-medium">{button.label}</div>
+                        <div className="text-xs text-muted-foreground">{button.path}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            id={`enable-${button.id}`}
+                            checked={button.enabled}
+                            onCheckedChange={() => toggleNavButton(button.id)}
+                          />
+                          <Label htmlFor={`enable-${button.id}`} className="text-xs">
+                            {button.enabled ? 'Enabled' : 'Disabled'}
+                          </Label>
+                        </div>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => removeNavButton(button.id)}
+                          className="h-8 w-8 text-destructive hover:text-destructive/90"
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <div className="p-3 border border-dashed rounded-md space-y-3">
+                    <div className="text-sm font-medium">Add New Navigation Button</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <Input
+                        placeholder="Button Label"
+                        value={newButtonData.label}
+                        onChange={(e) => setNewButtonData({...newButtonData, label: e.target.value})}
+                      />
+                      <Input
+                        placeholder="Button Path (e.g. /categories)"
+                        value={newButtonData.path}
+                        onChange={(e) => setNewButtonData({...newButtonData, path: e.target.value})}
+                      />
+                    </div>
+                    <Button 
+                      type="button" 
+                      onClick={addNavButton}
+                      className="w-full gap-1"
+                      variant="outline"
+                    >
+                      <Plus size={16} />
+                      Add Button
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              
+              <Separator className="my-4" />
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles size={18} />
+                    <h3 className="text-base font-medium">Particles Effect</h3>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="enableParticles"
+                      checked={navBarForm.enableParticles}
+                      onCheckedChange={(checked) => setNavBarForm({...navBarForm, enableParticles: checked})}
+                    />
+                    <Label htmlFor="enableParticles">Enable Particles Background</Label>
+                  </div>
+                  
+                  {navBarForm.enableParticles && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <Label htmlFor="particlesColor">Particles Color</Label>
+                        <div className="flex gap-2">
+                          <div 
+                            className="w-10 h-10 rounded-md border"
+                            style={{ backgroundColor: navBarForm.particlesColor }}
+                          ></div>
+                          <Input 
+                            id="particlesColor"
+                            type="color"
+                            value={navBarForm.particlesColor}
+                            onChange={(e) => setNavBarForm({...navBarForm, particlesColor: e.target.value})}
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <Label htmlFor="particlesDensity">Particles Density</Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            id="particlesDensity"
+                            type="number"
+                            min={10}
+                            max={200}
+                            value={navBarForm.particlesDensity}
+                            onChange={(e) => setNavBarForm({...navBarForm, particlesDensity: parseInt(e.target.value)})}
+                          />
+                          <span className="text-sm text-muted-foreground whitespace-nowrap">(10-200)</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               
