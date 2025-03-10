@@ -164,7 +164,6 @@ const Index = () => {
       <footer className="mt-24 py-8 border-t border-border">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
           <p>© {new Date().getFullYear()} LOLCoupons. All rights reserved.</p>
-          <p className="mt-2">Just a demo project with premium design.</p>
         </div>
       </footer>
     </div>
