@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { Coupon, SortOption, FilterOption, ContentLockerLink } from '@/types';
 import { useToast } from "@/components/ui/use-toast";
@@ -263,5 +264,219 @@ export const useCoupons = () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         verified: coupon.verified ?? false,
+        rating: coupon.rating ?? 0,
+        usedCount: coupon.usedCount ?? 0,
+      };
+      
+      // Add to our "database"
+      couponsDatabase.push(newCoupon);
+      saveToStorage('coupons', couponsDatabase);
+      
+      // Refresh the UI
+      await fetchCoupons();
+      
+      toast({
+        title: "Success",
+        description: "Coupon added successfully."
+      });
+      
+      return newCoupon;
+    } catch (err) {
+      console.error('Error adding coupon:', err);
+      toast({
+        title: "Error",
+        description: "Failed to add coupon. Please try again.",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchCoupons, toast]);
 
+  const updateCoupon = useCallback(async (id: string, updates: Partial<Omit<Coupon, 'id' | 'createdAt'>>) => {
+    try {
+      setLoading(true);
+      
+      // Find the coupon to update
+      const index = couponsDatabase.findIndex(coupon => coupon.id === id);
+      if (index === -1) {
+        throw new Error('Coupon not found');
+      }
+      
+      // Update the coupon
+      couponsDatabase[index] = {
+        ...couponsDatabase[index],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+      
+      saveToStorage('coupons', couponsDatabase);
+      
+      // Refresh the UI
+      await fetchCoupons();
+      
+      toast({
+        title: "Success",
+        description: "Coupon updated successfully."
+      });
+      
+      return couponsDatabase[index];
+    } catch (err) {
+      console.error('Error updating coupon:', err);
+      toast({
+        title: "Error",
+        description: "Failed to update coupon. Please try again.",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchCoupons, toast]);
 
+  const deleteCoupon = useCallback(async (id: string) => {
+    try {
+      setLoading(true);
+      
+      // Filter out the coupon to delete
+      couponsDatabase = couponsDatabase.filter(coupon => coupon.id !== id);
+      saveToStorage('coupons', couponsDatabase);
+      
+      // Refresh the UI
+      await fetchCoupons();
+      
+      toast({
+        title: "Success",
+        description: "Coupon deleted successfully."
+      });
+      
+      return true;
+    } catch (err) {
+      console.error('Error deleting coupon:', err);
+      toast({
+        title: "Error",
+        description: "Failed to delete coupon. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchCoupons, toast]);
+
+  // Admin functions for managing content locker links
+  const addLink = useCallback(async (link: Omit<ContentLockerLink, 'id' | 'createdAt'>) => {
+    try {
+      // Create new link
+      const newLink: ContentLockerLink = {
+        ...link,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString()
+      };
+      
+      // Add to our "database"
+      linksDatabase.push(newLink);
+      saveToStorage('links', linksDatabase);
+      
+      // Refresh the UI
+      await fetchLinks();
+      
+      toast({
+        title: "Success",
+        description: "Content locker link added successfully."
+      });
+      
+      return newLink;
+    } catch (err) {
+      console.error('Error adding link:', err);
+      toast({
+        title: "Error",
+        description: "Failed to add content locker link.",
+        variant: "destructive",
+      });
+      return null;
+    }
+  }, [fetchLinks, toast]);
+
+  const updateLink = useCallback(async (id: string, updates: Partial<Omit<ContentLockerLink, 'id' | 'createdAt'>>) => {
+    try {
+      // Find the link to update
+      const index = linksDatabase.findIndex(link => link.id === id);
+      if (index === -1) {
+        throw new Error('Link not found');
+      }
+      
+      // Update the link
+      linksDatabase[index] = {
+        ...linksDatabase[index],
+        ...updates
+      };
+      
+      saveToStorage('links', linksDatabase);
+      
+      // Refresh the UI
+      await fetchLinks();
+      
+      toast({
+        title: "Success",
+        description: "Content locker link updated successfully."
+      });
+      
+      return linksDatabase[index];
+    } catch (err) {
+      console.error('Error updating link:', err);
+      toast({
+        title: "Error",
+        description: "Failed to update content locker link.",
+        variant: "destructive",
+      });
+      return null;
+    }
+  }, [fetchLinks, toast]);
+
+  const deleteLink = useCallback(async (id: string) => {
+    try {
+      // Filter out the link to delete
+      linksDatabase = linksDatabase.filter(link => link.id !== id);
+      saveToStorage('links', linksDatabase);
+      
+      // Refresh the UI
+      await fetchLinks();
+      
+      toast({
+        title: "Success",
+        description: "Content locker link deleted successfully."
+      });
+      
+      return true;
+    } catch (err) {
+      console.error('Error deleting link:', err);
+      toast({
+        title: "Error",
+        description: "Failed to delete content locker link.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  }, [fetchLinks, toast]);
+
+  return {
+    coupons,
+    featuredCoupons,
+    links,
+    loading,
+    error,
+    sortBy,
+    setSortBy,
+    filterBy,
+    setFilterBy,
+    fetchCoupons,
+    addCoupon,
+    updateCoupon,
+    deleteCoupon,
+    addLink,
+    updateLink,
+    deleteLink
+  };
+};
