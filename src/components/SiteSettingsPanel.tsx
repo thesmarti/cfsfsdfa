@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, Copy, Trash, AlertCircle, Edit, ArrowUpCircle, Plus, Image, Palette } from 'lucide-react';
+import { Check, Copy, Trash, AlertCircle, Edit, ArrowUpCircle, Plus, Image, Palette, Tag } from 'lucide-react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { NavButton } from '@/types';
 import { useToast } from "@/components/ui/use-toast";
@@ -161,10 +161,52 @@ export const SiteSettingsPanel = () => {
                 <Label htmlFor="show-text">Show Text</Label>
                 <Switch id="show-text" checked={settings.navBar.showText} onCheckedChange={(checked) => updateNavBarSettings({ showText: checked })} />
               </div>
+              
               <div className="grid gap-2">
                 <Label htmlFor="site-title">Site Title</Label>
                 <Input id="site-title" value={settings.navBar.siteTitle} onChange={handleSiteTitleChange} />
               </div>
+              
+              {/* Navbar Preview Section */}
+              <div className="mt-4">
+                <Label className="mb-2 block">Navbar Preview</Label>
+                <div className="border rounded-lg p-4 bg-background shadow-sm">
+                  <div className="flex items-center space-x-2">
+                    {settings.navBar.showLogo && (
+                      <div className="h-8 w-8 flex-shrink-0">
+                        {settings.navBar.logoUrl ? (
+                          <img 
+                            src={settings.navBar.logoUrl} 
+                            alt="Logo Preview" 
+                            className="h-full w-full object-contain"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/32x32?text=Logo';
+                            }}
+                          />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center bg-muted rounded-sm">
+                            <Tag size={16} className="text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {settings.navBar.showText && (
+                      <span className="font-display font-semibold text-lg bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500">
+                        {settings.navBar.siteTitle || 'Site Title'}
+                      </span>
+                    )}
+                    {!settings.navBar.showLogo && !settings.navBar.showText && (
+                      <div className="text-sm text-muted-foreground italic">
+                        Please enable logo or text to show navbar content
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  This is a preview of how your navbar brand will appear on your site.
+                </p>
+              </div>
+              
               <div>
                 <h3 className="text-sm font-medium">Navigation Buttons</h3>
                 <ul className="mt-2 space-y-1">
@@ -242,3 +284,4 @@ export const SiteSettingsPanel = () => {
     </Card>
   );
 };
+
