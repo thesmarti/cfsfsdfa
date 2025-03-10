@@ -62,10 +62,6 @@ const Index = () => {
         {/* Hero Section */}
         <section className="text-center mb-12 max-w-4xl mx-auto">
           <div className="animate-slide-down">
-            {/* Display tagline from settings above the heading */}
-            <p className="text-md text-muted-foreground mb-1">
-              {settings.navBar.tagline}
-            </p>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-4">
               Save Money with Premium Coupon Codes
             </h1>

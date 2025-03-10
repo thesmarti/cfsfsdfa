@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
@@ -31,14 +30,12 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
     expiryDate: '',
     category: 'COUPON CODE',
     featured: false,
-    verified: false,
     lastVerified: new Date().toISOString().split('T')[0],
     status: 'active',
     image: '',
-    redirectUrl: '',
     contentLockerLinkId: undefined,
     rating: 4.5,
-    usedCount: 0
+    usedCount: undefined
   });
   
   const [showNewLinkDialog, setShowNewLinkDialog] = useState(false);
