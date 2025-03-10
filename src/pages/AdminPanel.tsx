@@ -35,7 +35,9 @@ import {
   Palette,
   Type,
   Upload,
-  Download
+  Download,
+  MoveUp,
+  MoveDown
 } from 'lucide-react';
 
 const AdminPanel = () => {
@@ -47,6 +49,7 @@ const AdminPanel = () => {
     addCoupon, 
     updateCoupon, 
     deleteCoupon,
+    moveCoupon,
     bulkUpdateCoupons,
     bulkDeleteCoupons,
     refreshCoupons,
@@ -554,7 +557,7 @@ const AdminPanel = () => {
                                   </TableCell>
                                 </TableRow>
                               ) : (
-                                filteredCoupons.map((coupon) => (
+                                filteredCoupons.map((coupon, index) => (
                                   <TableRow key={coupon.id}>
                                     <TableCell>
                                       <Checkbox 
@@ -593,7 +596,25 @@ const AdminPanel = () => {
                                       </Badge>
                                     </TableCell>
                                     <TableCell className="text-right">
-                                      <div className="flex justify-end gap-2">
+                                      <div className="flex justify-end gap-1">
+                                        <Button 
+                                          variant="ghost" 
+                                          size="icon"
+                                          onClick={() => moveCoupon(coupon.id, 'up')}
+                                          disabled={index === 0}
+                                          title="Move Up"
+                                        >
+                                          <MoveUp size={16} />
+                                        </Button>
+                                        <Button 
+                                          variant="ghost" 
+                                          size="icon"
+                                          onClick={() => moveCoupon(coupon.id, 'down')}
+                                          disabled={index === filteredCoupons.length - 1}
+                                          title="Move Down"
+                                        >
+                                          <MoveDown size={16} />
+                                        </Button>
                                         <Popover>
                                           <PopoverTrigger asChild>
                                             <Button variant="ghost" size="icon">

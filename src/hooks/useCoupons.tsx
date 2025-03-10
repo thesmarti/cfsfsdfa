@@ -368,6 +368,74 @@ export const useCoupons = () => {
     }
   }, [fetchCoupons, toast]);
 
+  // Move coupon up or down in the list
+  const moveCoupon = useCallback(async (id: string, direction: 'up' | 'down') => {
+    try {
+      setLoading(true);
+      
+      // Find the coupon index
+      const couponIndex = couponsDatabase.findIndex(c => c.id === id);
+      
+      if (couponIndex === -1) {
+        throw new Error('Coupon not found');
+      }
+      
+      // Check if we can move in the requested direction
+      if (direction === 'up' && couponIndex > 0) {
+        // Swap with the previous coupon
+        [couponsDatabase[couponIndex], couponsDatabase[couponIndex - 1]] = 
+        [couponsDatabase[couponIndex - 1], couponsDatabase[couponIndex]];
+        
+        // Save to localStorage
+        saveToStorage('coupons', couponsDatabase);
+        
+        // Refresh the coupon list
+        await fetchCoupons();
+        
+        toast({
+          title: "Success",
+          description: "Coupon moved up successfully!",
+        });
+        
+        return true;
+      } else if (direction === 'down' && couponIndex < couponsDatabase.length - 1) {
+        // Swap with the next coupon
+        [couponsDatabase[couponIndex], couponsDatabase[couponIndex + 1]] = 
+        [couponsDatabase[couponIndex + 1], couponsDatabase[couponIndex]];
+        
+        // Save to localStorage
+        saveToStorage('coupons', couponsDatabase);
+        
+        // Refresh the coupon list
+        await fetchCoupons();
+        
+        toast({
+          title: "Success",
+          description: "Coupon moved down successfully!",
+        });
+        
+        return true;
+      } else {
+        // Can't move in this direction
+        toast({
+          title: "Information",
+          description: `Cannot move coupon ${direction} any further.`,
+        });
+        return false;
+      }
+    } catch (err) {
+      console.error(`Error moving coupon ${direction}:`, err);
+      toast({
+        title: "Error",
+        description: `Failed to move coupon ${direction}. Please try again.`,
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchCoupons, toast]);
+
   // Bulk update and delete functions
   const bulkUpdateCoupons = useCallback(async (ids: string[], updates: Partial<Coupon>) => {
     try {
@@ -658,6 +726,7 @@ export const useCoupons = () => {
     addCoupon,
     updateCoupon,
     deleteCoupon,
+    moveCoupon,
     bulkUpdateCoupons,
     bulkDeleteCoupons,
     getCouponById,
