@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check } from "lucide-react";
+import { Check, Moon, Sun, Monitor } from "lucide-react";
 
 type ThemeOption = "light" | "dark" | "system";
 
@@ -23,12 +23,12 @@ export const ThemeSelector = ({ currentTheme, onThemeChange }: ThemeSelectorProp
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium">Theme</h3>
+      <h3 className="text-lg font-medium">Select Theme Mode</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Light Theme Preview */}
         <Card 
-          className={`cursor-pointer overflow-hidden transition-all duration-200 ${
-            currentTheme === 'light' ? 'ring-2 ring-primary' : ''
+          className={`cursor-pointer overflow-hidden transition-all duration-200 hover:shadow-md ${
+            currentTheme === 'light' ? 'ring-2 ring-primary' : 'ring-1 ring-border'
           }`}
           onClick={() => onThemeChange('light')}
         >
@@ -57,13 +57,16 @@ export const ThemeSelector = ({ currentTheme, onThemeChange }: ThemeSelectorProp
               </div>
             )}
           </div>
-          <div className="p-3 text-center font-medium">Light</div>
+          <div className="p-3 text-center font-medium flex items-center justify-center gap-2">
+            <Sun size={16} className="text-amber-500" />
+            Light
+          </div>
         </Card>
 
         {/* Dark Theme Preview */}
         <Card 
-          className={`cursor-pointer overflow-hidden transition-all duration-200 ${
-            currentTheme === 'dark' ? 'ring-2 ring-primary' : ''
+          className={`cursor-pointer overflow-hidden transition-all duration-200 hover:shadow-md ${
+            currentTheme === 'dark' ? 'ring-2 ring-primary' : 'ring-1 ring-border'
           }`}
           onClick={() => onThemeChange('dark')}
         >
@@ -92,13 +95,16 @@ export const ThemeSelector = ({ currentTheme, onThemeChange }: ThemeSelectorProp
               </div>
             )}
           </div>
-          <div className="p-3 text-center font-medium">Dark</div>
+          <div className="p-3 text-center font-medium flex items-center justify-center gap-2">
+            <Moon size={16} className="text-indigo-400" />
+            Dark
+          </div>
         </Card>
 
         {/* System Theme Preview */}
         <Card 
-          className={`cursor-pointer overflow-hidden transition-all duration-200 ${
-            currentTheme === 'system' ? 'ring-2 ring-primary' : ''
+          className={`cursor-pointer overflow-hidden transition-all duration-200 hover:shadow-md ${
+            currentTheme === 'system' ? 'ring-2 ring-primary' : 'ring-1 ring-border'
           }`}
           onClick={() => onThemeChange('system')}
         >
@@ -133,11 +139,16 @@ export const ThemeSelector = ({ currentTheme, onThemeChange }: ThemeSelectorProp
               </div>
             )}
           </div>
-          <div className="p-3 text-center font-medium">System</div>
+          <div className="p-3 text-center font-medium flex items-center justify-center gap-2">
+            <Monitor size={16} className="text-gray-500" />
+            System
+          </div>
         </Card>
       </div>
       <p className="text-sm text-muted-foreground">
-        Select your preferred theme appearance. System will automatically switch between light and dark mode based on your device settings.
+        {currentTheme === 'light' && "Light mode is active for all site visitors."}
+        {currentTheme === 'dark' && "Dark mode is active for all site visitors."}
+        {currentTheme === 'system' && "System preference will automatically switch between light and dark mode based on each visitor's device settings."}
       </p>
     </div>
   );
