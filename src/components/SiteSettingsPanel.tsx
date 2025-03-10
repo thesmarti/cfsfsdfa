@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,10 +14,11 @@ import { useToast } from "@/components/ui/use-toast";
 import { SeoSettingsTab } from './SeoSettingsTab';
 
 export const SiteSettingsPanel = () => {
-  const { settings, updateNavBarSettings, updateColorSettings, updateGeneralSettings, updateNavButtons } = useSiteSettings();
+  const { settings, updateNavBarSettings, updateColorSettings, updateGeneralSettings, updateNavButtons, uploadLogo } = useSiteSettings();
   const { toast } = useToast();
   const [newButtonLabel, setNewButtonLabel] = useState('');
   const [newButtonPath, setNewButtonPath] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateNavBarSettings({ showLogo: e.target.checked });
@@ -48,6 +50,29 @@ export const SiteSettingsPanel = () => {
 
   const handleFooterTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateGeneralSettings({ footerText: e.target.value });
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setIsUploading(true);
+    
+    try {
+      await uploadLogo(file);
+      toast({
+        title: "Logo updated",
+        description: "Your site logo has been updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error uploading logo",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleAddNavButton = () => {
@@ -91,6 +116,47 @@ export const SiteSettingsPanel = () => {
                 <Label htmlFor="show-logo">Show Logo</Label>
                 <Switch id="show-logo" checked={settings.navBar.showLogo} onCheckedChange={(checked) => updateNavBarSettings({ showLogo: checked })} />
               </div>
+              
+              <div className="grid gap-3">
+                <Label>Logo Image</Label>
+                <div className="flex items-start gap-4">
+                  <div className="border rounded-md p-2 bg-muted/50 w-20 h-20 flex items-center justify-center">
+                    {settings.navBar.logoUrl ? (
+                      <img 
+                        src={settings.navBar.logoUrl} 
+                        alt="Site Logo" 
+                        className="max-w-full max-h-full object-contain" 
+                      />
+                    ) : (
+                      <Image className="text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start gap-2"
+                        disabled={isUploading}
+                        onClick={() => document.getElementById('logo-upload')?.click()}
+                      >
+                        <ArrowUpCircle size={16} />
+                        {isUploading ? 'Uploading...' : 'Upload Logo'}
+                      </Button>
+                      <Input
+                        id="logo-upload"
+                        type="file"
+                        accept="image/png, image/jpeg, image/gif, image/svg+xml"
+                        className="hidden"
+                        onChange={handleLogoUpload}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Recommended size: Square image (1:1 ratio). Supported formats: PNG, JPG, GIF, SVG.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
               <div className="grid grid-cols-2 items-center gap-4">
                 <Label htmlFor="show-text">Show Text</Label>
                 <Switch id="show-text" checked={settings.navBar.showText} onCheckedChange={(checked) => updateNavBarSettings({ showText: checked })} />
