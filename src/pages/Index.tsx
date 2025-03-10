@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SortOption, FilterOption } from '@/types';
+import { SortOption, FilterOption, Coupon } from '@/types';
 import { useCoupons } from '@/hooks/useCoupons';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { ChevronDown, Search, Filter } from 'lucide-react';
@@ -31,6 +31,9 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("all");
   
   const gradientClass = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
+
+  // Get unique coupon categories
+  const couponCategories = Array.from(new Set(coupons.map(coupon => coupon.category)));
 
   // Apply search filter on coupons
   useEffect(() => {
@@ -118,7 +121,7 @@ const Index = () => {
           </div>
           
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-7 mb-8">
+            <TabsList className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-auto mb-8 gap-1">
               <TabsTrigger 
                 value="all" 
                 className={activeTab === "all" ? `text-white ${gradientClass}` : ""}
@@ -137,30 +140,17 @@ const Index = () => {
               >
                 Expiring Soon
               </TabsTrigger>
-              <TabsTrigger 
-                value="Electronics"
-                className={activeTab === "Electronics" ? `text-white ${gradientClass}` : ""}
-              >
-                Electronics
-              </TabsTrigger>
-              <TabsTrigger 
-                value="Fashion"
-                className={activeTab === "Fashion" ? `text-white ${gradientClass}` : ""}
-              >
-                Fashion
-              </TabsTrigger>
-              <TabsTrigger 
-                value="Food"
-                className={activeTab === "Food" ? `text-white ${gradientClass}` : ""}
-              >
-                Food
-              </TabsTrigger>
-              <TabsTrigger 
-                value="Retail"
-                className={activeTab === "Retail" ? `text-white ${gradientClass}` : ""}
-              >
-                Retail
-              </TabsTrigger>
+              
+              {/* Dynamically generate category tabs */}
+              {couponCategories.map(category => (
+                <TabsTrigger 
+                  key={category}
+                  value={category}
+                  className={activeTab === category ? `text-white ${gradientClass}` : ""}
+                >
+                  {category.replace('_', ' ')}
+                </TabsTrigger>
+              ))}
             </TabsList>
             
             <TabsContent value={activeTab} className="mt-0">
