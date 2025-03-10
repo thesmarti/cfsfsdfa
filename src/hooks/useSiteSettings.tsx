@@ -55,6 +55,16 @@ const DEFAULT_SETTINGS: SiteSettings = {
     title: 'GlowCoupons - Best Discounts & Promo Codes',
     description: 'Find and save with the best coupons, discount codes, and promotions from top stores and brands.',
     favicon: '/favicon.ico',
+  },
+  textContent: {
+    heroTitle: 'Save Big with Exclusive Coupons',
+    heroSubtitle: 'Discover the best deals and discounts from your favorite stores',
+    featuredDealsTitle: 'Featured Deals',
+    allCouponsTitle: 'All Coupons',
+    categoriesSectionTitle: 'Browse by Category',
+    ctaButtonText: 'Get Code',
+    noResultsText: 'No coupons found. Try a different search term or filter.',
+    searchPlaceholder: 'Search for coupons or stores...',
   }
 };
 
@@ -87,6 +97,10 @@ export const useSiteSettings = () => {
             seo: {
               ...DEFAULT_SETTINGS.seo,
               ...parsedSettings.seo,
+            },
+            textContent: {
+              ...DEFAULT_SETTINGS.textContent,
+              ...parsedSettings.textContent,
             }
           };
           setSettings(mergedSettings);
@@ -229,6 +243,17 @@ export const useSiteSettings = () => {
     updateSettings(updatedSettings);
   };
 
+  const updateTextContent = (textContent: Partial<SiteSettings['textContent']>) => {
+    const updatedSettings = {
+      ...settings,
+      textContent: {
+        ...settings.textContent,
+        ...textContent,
+      },
+    };
+    updateSettings(updatedSettings);
+  };
+
   const uploadLogo = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       if (!file) {
@@ -363,8 +388,10 @@ export const useSiteSettings = () => {
     updateColorSettings,
     updateGeneralSettings,
     updateSeoSettings,
+    updateTextContent,
     uploadLogo,
     uploadFavicon,
     applyUIGradient,
   };
 };
+

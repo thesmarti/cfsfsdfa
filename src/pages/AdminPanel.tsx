@@ -6,6 +6,7 @@ import { AdminCouponForm } from '@/components/AdminCouponForm';
 import { ContentLockerLinksPanel } from '@/components/ContentLockerLinksPanel';
 import { SiteSettingsPanel } from '@/components/SiteSettingsPanel';
 import { ThemeSettingsTab } from '@/components/ThemeSettingsTab';
+import { TextContentTab } from '@/components/TextContentTab';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +32,8 @@ import {
   Link,
   ChevronDown,
   Settings,
-  Palette
+  Palette,
+  Type
 } from 'lucide-react';
 
 const AdminPanel = () => {
@@ -58,7 +60,7 @@ const AdminPanel = () => {
   const [filteredCoupons, setFilteredCoupons] = useState(coupons);
   const [deletingCouponId, setDeletingCouponId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
-  const [adminSection, setAdminSection] = useState<'coupons' | 'links' | 'settings' | 'theme'>('coupons');
+  const [adminSection, setAdminSection] = useState<'coupons' | 'links' | 'settings' | 'theme' | 'text'>('coupons');
   
   const [selectedCoupons, setSelectedCoupons] = useState<string[]>([]);
   const [bulkActionType, setBulkActionType] = useState<'status' | 'category' | 'featured' | 'delete' | null>(null);
@@ -282,7 +284,7 @@ const AdminPanel = () => {
           </div>
           
           <div className="mb-8">
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 flex-wrap gap-2">
               <Button 
                 variant={adminSection === 'coupons' ? 'default' : 'outline'} 
                 size="sm"
@@ -318,6 +320,15 @@ const AdminPanel = () => {
               >
                 <Palette size={16} />
                 Theme
+              </Button>
+              <Button 
+                variant={adminSection === 'text' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setAdminSection('text')}
+                className="gap-1"
+              >
+                <Type size={16} />
+                Text Content
               </Button>
             </div>
           </div>
@@ -539,6 +550,10 @@ const AdminPanel = () => {
             
             {adminSection === 'theme' && (
               <ThemeSettingsTab />
+            )}
+            
+            {adminSection === 'text' && (
+              <TextContentTab />
             )}
           </div>
         </div>

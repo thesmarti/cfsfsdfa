@@ -1,3 +1,4 @@
+
 export interface Coupon {
   id: string;
   store: string;
@@ -85,5 +86,15 @@ export interface SiteSettings {
     title: string;
     description: string;
     favicon: string;
+  };
+  textContent: {
+    heroTitle: string;
+    heroSubtitle: string;
+    featuredDealsTitle: string;
+    allCouponsTitle: string;
+    categoriesSectionTitle: string;
+    ctaButtonText: string;
+    noResultsText: string;
+    searchPlaceholder: string;
   };
 }
