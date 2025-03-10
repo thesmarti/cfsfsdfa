@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { Coupon, SortOption, FilterOption, ContentLockerLink } from '@/types';
 import { useToast } from "@/components/ui/use-toast";
@@ -365,6 +364,95 @@ export const useCoupons = () => {
     }
   }, [fetchCoupons, toast]);
 
+  // New functions needed by AdminPanel and CouponDetail
+  
+  // Get coupon by ID
+  const getCouponById = useCallback((id: string) => {
+    return couponsDatabase.find(coupon => coupon.id === id) || null;
+  }, [couponsDatabase]);
+
+  // Bulk update multiple coupons
+  const bulkUpdateCoupons = useCallback(async (ids: string[], updates: Partial<Coupon>) => {
+    try {
+      setLoading(true);
+      
+      // Update each coupon in the database
+      couponsDatabase = couponsDatabase.map(coupon => {
+        if (ids.includes(coupon.id)) {
+          return {
+            ...coupon,
+            ...updates,
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return coupon;
+      });
+      
+      saveToStorage('coupons', couponsDatabase);
+      
+      // Refresh the UI
+      await fetchCoupons();
+      
+      toast({
+        title: "Success",
+        description: `${ids.length} coupons updated successfully.`
+      });
+      
+      return true;
+    } catch (err) {
+      console.error('Error updating coupons in bulk:', err);
+      toast({
+        title: "Error",
+        description: "Failed to update coupons. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchCoupons, toast]);
+
+  // Bulk delete multiple coupons
+  const bulkDeleteCoupons = useCallback(async (ids: string[]) => {
+    try {
+      setLoading(true);
+      
+      // Remove coupons from database
+      couponsDatabase = couponsDatabase.filter(coupon => !ids.includes(coupon.id));
+      saveToStorage('coupons', couponsDatabase);
+      
+      // Refresh the UI
+      await fetchCoupons();
+      
+      toast({
+        title: "Success",
+        description: `${ids.length} coupons deleted successfully.`
+      });
+      
+      return true;
+    } catch (err) {
+      console.error('Error deleting coupons in bulk:', err);
+      toast({
+        title: "Error",
+        description: "Failed to delete coupons. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchCoupons, toast]);
+
+  // Refresh coupons (for explicit refresh button)
+  const refreshCoupons = useCallback(async () => {
+    await fetchCoupons();
+    
+    toast({
+      title: "Refreshed",
+      description: "Coupon data has been refreshed."
+    });
+  }, [fetchCoupons, toast]);
+
   // Admin functions for managing content locker links
   const addLink = useCallback(async (link: Omit<ContentLockerLink, 'id' | 'createdAt'>) => {
     try {
@@ -477,6 +565,10 @@ export const useCoupons = () => {
     deleteCoupon,
     addLink,
     updateLink,
-    deleteLink
+    deleteLink,
+    getCouponById,
+    bulkUpdateCoupons,
+    bulkDeleteCoupons,
+    refreshCoupons
   };
 };
