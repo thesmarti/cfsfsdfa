@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,11 @@ export const TextContentTab = () => {
   const [textContent, setTextContent] = useState<SiteSettings['textContent']>({
     ...settings.textContent
   });
+  
+  // Update local state when settings change
+  useEffect(() => {
+    setTextContent({...settings.textContent});
+  }, [settings.textContent]);
 
   const handleInputChange = (key: keyof SiteSettings['textContent'], value: string) => {
     setTextContent(prev => ({

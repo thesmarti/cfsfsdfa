@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { SiteSettings, NavButton, GradientPreset } from '@/types';
 
@@ -74,54 +75,75 @@ export const useSiteSettings = () => {
 
   useEffect(() => {
     const loadSettings = () => {
-      const savedSettings = localStorage.getItem('siteSettings');
-      if (savedSettings) {
-        try {
+      try {
+        const savedSettings = localStorage.getItem('siteSettings');
+        
+        if (savedSettings) {
           const parsedSettings = JSON.parse(savedSettings);
+          
+          // Create a deep merged object with all properties
           const mergedSettings = {
             ...DEFAULT_SETTINGS,
             ...parsedSettings,
             navBar: {
               ...DEFAULT_SETTINGS.navBar,
-              ...parsedSettings.navBar,
+              ...(parsedSettings.navBar || {}),
               buttons: parsedSettings.navBar?.buttons || DEFAULT_SETTINGS.navBar.buttons,
             },
             colors: {
               ...DEFAULT_SETTINGS.colors,
-              ...parsedSettings.colors,
+              ...(parsedSettings.colors || {}),
+              gradientPresets: parsedSettings.colors?.gradientPresets || DEFAULT_GRADIENT_PRESETS,
             },
             general: {
               ...DEFAULT_SETTINGS.general,
-              ...parsedSettings.general,
+              ...(parsedSettings.general || {}),
             },
             seo: {
               ...DEFAULT_SETTINGS.seo,
-              ...parsedSettings.seo,
+              ...(parsedSettings.seo || {}),
             },
             textContent: {
               ...DEFAULT_SETTINGS.textContent,
-              ...parsedSettings.textContent,
+              ...(parsedSettings.textContent || {}),
             }
           };
+          
           setSettings(mergedSettings);
-        } catch (error) {
-          console.error('Error parsing site settings:', error);
+          console.log('Loaded settings from localStorage:', mergedSettings);
+        } else {
+          console.log('No saved settings found, using defaults');
           setSettings(DEFAULT_SETTINGS);
         }
+      } catch (error) {
+        console.error('Error loading site settings:', error);
+        setSettings(DEFAULT_SETTINGS);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     loadSettings();
   }, []);
 
   const updateSettings = (newSettings: SiteSettings) => {
+    // Ensure gradient presets are included
     if (!newSettings.colors.gradientPresets) {
       newSettings.colors.gradientPresets = DEFAULT_GRADIENT_PRESETS;
     }
     
+    // Update state
     setSettings(newSettings);
-    localStorage.setItem('siteSettings', JSON.stringify(newSettings));
+    
+    // Store in localStorage
+    try {
+      localStorage.setItem('siteSettings', JSON.stringify(newSettings));
+      console.log('Saved settings to localStorage:', newSettings);
+    } catch (error) {
+      console.error('Error saving settings to localStorage:', error);
+    }
+    
+    // Apply settings to DOM
     applySettings(newSettings);
   };
 
@@ -394,4 +416,3 @@ export const useSiteSettings = () => {
     applyUIGradient,
   };
 };
-
