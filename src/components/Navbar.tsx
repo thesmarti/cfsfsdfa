@@ -122,7 +122,7 @@ export const Navbar = () => {
         </nav>
       )}
 
-      {/* Mobile Menu Button (without ThemeToggle) */}
+      {/* Mobile Menu Button */}
       {isMobile && (
         <div className="flex items-center gap-2">
           <Button
@@ -139,8 +139,8 @@ export const Navbar = () => {
     </div>
   );
 
-  // Render the simplified centered style with just the logo
-  const renderCenteredNavbar = () => (
+  // Just logo display for centered style (not a navigation bar)
+  const renderCenteredDisplay = () => (
     <div className="flex flex-col items-center justify-center relative">
       {/* Auth buttons on top right */}
       <div className="absolute top-0 right-4 pt-2 flex items-center space-x-2 z-10">
@@ -154,26 +154,24 @@ export const Navbar = () => {
         </Link>
       </div>
       
-      {/* Only show the logo and site title */}
-      <div className="flex flex-col items-center">
-        {/* Large centered logo */}
+      {/* Only logo and site title - no navigation elements */}
+      <div className="flex flex-col items-center my-8">
         {settings.navBar.showLogo && (
-          <Link to="/" className="mb-2">
+          <Link to="/" className="mb-4">
             <img 
               src={settings.navBar.logoUrl} 
               alt="Logo" 
-              className="h-16 w-auto" 
+              className="h-24 w-auto transition-transform duration-300 hover:scale-105" 
               onError={(e) => {
-                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/100x100?text=Logo';
+                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150x150?text=Logo';
               }}
             />
           </Link>
         )}
         
-        {/* Site title */}
         {settings.navBar.showText && (
-          <Link to="/" className="mb-1">
-            <h1 className={`font-display font-bold text-2xl bg-clip-text text-transparent ${textGradientClass}`}>
+          <Link to="/">
+            <h1 className={`font-display font-bold text-3xl bg-clip-text text-transparent ${textGradientClass}`}>
               {settings.navBar.siteTitle}
             </h1>
           </Link>
@@ -191,7 +189,7 @@ export const Navbar = () => {
       }`}
     >
       <div className="container mx-auto px-4 relative z-10">
-        {settings.navBar.navStyle === 'centered' ? renderCenteredNavbar() : renderDefaultNavbar()}
+        {settings.navBar.navStyle === 'centered' ? renderCenteredDisplay() : renderDefaultNavbar()}
 
         {/* Mobile Navigation - only show for default style */}
         {isMobile && isMenuOpen && settings.navBar.navStyle !== 'centered' && (
