@@ -87,9 +87,6 @@ const Index = () => {
         {/* Featured Coupons Slider */}
         {featuredCoupons.length > 0 && (
           <section className="mb-12 animate-fade-in">
-            <h2 className="text-2xl font-display font-semibold mb-6">
-              {settings.textContent.featuredDealsTitle}
-            </h2>
             <FeaturedCoupons coupons={featuredCoupons} />
           </section>
         )}
