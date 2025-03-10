@@ -30,21 +30,20 @@ const App = () => {
     }
   }, []);
   
+  // Update document title based on site settings
+  useEffect(() => {
+    if (settings.navBar.siteTitle) {
+      document.title = settings.navBar.siteTitle;
+    }
+  }, [settings.navBar.siteTitle]);
+  
   // Apply dynamic colors from site settings
   useEffect(() => {
     if (settings.colors) {
-      const style = document.createElement('style');
-      style.innerHTML = `
-        :root {
-          --custom-primary: ${settings.colors.primary};
-          --custom-secondary: ${settings.colors.secondary};
-          --custom-accent: ${settings.colors.accent};
-        }
-      `;
-      document.head.appendChild(style);
-      return () => {
-        document.head.removeChild(style);
-      };
+      // Apply CSS variables
+      document.documentElement.style.setProperty('--custom-primary', settings.colors.primary);
+      document.documentElement.style.setProperty('--custom-secondary', settings.colors.secondary);
+      document.documentElement.style.setProperty('--custom-accent', settings.colors.accent);
     }
   }, [settings.colors]);
   

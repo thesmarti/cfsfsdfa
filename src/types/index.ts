@@ -14,6 +14,7 @@ export interface Coupon {
   updatedAt: string;
   redirectUrl?: string;
   image?: string;
+  contentLockerLinkId?: string; // New field to link to content locker
 }
 
 export interface User {
@@ -44,6 +45,14 @@ export interface SiteSettings {
     primary: string;
     secondary: string;
     accent: string;
+    useCustomGradients?: boolean;
+    defaultGradient?: string;
+    fashionGradient?: string;
+    foodGradient?: string;
+    electronicsGradient?: string;
+    travelGradient?: string;
+    beautyGradient?: string;
+    homeGradient?: string;
   };
   general: {
     siteDescription: string;

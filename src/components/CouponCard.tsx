@@ -4,9 +4,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Coupon } from '@/types';
+import { Coupon, ContentLockerLink } from '@/types';
 import { Tag, Calendar, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 interface CouponCardProps {
   coupon: Coupon;
@@ -16,6 +17,7 @@ interface CouponCardProps {
 export const CouponCard = ({ coupon, className = '' }: CouponCardProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { settings } = useSiteSettings();
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -37,24 +39,42 @@ export const CouponCard = ({ coupon, className = '' }: CouponCardProps) => {
   // Default image if none is provided
   const imageUrl = coupon.image || 'https://via.placeholder.com/300x150?text=No+Image';
   
-  // Get gradient based on category
+  // Get gradient based on category and site settings
   const getGradient = () => {
     const category = coupon.category.toLowerCase();
     
-    if (category.includes('fashion')) {
-      return 'bg-gradient-to-br from-pink-500 to-purple-600 dark:from-pink-600 dark:to-purple-800';
-    } else if (category.includes('food')) {
-      return 'bg-gradient-to-br from-orange-400 to-red-500 dark:from-orange-500 dark:to-red-700';
-    } else if (category.includes('electronics')) {
-      return 'bg-gradient-to-br from-blue-400 to-indigo-600 dark:from-blue-500 dark:to-indigo-800';
-    } else if (category.includes('travel')) {
-      return 'bg-gradient-to-br from-teal-400 to-emerald-500 dark:from-teal-500 dark:to-emerald-700';
-    } else if (category.includes('beauty')) {
-      return 'bg-gradient-to-br from-fuchsia-400 to-pink-500 dark:from-fuchsia-500 dark:to-pink-700';
-    } else if (category.includes('home')) {
-      return 'bg-gradient-to-br from-amber-400 to-yellow-500 dark:from-amber-500 dark:to-yellow-700';
+    if (settings.colors.useCustomGradients) {
+      if (category.includes('fashion')) {
+        return settings.colors.fashionGradient || 'bg-gradient-to-br from-pink-500 to-purple-600 dark:from-pink-600 dark:to-purple-800';
+      } else if (category.includes('food')) {
+        return settings.colors.foodGradient || 'bg-gradient-to-br from-orange-400 to-red-500 dark:from-orange-500 dark:to-red-700';
+      } else if (category.includes('electronics')) {
+        return settings.colors.electronicsGradient || 'bg-gradient-to-br from-blue-400 to-indigo-600 dark:from-blue-500 dark:to-indigo-800';
+      } else if (category.includes('travel')) {
+        return settings.colors.travelGradient || 'bg-gradient-to-br from-teal-400 to-emerald-500 dark:from-teal-500 dark:to-emerald-700';
+      } else if (category.includes('beauty')) {
+        return settings.colors.beautyGradient || 'bg-gradient-to-br from-fuchsia-400 to-pink-500 dark:from-fuchsia-500 dark:to-pink-700';
+      } else if (category.includes('home')) {
+        return settings.colors.homeGradient || 'bg-gradient-to-br from-amber-400 to-yellow-500 dark:from-amber-500 dark:to-yellow-700';
+      } else {
+        return settings.colors.defaultGradient || 'bg-gradient-to-br from-violet-500 to-purple-600 dark:from-violet-600 dark:to-purple-800';
+      }
     } else {
-      return 'bg-gradient-to-br from-violet-500 to-purple-600 dark:from-violet-600 dark:to-purple-800';
+      if (category.includes('fashion')) {
+        return 'bg-gradient-to-br from-pink-500 to-purple-600 dark:from-pink-600 dark:to-purple-800';
+      } else if (category.includes('food')) {
+        return 'bg-gradient-to-br from-orange-400 to-red-500 dark:from-orange-500 dark:to-red-700';
+      } else if (category.includes('electronics')) {
+        return 'bg-gradient-to-br from-blue-400 to-indigo-600 dark:from-blue-500 dark:to-indigo-800';
+      } else if (category.includes('travel')) {
+        return 'bg-gradient-to-br from-teal-400 to-emerald-500 dark:from-teal-500 dark:to-emerald-700';
+      } else if (category.includes('beauty')) {
+        return 'bg-gradient-to-br from-fuchsia-400 to-pink-500 dark:from-fuchsia-500 dark:to-pink-700';
+      } else if (category.includes('home')) {
+        return 'bg-gradient-to-br from-amber-400 to-yellow-500 dark:from-amber-500 dark:to-yellow-700';
+      } else {
+        return 'bg-gradient-to-br from-violet-500 to-purple-600 dark:from-violet-600 dark:to-purple-800';
+      }
     }
   };
 

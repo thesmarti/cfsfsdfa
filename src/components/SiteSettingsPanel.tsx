@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-import { Settings, Palette, Type, Image } from 'lucide-react';
-import { Toast } from "@/components/ui/toast";
+import { Settings, Palette, Type, Image, Paintbrush } from 'lucide-react';
+import { Switch } from "@/components/ui/switch";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export const SiteSettingsPanel = () => {
   const { toast } = useToast();
@@ -27,12 +28,49 @@ export const SiteSettingsPanel = () => {
     primary: settings.colors.primary,
     secondary: settings.colors.secondary,
     accent: settings.colors.accent,
+    useCustomGradients: settings.colors.useCustomGradients || false,
+    defaultGradient: settings.colors.defaultGradient || 'bg-gradient-to-br from-violet-500 to-purple-600',
+    fashionGradient: settings.colors.fashionGradient || 'bg-gradient-to-br from-pink-500 to-purple-600',
+    foodGradient: settings.colors.foodGradient || 'bg-gradient-to-br from-orange-400 to-red-500',
+    electronicsGradient: settings.colors.electronicsGradient || 'bg-gradient-to-br from-blue-400 to-indigo-600',
+    travelGradient: settings.colors.travelGradient || 'bg-gradient-to-br from-teal-400 to-emerald-500',
+    beautyGradient: settings.colors.beautyGradient || 'bg-gradient-to-br from-fuchsia-400 to-pink-500',
+    homeGradient: settings.colors.homeGradient || 'bg-gradient-to-br from-amber-400 to-yellow-500',
   });
   
   const [generalForm, setGeneralForm] = useState({
     siteDescription: settings.general.siteDescription,
     footerText: settings.general.footerText,
   });
+
+  // Update form values when settings change
+  useEffect(() => {
+    setNavBarForm({
+      showLogo: settings.navBar.showLogo,
+      showText: settings.navBar.showText,
+      logoUrl: settings.navBar.logoUrl,
+      siteTitle: settings.navBar.siteTitle,
+    });
+    
+    setColorForm({
+      primary: settings.colors.primary,
+      secondary: settings.colors.secondary,
+      accent: settings.colors.accent,
+      useCustomGradients: settings.colors.useCustomGradients || false,
+      defaultGradient: settings.colors.defaultGradient || 'bg-gradient-to-br from-violet-500 to-purple-600',
+      fashionGradient: settings.colors.fashionGradient || 'bg-gradient-to-br from-pink-500 to-purple-600',
+      foodGradient: settings.colors.foodGradient || 'bg-gradient-to-br from-orange-400 to-red-500',
+      electronicsGradient: settings.colors.electronicsGradient || 'bg-gradient-to-br from-blue-400 to-indigo-600',
+      travelGradient: settings.colors.travelGradient || 'bg-gradient-to-br from-teal-400 to-emerald-500',
+      beautyGradient: settings.colors.beautyGradient || 'bg-gradient-to-br from-fuchsia-400 to-pink-500',
+      homeGradient: settings.colors.homeGradient || 'bg-gradient-to-br from-amber-400 to-yellow-500',
+    });
+    
+    setGeneralForm({
+      siteDescription: settings.general.siteDescription,
+      footerText: settings.general.footerText,
+    });
+  }, [settings]);
   
   const handleNavBarSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,12 +88,6 @@ export const SiteSettingsPanel = () => {
       title: "Success",
       description: "Color settings updated successfully",
     });
-    
-    // Update CSS variables
-    const root = document.documentElement;
-    root.style.setProperty('--primary', hexToHsl(colorForm.primary));
-    root.style.setProperty('--secondary', hexToHsl(colorForm.secondary));
-    root.style.setProperty('--accent', hexToHsl(colorForm.accent));
   };
   
   const handleGeneralSubmit = (e: React.FormEvent) => {
@@ -67,17 +99,31 @@ export const SiteSettingsPanel = () => {
     });
   };
   
-  // Basic conversion from hex to HSL (not perfect but works for demo)
-  const hexToHsl = (hex: string): string => {
-    // This is a simplified conversion - in a real app you'd want a more accurate conversion
-    // For now we'll return a default value based on color type
-    if (hex.toLowerCase() === colorForm.primary.toLowerCase()) {
-      return "210 90% 60%"; // Primary blue
-    } else if (hex.toLowerCase() === colorForm.secondary.toLowerCase()) {
-      return "250 90% 60%"; // Secondary purple
-    } else {
-      return "330 90% 60%"; // Accent pink
-    }
+  // Predefined gradient options
+  const gradientOptions = [
+    { value: 'bg-gradient-to-r from-blue-500 to-indigo-600', label: 'Blue to Indigo' },
+    { value: 'bg-gradient-to-r from-purple-500 to-pink-500', label: 'Purple to Pink' },
+    { value: 'bg-gradient-to-r from-green-400 to-teal-500', label: 'Green to Teal' },
+    { value: 'bg-gradient-to-r from-red-500 to-orange-500', label: 'Red to Orange' },
+    { value: 'bg-gradient-to-r from-yellow-400 to-amber-500', label: 'Yellow to Amber' },
+    { value: 'bg-gradient-to-r from-cyan-500 to-blue-500', label: 'Cyan to Blue' },
+    { value: 'bg-gradient-to-r from-fuchsia-500 to-pink-500', label: 'Fuchsia to Pink' },
+    { value: 'bg-gradient-to-r from-rose-500 to-red-500', label: 'Rose to Red' },
+  ];
+
+  // Render gradient preview
+  const renderGradientPreview = (gradientClass: string) => {
+    return (
+      <div className={`h-8 rounded-md ${gradientClass}`}></div>
+    );
+  };
+
+  // Handle gradient selection
+  const handleGradientChange = (category: keyof typeof colorForm, gradientClass: string) => {
+    setColorForm({
+      ...colorForm,
+      [category]: gradientClass
+    });
   };
   
   return (
@@ -241,7 +287,206 @@ export const SiteSettingsPanel = () => {
                 </div>
               </div>
               
-              <Button type="submit" className="w-full">Save Color Settings</Button>
+              <Separator className="my-4" />
+              
+              <div className="flex items-center space-x-2 mb-4">
+                <Switch
+                  id="useCustomGradients"
+                  checked={colorForm.useCustomGradients}
+                  onCheckedChange={(checked) => setColorForm({...colorForm, useCustomGradients: checked})}
+                />
+                <Label htmlFor="useCustomGradients" className="cursor-pointer">
+                  Use Custom Gradients for Categories
+                </Label>
+              </div>
+              
+              {colorForm.useCustomGradients && (
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="default">
+                    <AccordionTrigger className="text-sm">Default Gradient</AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-3">
+                        {renderGradientPreview(colorForm.defaultGradient || '')}
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                          {gradientOptions.map((gradient, idx) => (
+                            <Button
+                              key={idx}
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className={`h-8 justify-start p-0 overflow-hidden ${
+                                colorForm.defaultGradient === gradient.value ? 'ring-2 ring-primary' : ''
+                              }`}
+                              onClick={() => handleGradientChange('defaultGradient', gradient.value)}
+                            >
+                              <div className={`${gradient.value} w-8 h-full mr-2`}></div>
+                              <span className="truncate text-xs">{gradient.label}</span>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                  
+                  <AccordionItem value="fashion">
+                    <AccordionTrigger className="text-sm">Fashion Gradient</AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-3">
+                        {renderGradientPreview(colorForm.fashionGradient || '')}
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                          {gradientOptions.map((gradient, idx) => (
+                            <Button
+                              key={idx}
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className={`h-8 justify-start p-0 overflow-hidden ${
+                                colorForm.fashionGradient === gradient.value ? 'ring-2 ring-primary' : ''
+                              }`}
+                              onClick={() => handleGradientChange('fashionGradient', gradient.value)}
+                            >
+                              <div className={`${gradient.value} w-8 h-full mr-2`}></div>
+                              <span className="truncate text-xs">{gradient.label}</span>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                  
+                  <AccordionItem value="food">
+                    <AccordionTrigger className="text-sm">Food Gradient</AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-3">
+                        {renderGradientPreview(colorForm.foodGradient || '')}
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                          {gradientOptions.map((gradient, idx) => (
+                            <Button
+                              key={idx}
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className={`h-8 justify-start p-0 overflow-hidden ${
+                                colorForm.foodGradient === gradient.value ? 'ring-2 ring-primary' : ''
+                              }`}
+                              onClick={() => handleGradientChange('foodGradient', gradient.value)}
+                            >
+                              <div className={`${gradient.value} w-8 h-full mr-2`}></div>
+                              <span className="truncate text-xs">{gradient.label}</span>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                  
+                  <AccordionItem value="electronics">
+                    <AccordionTrigger className="text-sm">Electronics Gradient</AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-3">
+                        {renderGradientPreview(colorForm.electronicsGradient || '')}
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                          {gradientOptions.map((gradient, idx) => (
+                            <Button
+                              key={idx}
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className={`h-8 justify-start p-0 overflow-hidden ${
+                                colorForm.electronicsGradient === gradient.value ? 'ring-2 ring-primary' : ''
+                              }`}
+                              onClick={() => handleGradientChange('electronicsGradient', gradient.value)}
+                            >
+                              <div className={`${gradient.value} w-8 h-full mr-2`}></div>
+                              <span className="truncate text-xs">{gradient.label}</span>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                  
+                  <AccordionItem value="travel">
+                    <AccordionTrigger className="text-sm">Travel Gradient</AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-3">
+                        {renderGradientPreview(colorForm.travelGradient || '')}
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                          {gradientOptions.map((gradient, idx) => (
+                            <Button
+                              key={idx}
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className={`h-8 justify-start p-0 overflow-hidden ${
+                                colorForm.travelGradient === gradient.value ? 'ring-2 ring-primary' : ''
+                              }`}
+                              onClick={() => handleGradientChange('travelGradient', gradient.value)}
+                            >
+                              <div className={`${gradient.value} w-8 h-full mr-2`}></div>
+                              <span className="truncate text-xs">{gradient.label}</span>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                  
+                  <AccordionItem value="beauty">
+                    <AccordionTrigger className="text-sm">Beauty Gradient</AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-3">
+                        {renderGradientPreview(colorForm.beautyGradient || '')}
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                          {gradientOptions.map((gradient, idx) => (
+                            <Button
+                              key={idx}
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className={`h-8 justify-start p-0 overflow-hidden ${
+                                colorForm.beautyGradient === gradient.value ? 'ring-2 ring-primary' : ''
+                              }`}
+                              onClick={() => handleGradientChange('beautyGradient', gradient.value)}
+                            >
+                              <div className={`${gradient.value} w-8 h-full mr-2`}></div>
+                              <span className="truncate text-xs">{gradient.label}</span>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                  
+                  <AccordionItem value="home">
+                    <AccordionTrigger className="text-sm">Home Gradient</AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-3">
+                        {renderGradientPreview(colorForm.homeGradient || '')}
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                          {gradientOptions.map((gradient, idx) => (
+                            <Button
+                              key={idx}
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className={`h-8 justify-start p-0 overflow-hidden ${
+                                colorForm.homeGradient === gradient.value ? 'ring-2 ring-primary' : ''
+                              }`}
+                              onClick={() => handleGradientChange('homeGradient', gradient.value)}
+                            >
+                              <div className={`${gradient.value} w-8 h-full mr-2`}></div>
+                              <span className="truncate text-xs">{gradient.label}</span>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              )}
+              
+              <Button type="submit" className="w-full mt-4">Save Color Settings</Button>
             </form>
           </TabsContent>
           
@@ -267,6 +512,7 @@ export const SiteSettingsPanel = () => {
                     value={generalForm.footerText}
                     onChange={(e) => setGeneralForm({...generalForm, footerText: e.target.value})}
                   />
+                  <p className="text-xs text-muted-foreground">Use © for copyright symbol. Current year: 2025</p>
                 </div>
               </div>
               

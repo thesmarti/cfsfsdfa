@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Coupon } from '@/types';
-import { X, Upload, Image as ImageIcon } from 'lucide-react';
+import { Coupon, ContentLockerLink } from '@/types';
+import { X, Upload, Image as ImageIcon, Link } from 'lucide-react';
+import { useCoupons } from '@/hooks/useCoupons';
 
 interface AdminCouponFormProps {
   editCoupon?: Coupon;
@@ -18,6 +19,8 @@ interface AdminCouponFormProps {
 
 export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponFormProps) => {
   const { toast } = useToast();
+  const { links } = useCoupons();
+  
   const [formData, setFormData] = useState<Omit<Coupon, 'id' | 'createdAt' | 'updatedAt'>>({
     store: '',
     code: '',
@@ -28,7 +31,8 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
     featured: false,
     lastVerified: new Date().toISOString().split('T')[0],
     status: 'active',
-    image: ''
+    image: '',
+    contentLockerLinkId: undefined
   });
   
   // If we're editing a coupon, populate the form with its data
@@ -89,6 +93,9 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
     
     onSubmit(formData);
   };
+  
+  // Filter only active content locker links
+  const activeLinks = links.filter(link => link.active);
   
   return (
     <div className="bg-background/80 backdrop-blur-md p-6 rounded-lg border border-border shadow-float relative animate-fade-in">
@@ -202,6 +209,31 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
               onChange={handleChange}
               placeholder="e.g. https://example.com"
             />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="contentLockerLink">Content Locker Link</Label>
+            <Select
+              value={formData.contentLockerLinkId || ''}
+              onValueChange={(value) => handleSelectChange('contentLockerLinkId', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select content locker link" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">None</SelectItem>
+                {activeLinks.map(link => (
+                  <SelectItem key={link.id} value={link.id}>
+                    {link.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {activeLinks.length === 0 
+                ? "No active content locker links available. Create them in the Content Locker Links section." 
+                : "Link this coupon to a content locker"}
+            </p>
           </div>
         </div>
         

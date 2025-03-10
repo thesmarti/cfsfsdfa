@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Calendar, Tag, ArrowLeft, Lock } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { useCoupons } from '@/hooks/useCoupons';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { LoadingOverlay } from '@/components/LoadingOverlay';
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -15,7 +16,8 @@ const CouponDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { getCouponById } = useCoupons();
+  const { getCouponById, links } = useCoupons();
+  const { settings } = useSiteSettings();
   
   const [loading, setLoading] = useState(true);
   const [coupon, setCoupon] = useState<any>(null);
@@ -68,6 +70,11 @@ const CouponDetail = () => {
   };
   
   const isExpired = coupon && new Date(coupon.expiryDate) < new Date();
+  
+  // Find the associated content locker link if any
+  const contentLockerLink = coupon?.contentLockerLinkId 
+    ? links.find(link => link.id === coupon.contentLockerLinkId)
+    : null;
   
   return (
     <div className="min-h-screen pb-20">
@@ -186,6 +193,10 @@ const CouponDetail = () => {
                 </li>
               </ol>
             </div>
+            
+            <footer className="mt-16 text-center text-sm text-muted-foreground">
+              {settings.general.footerText}
+            </footer>
           </div>
         )}
       </main>
@@ -194,6 +205,7 @@ const CouponDetail = () => {
         <LoadingOverlay 
           coupon={coupon} 
           onComplete={handleLoadingComplete}
+          contentLockerLink={contentLockerLink}
         />
       )}
     </div>
