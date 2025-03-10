@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -139,7 +138,7 @@ export const Navbar = () => {
     </div>
   );
 
-  // Render the centered navbar style with large logo and tagline
+  // Render the centered navbar style with just the logo
   const renderCenteredNavbar = () => (
     <div className="flex flex-col items-center justify-center">
       {/* Auth buttons on top right */}
@@ -176,76 +175,6 @@ export const Navbar = () => {
           </h1>
         </Link>
       )}
-      
-      {/* Navigation links - desktop */}
-      {!isMobile && (
-        <nav className="flex items-center space-x-2 mt-2">
-          {settings.navBar.buttons.filter(btn => btn.enabled).map(button => (
-            <Link key={button.id} to={button.path}>
-              <Button 
-                variant={location.pathname === button.path ? 'gradient' : 'ghost'} 
-                className={`${
-                  location.pathname === button.path 
-                    ? buttonGradientClass
-                    : `hover:text-transparent hover:bg-clip-text hover:${buttonGradientClass}`
-                }`}
-              >
-                {button.label}
-              </Button>
-            </Link>
-          ))}
-          
-          {/* Admin button */}
-          {settings.navBar.showAdminButton && (
-            <Link to="/admin">
-              <Button 
-                variant={location.pathname === '/admin' ? 'gradient' : 'ghost'} 
-                className={`${
-                  location.pathname === '/admin' 
-                    ? buttonGradientClass
-                    : `hover:text-transparent hover:bg-clip-text hover:${buttonGradientClass}`
-                }`}
-              >
-                Admin
-              </Button>
-            </Link>
-          )}
-        </nav>
-      )}
-      
-      {/* Search bar - desktop */}
-      {!isMobile && (
-        <div className="relative w-full max-w-md mt-4">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
-          <Input 
-            placeholder="Search coupons..." 
-            className="pl-9 w-full"
-          />
-        </div>
-      )}
-      
-      {/* Mobile menu button */}
-      {isMobile && (
-        <div className="flex items-center justify-between w-full px-4 pt-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle menu"
-            className={`hover:text-transparent hover:bg-clip-text hover:${buttonGradientClass}`}
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </Button>
-          
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
-            <Input 
-              placeholder="Search..." 
-              className="pl-9 w-[180px]"
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 
@@ -260,8 +189,8 @@ export const Navbar = () => {
       <div className="container mx-auto px-4 relative z-10">
         {settings.navBar.navStyle === 'centered' ? renderCenteredNavbar() : renderDefaultNavbar()}
 
-        {/* Mobile Navigation */}
-        {isMobile && isMenuOpen && (
+        {/* Mobile Navigation - only show for default style */}
+        {isMobile && isMenuOpen && settings.navBar.navStyle !== 'centered' && (
           <div className="absolute top-full left-0 right-0 bg-background/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-border animate-slide-down z-50">
             <div className="container py-4 px-4 flex flex-col space-y-2">
               <div className="relative mb-2">
