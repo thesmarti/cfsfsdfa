@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +12,18 @@ import { NavButton, GradientPreset } from '@/types';
 import { useToast } from "@/components/ui/use-toast";
 import { SeoSettingsTab } from './SeoSettingsTab';
 import { GradientPresets } from './GradientPresets';
+import { ColorPresets, ColorPreset } from './ColorPresets';
+
+const COLOR_PRESETS: ColorPreset[] = [
+  { id: 'blue-purple', name: 'Blue Purple', primary: '#3b82f6', secondary: '#8b5cf6', accent: '#ec4899' },
+  { id: 'green-teal', name: 'Green Teal', primary: '#10b981', secondary: '#0ea5e9', accent: '#f59e0b' },
+  { id: 'red-orange', name: 'Red Orange', primary: '#ef4444', secondary: '#f97316', accent: '#8b5cf6' },
+  { id: 'pink-purple', name: 'Pink Purple', primary: '#ec4899', secondary: '#8b5cf6', accent: '#3b82f6' },
+  { id: 'amber-orange', name: 'Amber Orange', primary: '#f59e0b', secondary: '#f97316', accent: '#10b981' },
+  { id: 'indigo-blue', name: 'Indigo Blue', primary: '#6366f1', secondary: '#3b82f6', accent: '#ec4899' },
+  { id: 'emerald-green', name: 'Emerald Green', primary: '#10b981', secondary: '#6366f1', accent: '#f97316' },
+  { id: 'rose-pink', name: 'Rose Pink', primary: '#f43f5e', secondary: '#ec4899', accent: '#3b82f6' },
+];
 
 export const SiteSettingsPanel = () => {
   const { settings, updateNavBarSettings, updateColorSettings, updateGeneralSettings, updateNavButtons, uploadLogo, applyUIGradient } = useSiteSettings();
@@ -21,7 +32,6 @@ export const SiteSettingsPanel = () => {
   const [newButtonPath, setNewButtonPath] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   
-  // Add state to track changes for each section
   const [navbarSettings, setNavbarSettings] = useState({ ...settings.navBar });
   const [colorSettings, setColorSettings] = useState({ ...settings.colors });
   const [generalSettings, setGeneralSettings] = useState({ ...settings.general });
@@ -206,6 +216,29 @@ export const SiteSettingsPanel = () => {
     });
   };
 
+  const handleColorPresetSelect = (preset: ColorPreset) => {
+    setColorSettings({
+      ...colorSettings,
+      primary: preset.primary,
+      secondary: preset.secondary,
+      accent: preset.accent
+    });
+    
+    toast({
+      title: "Color Preset Applied",
+      description: `Applied the "${preset.name}" color preset`,
+    });
+  };
+
+  const getCurrentColorPresetId = () => {
+    return COLOR_PRESETS.find(
+      preset => 
+        preset.primary === colorSettings.primary && 
+        preset.secondary === colorSettings.secondary && 
+        preset.accent === colorSettings.accent
+    )?.id;
+  };
+
   return (
     <Card className="glass-card">
       <CardContent className="pt-6">
@@ -360,6 +393,12 @@ export const SiteSettingsPanel = () => {
           
           <TabsContent value="colors" className="mt-6">
             <div className="grid gap-6">
+              <ColorPresets 
+                presets={COLOR_PRESETS}
+                onSelectPreset={handleColorPresetSelect}
+                selectedPreset={getCurrentColorPresetId()}
+              />
+              
               <div className="grid gap-2">
                 <Label htmlFor="primary-color">Primary Color</Label>
                 <Input 
