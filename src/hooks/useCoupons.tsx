@@ -368,6 +368,74 @@ export const useCoupons = () => {
     }
   }, [fetchCoupons, toast]);
 
+  // Move coupon up or down in the list
+  const moveCoupon = useCallback(async (id: string, direction: 'up' | 'down') => {
+    try {
+      setLoading(true);
+      
+      // Find the coupon index
+      const couponIndex = couponsDatabase.findIndex(c => c.id === id);
+      
+      if (couponIndex === -1) {
+        throw new Error('Coupon not found');
+      }
+      
+      // Check if we can move in the requested direction
+      if (direction === 'up' && couponIndex > 0) {
+        // Swap with the previous coupon
+        [couponsDatabase[couponIndex], couponsDatabase[couponIndex - 1]] = 
+        [couponsDatabase[couponIndex - 1], couponsDatabase[couponIndex]];
+        
+        // Save to localStorage
+        saveToStorage('coupons', couponsDatabase);
+        
+        // Refresh the coupon list
+        await fetchCoupons();
+        
+        toast({
+          title: "Success",
+          description: "Coupon moved up successfully!",
+        });
+        
+        return true;
+      } else if (direction === 'down' && couponIndex < couponsDatabase.length - 1) {
+        // Swap with the next coupon
+        [couponsDatabase[couponIndex], couponsDatabase[couponIndex + 1]] = 
+        [couponsDatabase[couponIndex + 1], couponsDatabase[couponIndex]];
+        
+        // Save to localStorage
+        saveToStorage('coupons', couponsDatabase);
+        
+        // Refresh the coupon list
+        await fetchCoupons();
+        
+        toast({
+          title: "Success",
+          description: "Coupon moved down successfully!",
+        });
+        
+        return true;
+      } else {
+        // Can't move in this direction
+        toast({
+          title: "Information",
+          description: `Cannot move coupon ${direction} any further.`,
+        });
+        return false;
+      }
+    } catch (err) {
+      console.error(`Error moving coupon ${direction}:`, err);
+      toast({
+        title: "Error",
+        description: `Failed to move coupon ${direction}. Please try again.`,
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchCoupons, toast]);
+
   // Bulk update and delete functions
   const bulkUpdateCoupons = useCallback(async (ids: string[], updates: Partial<Coupon>) => {
     try {
@@ -553,6 +621,94 @@ export const useCoupons = () => {
     }
   }, [fetchLinks, toast]);
 
+  // Import coupons function
+  const importCoupons = useCallback(async (importedCoupons: Omit<Coupon, 'id' | 'createdAt' | 'updatedAt'>[]) => {
+    try {
+      setLoading(true);
+      
+      // Create new coupons with generated IDs and timestamps
+      const now = new Date().toISOString();
+      const newCoupons = importedCoupons.map(coupon => ({
+        ...coupon,
+        id: `imp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        createdAt: now,
+        updatedAt: now,
+        rating: coupon.rating ?? (Math.floor(Math.random() * 2) + 3 + Math.random() * 0.5),
+        usedCount: coupon.usedCount ?? Math.floor(Math.random() * 900) + 100
+      }));
+      
+      // Add the new coupons to our "database"
+      couponsDatabase = [...couponsDatabase, ...newCoupons];
+      
+      // Save to localStorage
+      saveToStorage('coupons', couponsDatabase);
+      
+      // Refresh the coupon list
+      await fetchCoupons();
+      
+      toast({
+        title: "Success",
+        description: `${newCoupons.length} coupons imported successfully!`,
+      });
+      
+      return newCoupons;
+    } catch (err) {
+      console.error('Error importing coupons:', err);
+      toast({
+        title: "Error",
+        description: "Failed to import coupons. Please check your file format.",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchCoupons, toast]);
+
+  // Export links function
+  const exportLinks = useCallback(() => {
+    // Filter out internal IDs, just like with coupons
+    const exportData = linksDatabase.map(({ id, createdAt, ...rest }) => rest);
+    return exportData;
+  }, []);
+
+  // Import links function
+  const importLinks = useCallback(async (importedLinks: Omit<ContentLockerLink, 'id' | 'createdAt'>[]) => {
+    try {
+      // Create new links with generated IDs and timestamps
+      const now = new Date().toISOString();
+      const newLinks = importedLinks.map(link => ({
+        ...link,
+        id: `imp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        createdAt: now
+      }));
+      
+      // Add the new links to our "database"
+      linksDatabase = [...linksDatabase, ...newLinks];
+      
+      // Save to localStorage
+      saveToStorage('links', linksDatabase);
+      
+      // Refresh the links list
+      await fetchLinks();
+      
+      toast({
+        title: "Success",
+        description: `${newLinks.length} content locker links imported successfully!`,
+      });
+      
+      return newLinks;
+    } catch (err) {
+      console.error('Error importing links:', err);
+      toast({
+        title: "Error",
+        description: "Failed to import links. Please check your file format.",
+        variant: "destructive",
+      });
+      return null;
+    }
+  }, [fetchLinks, toast]);
+
   const getCouponById = useCallback((id: string) => {
     return couponsDatabase.find(c => c.id === id) || null;
   }, []);
@@ -570,12 +726,16 @@ export const useCoupons = () => {
     addCoupon,
     updateCoupon,
     deleteCoupon,
+    moveCoupon,
     bulkUpdateCoupons,
     bulkDeleteCoupons,
     getCouponById,
     refreshCoupons: fetchCoupons,
     addLink,
     updateLink,
-    deleteLink
+    deleteLink,
+    importCoupons,
+    exportLinks,
+    importLinks
   };
 };

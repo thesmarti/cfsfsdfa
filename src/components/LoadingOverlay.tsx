@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Coupon, ContentLockerLink } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,6 +51,30 @@ export const LoadingOverlay = ({ coupon, onComplete, loadingTime = 3000, content
 
   const gradientClass = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
 
+  // Extract colors from gradient for coupon code background
+  const extractColorsFromGradient = (gradientClass: string) => {
+    // Look for "from-" and "to-" color classes in the gradient
+    const fromMatch = gradientClass.match(/from-([a-z]+-[0-9]+)/);
+    const toMatch = gradientClass.match(/to-([a-z]+-[0-9]+)/);
+    
+    const fromColor = fromMatch ? fromMatch[1] : 'indigo-50';
+    const toColor = toMatch ? toMatch[1] : 'purple-50';
+    
+    return {
+      light: {
+        from: `bg-${fromColor}/10`,
+        to: `bg-${toColor}/5`,
+      },
+      border: {
+        from: `border-${fromColor}/20`,
+        to: `border-${toColor}/20`,
+      }
+    };
+  };
+  
+  const gradientColors = extractColorsFromGradient(gradientClass);
+  const couponBgClass = `bg-gradient-to-br ${gradientColors.light.from} ${gradientColors.light.to} border ${gradientColors.border.from}`;
+  
   // Example coupon code (for demonstration purposes)
   const couponCode = coupon.code || "SAVE25NOW";
   
@@ -162,12 +187,12 @@ export const LoadingOverlay = ({ coupon, onComplete, loadingTime = 3000, content
           <div className="space-y-3">
             <p className="text-sm font-semibold">Your coupon code:</p>
             {isCodeVisible ? (
-              <div className="bg-secondary border border-border px-4 py-3 rounded-md font-mono text-center tracking-wide flex justify-center">
+              <div className={`${couponBgClass} px-4 py-3 rounded-md font-mono text-center tracking-wide flex justify-center`}>
                 <span className="inline-block">{visiblePart}</span>
                 <span className="inline-block blur-md">{blurredPart}</span>
               </div>
             ) : (
-              <div className="bg-secondary border border-border px-4 py-3 rounded-md font-mono text-center blur-md">
+              <div className={`${couponBgClass} px-4 py-3 rounded-md font-mono text-center blur-md`}>
                 <p className="text-sm">The coupon will unlock when you complete the tasks on the website</p>
               </div>
             )}

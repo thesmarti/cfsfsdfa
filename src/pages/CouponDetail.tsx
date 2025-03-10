@@ -73,7 +73,39 @@ const CouponDetail = () => {
     ? links.find(link => link.id === coupon.contentLockerLinkId)
     : null;
 
-  const gradientClass = settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
+  const getGradient = () => {
+    return settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
+  };
+
+  const gradientClass = getGradient();
+  
+  const extractColorsFromGradient = (gradientClass: string) => {
+    // Look for "from-" and "to-" color classes in the gradient
+    const fromMatch = gradientClass.match(/from-([a-z]+-[0-9]+)/);
+    const toMatch = gradientClass.match(/to-([a-z]+-[0-9]+)/);
+    
+    const fromColor = fromMatch ? fromMatch[1] : 'indigo-500';
+    const toColor = toMatch ? toMatch[1] : 'purple-600';
+    
+    return {
+      light: {
+        from: `bg-${fromColor}/10`,
+        to: `bg-${toColor}/5`,
+      },
+      hover: {
+        from: `hover:bg-${fromColor}/15`,
+        to: `hover:bg-${toColor}/10`,
+      },
+      border: {
+        from: `border-${fromColor}/20`,
+        to: `border-${toColor}/20`,
+      }
+    };
+  };
+  
+  const gradientColors = extractColorsFromGradient(gradientClass);
+  const couponBgClass = `bg-gradient-to-br ${gradientColors.light.from} ${gradientColors.light.to} border ${gradientColors.border.from}`;
+  const buttonHoverClass = `${gradientColors.hover.from} transition-colors duration-200`;
   
   const couponCode = coupon?.code || "SAVE25NOW";
   const codeLength = couponCode.length;
@@ -81,27 +113,22 @@ const CouponDetail = () => {
   const visiblePart = couponCode.substring(0, halfLength);
   const blurredPart = couponCode.substring(halfLength);
   
-  // Default rating and used count if not provided
-  const rating = coupon?.rating || Math.floor(Math.random() * 2) + 3; // Random between 3-5 if not set
-  const usedCount = coupon?.usedCount || Math.floor(Math.random() * 900) + 100; // Random between 100-999 if not set
+  const rating = coupon?.rating || 4.0;
+  const usedCount = coupon?.usedCount || 0;
   
-  // Generate star rating UI
   const renderStars = (rating: number) => {
     const stars = [];
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 >= 0.5;
     
-    // Add full stars
     for (let i = 0; i < fullStars; i++) {
       stars.push(<Star key={`star-${i}`} size={16} className="fill-yellow-400 text-yellow-400" />);
     }
     
-    // Add half star if needed
     if (hasHalfStar) {
       stars.push(<StarHalf key="half-star" size={16} className="fill-yellow-400 text-yellow-400" />);
     }
     
-    // Add empty stars
     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
     for (let i = 0; i < emptyStars; i++) {
       stars.push(<StarOff key={`empty-${i}`} size={16} className="text-gray-300" />);
@@ -118,7 +145,7 @@ const CouponDetail = () => {
         <Button 
           variant="ghost" 
           size="sm"
-          className="mb-6"
+          className={`mb-6 ${buttonHoverClass}`}
           onClick={() => navigate(-1)}
         >
           <ArrowLeft size={16} className="mr-1" /> Back
@@ -177,7 +204,7 @@ const CouponDetail = () => {
                   </div>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Users size={16} className="mr-1" /> 
-                    <span className="font-semibold text-primary">{usedCount}</span> Users used this coupon
+                    <span className={`font-semibold bg-clip-text text-transparent ${gradientClass}`}>{usedCount}</span> Users used this coupon
                   </div>
                 </div>
                 
@@ -185,7 +212,7 @@ const CouponDetail = () => {
                   {coupon.description}
                 </div>
                 
-                <div className="bg-secondary border border-border px-6 py-4 rounded-md font-mono text-center text-lg relative overflow-hidden flex justify-center">
+                <div className={`${couponBgClass} px-6 py-4 rounded-md font-mono text-center text-lg relative overflow-hidden flex justify-center`}>
                   <span className="inline-block">{visiblePart}</span>
                   <span className="inline-block blur-md">{blurredPart}</span>
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -205,7 +232,7 @@ const CouponDetail = () => {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="flex-1 button-press"
+                  className={`flex-1 button-press ${buttonHoverClass}`}
                   onClick={handleShowRestriction}
                   disabled={isExpired}
                 >

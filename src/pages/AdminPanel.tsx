@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useToast } from "@/components/ui/use-toast";
+import { useState, useEffect, useRef } from 'react';
+import { useToast } from "@/hooks/use-toast";
 import { Navbar } from '@/components/CustomNavbar';
 import { LoginForm } from '@/components/LoginForm';
 import { AdminCouponForm } from '@/components/AdminCouponForm';
@@ -33,7 +33,11 @@ import {
   ChevronDown,
   Settings,
   Palette,
-  Type
+  Type,
+  Upload,
+  Download,
+  MoveUp,
+  MoveDown
 } from 'lucide-react';
 
 const AdminPanel = () => {
@@ -45,12 +49,16 @@ const AdminPanel = () => {
     addCoupon, 
     updateCoupon, 
     deleteCoupon,
+    moveCoupon,
     bulkUpdateCoupons,
     bulkDeleteCoupons,
     refreshCoupons,
     addLink,
     updateLink,
-    deleteLink
+    deleteLink,
+    importCoupons,
+    exportLinks,
+    importLinks
   } = useCoupons();
   
   const [user, setUser] = useState<User | null>(null);
@@ -63,9 +71,11 @@ const AdminPanel = () => {
   const [adminSection, setAdminSection] = useState<'coupons' | 'links' | 'settings' | 'theme' | 'text'>('coupons');
   
   const [selectedCoupons, setSelectedCoupons] = useState<string[]>([]);
-  const [bulkActionType, setBulkActionType] = useState<'status' | 'category' | 'featured' | 'delete' | null>(null);
+  const [bulkActionType, setBulkActionType] = useState<'status' | 'category' | 'featured' | 'delete' | 'contentLocker' | null>(null);
   const [bulkActionValue, setBulkActionValue] = useState<string>('');
   const [isBulkActionDialogOpen, setIsBulkActionDialogOpen] = useState(false);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -124,6 +134,7 @@ const AdminPanel = () => {
     const result = await addCoupon(couponData);
     if (result) {
       setIsAddingCoupon(false);
+      window.location.reload();
     }
   };
   
@@ -132,6 +143,7 @@ const AdminPanel = () => {
       const result = await updateCoupon(editingCoupon.id, couponData);
       if (result) {
         setEditingCoupon(null);
+        window.location.reload();
       }
     }
   };
@@ -141,6 +153,7 @@ const AdminPanel = () => {
       const result = await deleteCoupon(deletingCouponId);
       if (result) {
         setDeletingCouponId(null);
+        window.location.reload();
       }
     }
   };
@@ -166,7 +179,14 @@ const AdminPanel = () => {
     
     try {
       if (bulkActionType === 'delete') {
-        await bulkDeleteCoupons(selectedCoupons);
+        const result = await bulkDeleteCoupons(selectedCoupons);
+        if (result) {
+          setSelectedCoupons([]);
+          setIsBulkActionDialogOpen(false);
+          setBulkActionType(null);
+          setBulkActionValue('');
+          window.location.reload();
+        }
       } else {
         let updates: Partial<Coupon> = {};
         
@@ -176,21 +196,34 @@ const AdminPanel = () => {
           updates.category = bulkActionValue as 'GAME CODE' | 'DISCOUNT CODE' | 'COUPON CODE' | 'FREE CODE';
         } else if (bulkActionType === 'featured') {
           updates.featured = bulkActionValue === 'true';
+        } else if (bulkActionType === 'contentLocker') {
+          updates.contentLockerLinkId = bulkActionValue === 'none' ? undefined : bulkActionValue;
         }
         
-        await bulkUpdateCoupons(selectedCoupons, updates);
+        const result = await bulkUpdateCoupons(selectedCoupons, updates);
+        if (result) {
+          setSelectedCoupons([]);
+          setIsBulkActionDialogOpen(false);
+          setBulkActionType(null);
+          setBulkActionValue('');
+          window.location.reload();
+        }
       }
-      
-      setSelectedCoupons([]);
+    } catch (error) {
+      console.error('Error performing bulk action:', error);
+      toast({
+        title: "Error",
+        description: "An error occurred during the bulk operation.",
+        variant: "destructive",
+      });
       setIsBulkActionDialogOpen(false);
       setBulkActionType(null);
       setBulkActionValue('');
-    } catch (error) {
-      console.error('Error performing bulk action:', error);
+      window.location.reload();
     }
   };
   
-  const openBulkActionDialog = (actionType: 'status' | 'category' | 'featured' | 'delete') => {
+  const openBulkActionDialog = (actionType: 'status' | 'category' | 'featured' | 'delete' | 'contentLocker') => {
     if (selectedCoupons.length === 0) {
       toast({
         title: "No Coupons Selected",
@@ -202,6 +235,69 @@ const AdminPanel = () => {
     
     setBulkActionType(actionType);
     setIsBulkActionDialogOpen(true);
+  };
+  
+  const handleExportCoupons = () => {
+    const couponData = selectedCoupons.length > 0 
+      ? coupons.filter(coupon => selectedCoupons.includes(coupon.id))
+      : coupons;
+    
+    const exportData = couponData.map(({ id, createdAt, updatedAt, ...rest }) => rest);
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `coupons-export-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    
+    URL.revokeObjectURL(url);
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Export Successful",
+      description: `${exportData.length} coupons exported to JSON file.`,
+    });
+  };
+  
+  const handleImportClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+  
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const content = e.target?.result as string;
+        const importData = JSON.parse(content);
+        
+        if (!Array.isArray(importData)) {
+          throw new Error('Invalid format: Expected an array of coupons');
+        }
+        
+        await importCoupons(importData);
+        
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } catch (error) {
+        console.error('Import error:', error);
+        toast({
+          title: "Import Failed",
+          description: "The selected file is not a valid coupon export. Please check the file format.",
+          variant: "destructive",
+        });
+      }
+    };
+    
+    reader.readAsText(file);
   };
   
   const formatDate = (dateString: string) => {
@@ -337,7 +433,7 @@ const AdminPanel = () => {
             {adminSection === 'coupons' && (
               <div>
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-                  <div className="flex gap-2 w-full md:w-auto">
+                  <div className="flex gap-2 w-full md:w-auto flex-wrap">
                     <Button
                       onClick={() => setIsAddingCoupon(true)}
                       className="gap-2"
@@ -353,6 +449,32 @@ const AdminPanel = () => {
                     >
                       Refresh
                     </Button>
+                    
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      onClick={handleExportCoupons}
+                    >
+                      <Download size={16} />
+                      Export
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      onClick={handleImportClick}
+                    >
+                      <Upload size={16} />
+                      Import
+                    </Button>
+                    
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      accept=".json"
+                      onChange={handleFileUpload}
+                    />
                   </div>
                   
                   <div className="relative w-full md:w-80">
@@ -397,6 +519,9 @@ const AdminPanel = () => {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => openBulkActionDialog('featured')}>
                                   Set Featured
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => openBulkActionDialog('contentLocker')}>
+                                  Change Content Locker Link
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem 
@@ -453,7 +578,7 @@ const AdminPanel = () => {
                                   </TableCell>
                                 </TableRow>
                               ) : (
-                                filteredCoupons.map((coupon) => (
+                                filteredCoupons.map((coupon, index) => (
                                   <TableRow key={coupon.id}>
                                     <TableCell>
                                       <Checkbox 
@@ -492,7 +617,25 @@ const AdminPanel = () => {
                                       </Badge>
                                     </TableCell>
                                     <TableCell className="text-right">
-                                      <div className="flex justify-end gap-2">
+                                      <div className="flex justify-end gap-1">
+                                        <Button 
+                                          variant="ghost" 
+                                          size="icon"
+                                          onClick={() => moveCoupon(coupon.id, 'up')}
+                                          disabled={index === 0}
+                                          title="Move Up"
+                                        >
+                                          <MoveUp size={16} />
+                                        </Button>
+                                        <Button 
+                                          variant="ghost" 
+                                          size="icon"
+                                          onClick={() => moveCoupon(coupon.id, 'down')}
+                                          disabled={index === filteredCoupons.length - 1}
+                                          title="Move Down"
+                                        >
+                                          <MoveDown size={16} />
+                                        </Button>
                                         <Popover>
                                           <PopoverTrigger asChild>
                                             <Button variant="ghost" size="icon">
@@ -541,6 +684,8 @@ const AdminPanel = () => {
                 onAddLink={addLink}
                 onUpdateLink={updateLink}
                 onDeleteLink={deleteLink}
+                exportLinks={exportLinks}
+                importLinks={importLinks}
               />
             )}
             
@@ -572,7 +717,14 @@ const AdminPanel = () => {
         </div>
       )}
       
-      <Dialog open={deletingCouponId !== null} onOpenChange={() => setDeletingCouponId(null)}>
+      <Dialog 
+        open={deletingCouponId !== null} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeletingCouponId(null);
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <div className="flex items-center gap-2 text-destructive mb-2">
@@ -594,71 +746,92 @@ const AdminPanel = () => {
         </DialogContent>
       </Dialog>
       
-      <Dialog open={isBulkActionDialogOpen} onOpenChange={setIsBulkActionDialogOpen}>
+      <Dialog 
+        open={isBulkActionDialogOpen} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsBulkActionDialogOpen(false);
+            setBulkActionType(null);
+            setBulkActionValue('');
+            if (!open) {
+              window.location.reload();
+            }
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
               {bulkActionType === 'delete' 
                 ? 'Confirm Bulk Delete' 
-                : `Bulk Update Coupons`}
+                : bulkActionType === 'status' 
+                ? 'Change Status' 
+                : bulkActionType === 'category' 
+                ? 'Change Category'
+                : bulkActionType === 'featured'
+                ? 'Set Featured Status'
+                : 'Change Content Locker Link'}
             </DialogTitle>
             <DialogDescription>
-              {bulkActionType === 'delete'
-                ? `Are you sure you want to delete ${selectedCoupons.length} coupons? This action cannot be undone.`
-                : `Update ${selectedCoupons.length} coupons at once.`}
+              {bulkActionType === 'delete' 
+                ? `Are you sure you want to delete ${selectedCoupons.length} coupon(s)? This action cannot be undone.`
+                : `Update ${selectedCoupons.length} selected coupon(s)`}
             </DialogDescription>
           </DialogHeader>
           
-          {bulkActionType && bulkActionType !== 'delete' && (
-            <div className="py-4">
-              {bulkActionType === 'status' && (
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium">Status</label>
-                  <Select value={bulkActionValue} onValueChange={setBulkActionValue}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="expired">Expired</SelectItem>
-                      <SelectItem value="upcoming">Upcoming</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              
-              {bulkActionType === 'category' && (
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium">Category</label>
-                  <Select value={bulkActionValue} onValueChange={setBulkActionValue}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="GAME CODE">GAME CODE</SelectItem>
-                      <SelectItem value="DISCOUNT CODE">DISCOUNT CODE</SelectItem>
-                      <SelectItem value="COUPON CODE">COUPON CODE</SelectItem>
-                      <SelectItem value="FREE CODE">FREE CODE</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              
-              {bulkActionType === 'featured' && (
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium">Featured</label>
-                  <Select value={bulkActionValue} onValueChange={setBulkActionValue}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Set featured status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="true">Yes</SelectItem>
-                      <SelectItem value="false">No</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
+          {bulkActionType === 'status' && (
+            <Select value={bulkActionValue} onValueChange={setBulkActionValue}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="expired">Expired</SelectItem>
+                <SelectItem value="upcoming">Upcoming</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          
+          {bulkActionType === 'category' && (
+            <Select value={bulkActionValue} onValueChange={setBulkActionValue}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="GAME CODE">Game Code</SelectItem>
+                <SelectItem value="DISCOUNT CODE">Discount Code</SelectItem>
+                <SelectItem value="COUPON CODE">Coupon Code</SelectItem>
+                <SelectItem value="FREE CODE">Free Code</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          
+          {bulkActionType === 'featured' && (
+            <Select value={bulkActionValue} onValueChange={setBulkActionValue}>
+              <SelectTrigger>
+                <SelectValue placeholder="Set Featured" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="true">Featured</SelectItem>
+                <SelectItem value="false">Not Featured</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          
+          {bulkActionType === 'contentLocker' && (
+            <Select value={bulkActionValue} onValueChange={setBulkActionValue}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Content Locker Link" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None</SelectItem>
+                {links.map(link => (
+                  <SelectItem key={link.id} value={link.id}>
+                    {link.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
           
           <DialogFooter>
@@ -667,6 +840,7 @@ const AdminPanel = () => {
               onClick={() => {
                 setIsBulkActionDialogOpen(false);
                 setBulkActionType(null);
+                setBulkActionValue('');
               }}
             >
               Cancel
@@ -674,8 +848,12 @@ const AdminPanel = () => {
             <Button 
               variant={bulkActionType === 'delete' ? 'destructive' : 'default'}
               onClick={handleBulkAction}
+              disabled={
+                (bulkActionType !== 'delete' && bulkActionValue === '') || 
+                selectedCoupons.length === 0
+              }
             >
-              {bulkActionType === 'delete' ? 'Delete Coupons' : 'Update Coupons'}
+              {bulkActionType === 'delete' ? 'Delete' : 'Update'}
             </Button>
           </DialogFooter>
         </DialogContent>
