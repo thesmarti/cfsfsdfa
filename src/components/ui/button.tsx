@@ -47,21 +47,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const { settings } = useSiteSettings();
     const Comp = asChild ? Slot : "button"
     
-    // If gradient variant is selected but gradients are disabled, use default variant
-    const effectiveVariant = variant === 'gradient' && 
-      (!settings.colors.useCustomGradients || !settings.colors.uiGradient) ? 
-      'default' : variant;
-      
-    // Only add the gradient class if gradients are enabled and the variant is gradient
-    const shouldApplyGradient = variant === 'gradient' && 
-                               settings.colors.useCustomGradients && 
-                               settings.colors.uiGradient;
-                               
+    // Always use gradient variant if UI gradient is available
+    const useGradient = settings.colors.uiGradient && variant === 'gradient';
+    
     return (
       <Comp
         className={cn(
-          buttonVariants({ variant: effectiveVariant, size, className }), 
-          shouldApplyGradient ? settings.colors.uiGradient : undefined
+          buttonVariants({ variant, size, className }), 
+          useGradient ? settings.colors.uiGradient : undefined
         )}
         ref={ref}
         {...props}

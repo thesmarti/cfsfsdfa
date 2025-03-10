@@ -32,20 +32,13 @@ export interface BadgeProps
 function Badge({ className, variant, ...props }: BadgeProps) {
   const { settings } = useSiteSettings();
   
-  // If gradient variant is selected but gradients are disabled, use default variant
-  const effectiveVariant = variant === 'gradient' && 
-    (!settings.colors.useCustomGradients || !settings.colors.uiGradient) ? 
-    'default' : variant;
-    
-  // Only add the gradient class if gradients are enabled and the variant is gradient
-  const shouldApplyGradient = variant === 'gradient' && 
-                             settings.colors.useCustomGradients && 
-                             settings.colors.uiGradient;
+  // Apply gradient styling if variant is gradient and uiGradient is available
+  const useGradient = variant === 'gradient' && settings.colors.uiGradient;
   
   return (
     <div className={cn(
-      badgeVariants({ variant: effectiveVariant }), 
-      shouldApplyGradient ? settings.colors.uiGradient : undefined,
+      badgeVariants({ variant }), 
+      useGradient ? settings.colors.uiGradient : undefined,
       className
     )} {...props} />
   )
