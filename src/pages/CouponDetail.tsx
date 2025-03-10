@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
@@ -25,17 +24,23 @@ const CouponDetail = () => {
   
   useEffect(() => {
     if (id) {
-      const couponData = getCouponById(id);
-      
-      setTimeout(() => {
-        setCoupon(couponData);
+      const fetchCoupon = () => {
+        const couponData = getCouponById(id);
+        if (couponData) {
+          setCoupon(couponData);
+        } else {
+          setTimeout(() => {
+            navigate('/');
+          }, 100);
+        }
         setLoading(false);
-      }, 500);
+      };
+      
+      setTimeout(fetchCoupon, 500);
     }
-  }, [id, getCouponById]);
+  }, [id, getCouponById, navigate]);
   
-  if (!id || (!loading && !coupon)) {
-    navigate('/not-found');
+  if (!id) {
     return null;
   }
   
@@ -81,27 +86,22 @@ const CouponDetail = () => {
   const visiblePart = couponCode.substring(0, halfLength);
   const blurredPart = couponCode.substring(halfLength);
   
-  // Default rating and used count if not provided
-  const rating = coupon?.rating || Math.floor(Math.random() * 2) + 3; // Random between 3-5 if not set
-  const usedCount = coupon?.usedCount || Math.floor(Math.random() * 900) + 100; // Random between 100-999 if not set
+  const rating = coupon?.rating || Math.floor(Math.random() * 2) + 3;
+  const usedCount = coupon?.usedCount || Math.floor(Math.random() * 900) + 100;
   
-  // Generate star rating UI
   const renderStars = (rating: number) => {
     const stars = [];
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 >= 0.5;
     
-    // Add full stars
     for (let i = 0; i < fullStars; i++) {
       stars.push(<Star key={`star-${i}`} size={16} className="fill-yellow-400 text-yellow-400" />);
     }
     
-    // Add half star if needed
     if (hasHalfStar) {
       stars.push(<StarHalf key="half-star" size={16} className="fill-yellow-400 text-yellow-400" />);
     }
     
-    // Add empty stars
     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
     for (let i = 0; i < emptyStars; i++) {
       stars.push(<StarOff key={`empty-${i}`} size={16} className="text-gray-300" />);
@@ -128,6 +128,12 @@ const CouponDetail = () => {
           <div className="max-w-3xl mx-auto">
             <Skeleton className="h-12 w-1/3 mb-4" />
             <Skeleton className="h-64 w-full rounded-xl" />
+          </div>
+        ) : !coupon ? (
+          <div className="text-center py-12">
+            <p className="text-lg text-muted-foreground mb-4">
+              Coupon not found. Redirecting to home page...
+            </p>
           </div>
         ) : (
           <div className="max-w-3xl mx-auto">

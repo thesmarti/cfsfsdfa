@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Coupon, ContentLockerLink, SortOption, FilterOption } from '@/types';
@@ -61,9 +60,8 @@ export const useCoupons = () => {
   }, [coupons]);
 
   // Get a specific coupon by its ID
-  const getCouponById = useCallback((id: string): Coupon | null => {
-    const coupon = coupons.find(c => c.id === id);
-    return coupon || null;
+  const getCouponById = useCallback((id: string): Coupon | undefined => {
+    return coupons.find(c => c.id === id);
   }, [coupons]);
 
   useEffect(() => {
@@ -243,7 +241,7 @@ export const useCoupons = () => {
     }
   };
 
-  const updateLink = async (id: string, updates: Partial<ContentLockerLink>) => {
+  const updateLink = async (id: string, updates: Partial<ContentLockerLink>): Promise<ContentLockerLink> => {
     try {
       setLoading(true);
       const linkToUpdate = links.find(link => link.id === id);
