@@ -812,7 +812,7 @@ const AdminPanel = () => {
                 <SelectItem value="none">None</SelectItem>
                 {links.map(link => (
                   <SelectItem key={link.id} value={link.id}>
-                    {link.title}
+                    {link.name}
                   </SelectItem>
                 ))}
               </SelectContent>
