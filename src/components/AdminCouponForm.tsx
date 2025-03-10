@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Coupon } from '@/types';
-import { X } from 'lucide-react';
+import { X, Upload, Image as ImageIcon } from 'lucide-react';
 
 interface AdminCouponFormProps {
   editCoupon?: Coupon;
@@ -27,7 +27,8 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
     category: '',
     featured: false,
     lastVerified: new Date().toISOString().split('T')[0],
-    status: 'active'
+    status: 'active',
+    image: ''
   });
   
   // If we're editing a coupon, populate the form with its data
@@ -49,6 +50,28 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
   
   const handleSwitchChange = (name: string, checked: boolean) => {
     setFormData(prev => ({ ...prev, [name]: checked }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Image too large",
+        description: "Image size should be less than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setFormData(prev => ({ ...prev, image: event.target?.result as string }));
+      }
+    };
+    reader.readAsDataURL(file);
   };
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -168,6 +191,66 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
                 <SelectItem value="upcoming">Upcoming</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="redirectUrl">Redirect URL</Label>
+            <Input
+              id="redirectUrl"
+              name="redirectUrl"
+              value={formData.redirectUrl || ''}
+              onChange={handleChange}
+              placeholder="e.g. https://example.com"
+            />
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <Label>Coupon Image</Label>
+          <div className="flex flex-col space-y-2">
+            {formData.image ? (
+              <div className="relative w-full h-40 bg-gray-100 rounded-md overflow-hidden">
+                <img 
+                  src={formData.image} 
+                  alt="Coupon preview" 
+                  className="w-full h-full object-cover"
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  className="absolute top-2 right-2"
+                  onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
+                >
+                  Remove
+                </Button>
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center bg-gray-50">
+                <div className="flex flex-col items-center">
+                  <ImageIcon className="w-10 h-10 text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-500 mb-2">Drag and drop or click to upload</p>
+                  <p className="text-xs text-gray-400">PNG, JPG, GIF up to 5MB</p>
+                  <Input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => document.getElementById('image-upload')?.click()}
+                  >
+                    <Upload size={16} className="mr-1" />
+                    Upload Image
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         

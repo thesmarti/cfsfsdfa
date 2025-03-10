@@ -3,9 +3,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { Coupon, SortOption, FilterOption, ContentLockerLink } from '@/types';
 import { useToast } from "@/components/ui/use-toast";
 
-// This is a mock database for demonstration purposes
-// In a real app, this would be replaced with an actual backend call
-const mockCoupons: Coupon[] = [
+// Default coupons to use if none in localStorage
+const defaultCoupons: Coupon[] = [
   {
     id: '1',
     store: 'Amazon',
@@ -19,7 +18,8 @@ const mockCoupons: Coupon[] = [
     status: 'active',
     createdAt: '2023-01-15',
     updatedAt: '2023-06-15',
-    redirectUrl: 'https://amazon.com'
+    redirectUrl: 'https://amazon.com',
+    image: 'https://images.unsplash.com/photo-1556740738-b6a63e27c4df?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
   },
   {
     id: '2',
@@ -34,7 +34,8 @@ const mockCoupons: Coupon[] = [
     status: 'active',
     createdAt: '2023-05-10',
     updatedAt: '2023-06-20',
-    redirectUrl: 'https://bestbuy.com'
+    redirectUrl: 'https://bestbuy.com',
+    image: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
   },
   {
     id: '3',
@@ -49,7 +50,8 @@ const mockCoupons: Coupon[] = [
     status: 'active',
     createdAt: '2023-06-01',
     updatedAt: '2023-06-10',
-    redirectUrl: 'https://nike.com'
+    redirectUrl: 'https://nike.com',
+    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
   },
   {
     id: '4',
@@ -64,7 +66,8 @@ const mockCoupons: Coupon[] = [
     status: 'active',
     createdAt: '2023-06-05',
     updatedAt: '2023-06-18',
-    redirectUrl: 'https://ubereats.com'
+    redirectUrl: 'https://ubereats.com',
+    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
   },
   {
     id: '5',
@@ -79,7 +82,8 @@ const mockCoupons: Coupon[] = [
     status: 'active',
     createdAt: '2023-04-22',
     updatedAt: '2023-06-12',
-    redirectUrl: 'https://walmart.com'
+    redirectUrl: 'https://walmart.com',
+    image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
   },
   {
     id: '6',
@@ -94,12 +98,13 @@ const mockCoupons: Coupon[] = [
     status: 'active',
     createdAt: '2023-05-30',
     updatedAt: '2023-06-14',
-    redirectUrl: 'https://target.com'
+    redirectUrl: 'https://target.com',
+    image: 'https://images.unsplash.com/photo-1521320226546-87b106cd7e38?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
   }
 ];
 
-// Mock content locker links
-const mockLinks: ContentLockerLink[] = [
+// Default links to use if none in localStorage
+const defaultLinks: ContentLockerLink[] = [
   {
     id: '1',
     name: 'Amazon Shop',
@@ -123,9 +128,25 @@ const mockLinks: ContentLockerLink[] = [
   }
 ];
 
-// In-memory database (this would be a real backend in production)
-let couponsDatabase = [...mockCoupons];
-let linksDatabase = [...mockLinks];
+// Load data from localStorage or use defaults
+const loadFromStorage = (key: string, defaultValue: any) => {
+  try {
+    const storedValue = localStorage.getItem(key);
+    return storedValue ? JSON.parse(storedValue) : defaultValue;
+  } catch (error) {
+    console.error(`Error loading ${key} from localStorage:`, error);
+    return defaultValue;
+  }
+};
+
+// Save data to localStorage
+const saveToStorage = (key: string, value: any) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.error(`Error saving ${key} to localStorage:`, error);
+  }
+};
 
 export const useCoupons = () => {
   const { toast } = useToast();
@@ -138,12 +159,29 @@ export const useCoupons = () => {
   // Sort and filter options
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [filterBy, setFilterBy] = useState<FilterOption>('all');
+
+  // Load data from localStorage on initial mount
+  useEffect(() => {
+    const couponsFromStorage = loadFromStorage('coupons', defaultCoupons);
+    const linksFromStorage = loadFromStorage('links', defaultLinks);
+    
+    // Initialize database with data from localStorage
+    couponsDatabase = [...couponsFromStorage];
+    linksDatabase = [...linksFromStorage];
+    
+    fetchCoupons();
+    fetchLinks();
+  }, []);
+  
+  // In-memory databases
+  let couponsDatabase = loadFromStorage('coupons', defaultCoupons);
+  let linksDatabase = loadFromStorage('links', defaultLinks);
   
   const fetchCoupons = useCallback(async () => {
     setLoading(true);
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       // Get coupons from our "database"
       let result = [...couponsDatabase];
@@ -164,7 +202,6 @@ export const useCoupons = () => {
       } else if (sortBy === 'expiringSoon') {
         result.sort((a, b) => new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime());
       }
-      // For 'popular' sorting we'd normally use data like clicks or use count
       
       setCoupons(result);
       setFeaturedCoupons(result.filter(coupon => coupon.featured));
@@ -185,7 +222,7 @@ export const useCoupons = () => {
   const fetchLinks = useCallback(async () => {
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 200));
       setLinks(linksDatabase);
     } catch (err) {
       console.error('Error fetching links:', err);
@@ -197,28 +234,24 @@ export const useCoupons = () => {
     }
   }, [toast]);
 
-  useEffect(() => {
-    fetchCoupons();
-    fetchLinks();
-  }, [fetchCoupons, fetchLinks]);
-
   // Admin functions for managing coupons
   const addCoupon = useCallback(async (coupon: Omit<Coupon, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       setLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
       
       const now = new Date().toISOString();
       const newCoupon: Coupon = {
         ...coupon,
-        id: Date.now().toString(), // In a real app, the backend would generate this
+        id: Date.now().toString(),
         createdAt: now,
         updatedAt: now
       };
       
       // Update our "database"
       couponsDatabase = [...couponsDatabase, newCoupon];
+      
+      // Save to localStorage
+      saveToStorage('coupons', couponsDatabase);
       
       // Refresh the coupon list
       await fetchCoupons();
@@ -245,8 +278,6 @@ export const useCoupons = () => {
   const updateCoupon = useCallback(async (id: string, updates: Partial<Coupon>) => {
     try {
       setLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Find and update the coupon in our "database"
       const couponIndex = couponsDatabase.findIndex(c => c.id === id);
@@ -266,6 +297,9 @@ export const useCoupons = () => {
         updatedCoupon,
         ...couponsDatabase.slice(couponIndex + 1)
       ];
+      
+      // Save to localStorage
+      saveToStorage('coupons', couponsDatabase);
       
       // Refresh the coupon list
       await fetchCoupons();
@@ -292,11 +326,12 @@ export const useCoupons = () => {
   const deleteCoupon = useCallback(async (id: string) => {
     try {
       setLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Remove the coupon from our "database"
       couponsDatabase = couponsDatabase.filter(c => c.id !== id);
+      
+      // Save to localStorage
+      saveToStorage('coupons', couponsDatabase);
       
       // Refresh the coupon list
       await fetchCoupons();
@@ -324,8 +359,6 @@ export const useCoupons = () => {
   const bulkUpdateCoupons = useCallback(async (ids: string[], updates: Partial<Coupon>) => {
     try {
       setLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Update each coupon
       const now = new Date().toISOString();
@@ -340,6 +373,9 @@ export const useCoupons = () => {
         }
         return coupon;
       });
+      
+      // Save to localStorage
+      saveToStorage('coupons', couponsDatabase);
       
       // Refresh the coupon list
       await fetchCoupons();
@@ -366,11 +402,12 @@ export const useCoupons = () => {
   const bulkDeleteCoupons = useCallback(async (ids: string[]) => {
     try {
       setLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Remove the coupons from our "database"
       couponsDatabase = couponsDatabase.filter(c => !ids.includes(c.id));
+      
+      // Save to localStorage
+      saveToStorage('coupons', couponsDatabase);
       
       // Refresh the coupon list
       await fetchCoupons();
@@ -398,7 +435,7 @@ export const useCoupons = () => {
   const addLink = useCallback(async (link: Omit<ContentLockerLink, 'id' | 'createdAt'>) => {
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       const newLink: ContentLockerLink = {
         ...link,
@@ -408,6 +445,9 @@ export const useCoupons = () => {
       
       // Update our "database"
       linksDatabase = [...linksDatabase, newLink];
+      
+      // Save to localStorage
+      saveToStorage('links', linksDatabase);
       
       // Refresh the links list
       await fetchLinks();
@@ -431,9 +471,6 @@ export const useCoupons = () => {
 
   const updateLink = useCallback(async (id: string, updates: Partial<ContentLockerLink>) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
       // Find and update the link in our "database"
       const linkIndex = linksDatabase.findIndex(l => l.id === id);
       
@@ -451,6 +488,9 @@ export const useCoupons = () => {
         updatedLink,
         ...linksDatabase.slice(linkIndex + 1)
       ];
+      
+      // Save to localStorage
+      saveToStorage('links', linksDatabase);
       
       // Refresh the links list
       await fetchLinks();
@@ -474,11 +514,11 @@ export const useCoupons = () => {
 
   const deleteLink = useCallback(async (id: string) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
       // Remove the link from our "database"
       linksDatabase = linksDatabase.filter(l => l.id !== id);
+      
+      // Save to localStorage
+      saveToStorage('links', linksDatabase);
       
       // Refresh the links list
       await fetchLinks();

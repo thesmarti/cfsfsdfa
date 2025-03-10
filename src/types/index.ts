@@ -12,7 +12,8 @@ export interface Coupon {
   status: 'active' | 'expired' | 'upcoming';
   createdAt: string;
   updatedAt: string;
-  redirectUrl?: string; // New field for redirection
+  redirectUrl?: string;
+  image?: string; // New field for coupon image
 }
 
 export interface User {

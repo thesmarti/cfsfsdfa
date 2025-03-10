@@ -34,6 +34,9 @@ export const CouponCard = ({ coupon, className = '' }: CouponCardProps) => {
     navigate(`/coupon/${coupon.id}`);
   };
 
+  // Default image if none is provided
+  const imageUrl = coupon.image || 'https://via.placeholder.com/300x150?text=No+Image';
+
   return (
     <Card className={`glass-card hover-lift overflow-hidden ${className} bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900`}>
       <div className="absolute top-0 right-0">
@@ -42,6 +45,18 @@ export const CouponCard = ({ coupon, className = '' }: CouponCardProps) => {
             Featured
           </Badge>
         )}
+      </div>
+      
+      {/* Coupon Image */}
+      <div className="w-full h-32 overflow-hidden bg-gray-100">
+        <img 
+          src={imageUrl} 
+          alt={`${coupon.store} coupon`} 
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x150?text=Error+Loading+Image';
+          }}
+        />
       </div>
       
       <CardHeader className="pb-2">
