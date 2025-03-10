@@ -27,7 +27,7 @@ export const ParticlesBackground = () => {
         value: settings.navBar.particlesDensity,
         density: {
           enable: true,
-          area: 800
+          value_area: 800 // Fixed: changed 'area' to 'value_area'
         }
       },
       color: {
@@ -64,8 +64,7 @@ export const ParticlesBackground = () => {
         onClick: {
           enable: true,
           mode: "push"
-        },
-        resize: {}
+        }
       },
       modes: {
         grab: {
@@ -79,7 +78,7 @@ export const ParticlesBackground = () => {
         }
       }
     },
-    retina_detect: true
+    detectRetina: true // Fixed: changed 'retina_detect' to 'detectRetina'
   };
 
   if (!init || !settings.navBar.enableParticles) {
