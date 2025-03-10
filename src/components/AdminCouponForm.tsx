@@ -240,17 +240,6 @@ export const AdminCouponForm = ({ editCoupon, onSubmit, onCancel }: AdminCouponF
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="redirectUrl">Redirect URL</Label>
-            <Input
-              id="redirectUrl"
-              name="redirectUrl"
-              value={formData.redirectUrl || ''}
-              onChange={handleChange}
-              placeholder="e.g. https://example.com"
-            />
-          </div>
-          
-          <div className="space-y-2">
             <Label htmlFor="contentLockerLink">Content Locker Link</Label>
             <div className="flex gap-2">
               <Select
