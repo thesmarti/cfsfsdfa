@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from '@/integrations/supabase/client';
 import { Image, ArrowUpCircle, Save } from 'lucide-react';
 import { SiteSettings } from '@/types';
 
@@ -17,11 +16,12 @@ export const SeoSettingsTab = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [seoSettings, setSeoSettings] = useState<SiteSettings['seo']>({
-    title: settings.seo?.title || '',
-    description: settings.seo?.description || '',
-    favicon: settings.seo?.favicon || ''
+    title: '',
+    description: '',
+    favicon: ''
   });
   
+  // Update local state when settings change
   useEffect(() => {
     if (settings.seo) {
       setSeoSettings({
@@ -49,56 +49,12 @@ export const SeoSettingsTab = () => {
     try {
       await uploadFavicon(file);
       
-      // Save to Supabase
-      const { data, error: fetchError } = await supabase
-        .from('site_settings')
-        .select('id, seo')
-        .maybeSingle();
-      
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        throw fetchError;
-      }
-      
-      // Safely handle potential null or undefined values
-      const currentSeo = data?.seo ? 
-        (typeof data.seo === 'object' ? data.seo : {}) : 
-        {};
-      
-      const newSeoSettings = {
-        ...currentSeo,
-        favicon: settings.seo?.favicon || ''
-      };
-      
-      if (data?.id) {
-        // Update existing record
-        const { error } = await supabase
-          .from('site_settings')
-          .update({ 
-            seo: newSeoSettings,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', data.id);
-          
-        if (error) throw error;
-      } else {
-        // Insert new record
-        const { error } = await supabase
-          .from('site_settings')
-          .insert({ 
-            seo: newSeoSettings,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
-          
-        if (error) throw error;
-      }
-      
       toast({
         title: "Favicon updated",
         description: "Your favicon has been updated successfully",
       });
     } catch (error) {
-      console.error('Error saving favicon to Supabase:', error);
+      console.error('Error uploading favicon:', error);
       toast({
         title: "Error uploading favicon",
         description: error instanceof Error ? error.message : "An unknown error occurred",
@@ -112,59 +68,18 @@ export const SeoSettingsTab = () => {
   const handleSaveSeoSettings = async () => {
     setIsSaving(true);
     try {
-      // Update local state first
-      updateSeoSettings({
+      await updateSeoSettings({
         title: seoSettings.title,
         description: seoSettings.description,
         favicon: seoSettings.favicon
       });
-      
-      // Save to Supabase
-      const { data, error: fetchError } = await supabase
-        .from('site_settings')
-        .select('id, seo')
-        .maybeSingle();
-      
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        throw fetchError;
-      }
-      
-      const newSeoSettings = {
-        title: seoSettings.title || '',
-        description: seoSettings.description || '',
-        favicon: settings.seo?.favicon || seoSettings.favicon || ''
-      };
-      
-      if (data?.id) {
-        // Update existing record
-        const { error } = await supabase
-          .from('site_settings')
-          .update({ 
-            seo: newSeoSettings,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', data.id);
-          
-        if (error) throw error;
-      } else {
-        // Insert new record
-        const { error } = await supabase
-          .from('site_settings')
-          .insert({ 
-            seo: newSeoSettings,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
-          
-        if (error) throw error;
-      }
       
       toast({
         title: "SEO Settings Saved",
         description: "Your SEO settings have been updated successfully",
       });
     } catch (error) {
-      console.error('Error saving SEO settings to Supabase:', error);
+      console.error('Error saving SEO settings:', error);
       toast({
         title: "Error",
         description: "Failed to save SEO settings. Please try again.",
@@ -250,9 +165,13 @@ export const SeoSettingsTab = () => {
           </div>
         </CardContent>
         <CardFooter className="flex justify-end">
-          <Button onClick={handleSaveSeoSettings} className="gap-2">
+          <Button 
+            onClick={handleSaveSeoSettings} 
+            className="gap-2"
+            disabled={isSaving}
+          >
             <Save size={16} />
-            Save SEO Settings
+            {isSaving ? 'Saving...' : 'Save SEO Settings'}
           </Button>
         </CardFooter>
       </Card>

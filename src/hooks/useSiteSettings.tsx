@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { SiteSettings, NavButton, GradientPreset } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from "@/components/ui/use-toast";
 
 const DEFAULT_GRADIENT_PRESETS: GradientPreset[] = [
   { id: 'purple-pink', name: 'Purple to Pink', value: 'bg-gradient-to-br from-violet-500 to-pink-600', category: 'default' },
@@ -71,22 +73,120 @@ const STATIC_SETTINGS: SiteSettings = {
 export const useSiteSettings = () => {
   const [settings, setSettings] = useState<SiteSettings>(STATIC_SETTINGS);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    applySettings(STATIC_SETTINGS);
-    setLoading(false);
+    const fetchSettings = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('site_settings')
+          .select('*')
+          .maybeSingle();
+        
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
+        
+        if (data) {
+          const mergedSettings = {
+            ...STATIC_SETTINGS,
+            navBar: {
+              ...STATIC_SETTINGS.navBar,
+              ...(data.navBar || {})
+            },
+            colors: {
+              ...STATIC_SETTINGS.colors,
+              ...(data.colors || {})
+            },
+            general: {
+              ...STATIC_SETTINGS.general,
+              ...(data.general || {})
+            },
+            seo: {
+              ...STATIC_SETTINGS.seo,
+              ...(data.seo || {})
+            },
+            textContent: {
+              ...STATIC_SETTINGS.textContent,
+              ...(data.textContent || {})
+            }
+          };
+          
+          if (!mergedSettings.colors.gradientPresets || mergedSettings.colors.gradientPresets.length === 0) {
+            mergedSettings.colors.gradientPresets = DEFAULT_GRADIENT_PRESETS;
+          }
+          
+          setSettings(mergedSettings);
+          applySettings(mergedSettings);
+        } else {
+          setSettings(STATIC_SETTINGS);
+          applySettings(STATIC_SETTINGS);
+        }
+      } catch (error) {
+        console.error('Error fetching settings from Supabase:', error);
+        toast({
+          title: "Error loading settings",
+          description: "Could not load settings from database. Using defaults.",
+          variant: "destructive"
+        });
+        setSettings(STATIC_SETTINGS);
+        applySettings(STATIC_SETTINGS);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSettings();
   }, []);
 
-  const updateSettings = (newSettings: SiteSettings) => {
-    if (!newSettings.colors.gradientPresets) {
+  const saveSettingsToSupabase = async (updatedSettings: SiteSettings) => {
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('site_settings')
+        .select('id')
+        .maybeSingle();
+      
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw fetchError;
+      }
+      
+      if (data?.id) {
+        const { error } = await supabase
+          .from('site_settings')
+          .update(updatedSettings)
+          .eq('id', data.id);
+          
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('site_settings')
+          .insert(updatedSettings);
+          
+        if (error) throw error;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error saving settings to Supabase:', error);
+      toast({
+        title: "Error saving settings",
+        description: "Changes were applied locally but could not be saved to the database.",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
+  const updateSettings = async (newSettings: SiteSettings) => {
+    if (!newSettings.colors.gradientPresets || newSettings.colors.gradientPresets.length === 0) {
       newSettings.colors.gradientPresets = DEFAULT_GRADIENT_PRESETS;
     }
     
     setSettings(newSettings);
-    
-    console.log('NOTE: Changes will only be visible on this device/session');
-    
     applySettings(newSettings);
+    
+    await saveSettingsToSupabase(newSettings);
   };
 
   const applySettings = (appliedSettings: SiteSettings) => {
@@ -151,7 +251,7 @@ export const useSiteSettings = () => {
     }
   };
 
-  const updateNavBarSettings = (navBarSettings: Partial<SiteSettings['navBar']>) => {
+  const updateNavBarSettings = async (navBarSettings: Partial<SiteSettings['navBar']>) => {
     const updatedSettings = {
       ...settings,
       navBar: {
@@ -159,10 +259,10 @@ export const useSiteSettings = () => {
         ...navBarSettings,
       },
     };
-    updateSettings(updatedSettings);
+    await updateSettings(updatedSettings);
   };
 
-  const updateNavButtons = (buttons: NavButton[]) => {
+  const updateNavButtons = async (buttons: NavButton[]) => {
     const updatedSettings = {
       ...settings,
       navBar: {
@@ -170,10 +270,10 @@ export const useSiteSettings = () => {
         buttons,
       },
     };
-    updateSettings(updatedSettings);
+    await updateSettings(updatedSettings);
   };
 
-  const updateColorSettings = (colorSettings: Partial<SiteSettings['colors']>) => {
+  const updateColorSettings = async (colorSettings: Partial<SiteSettings['colors']>) => {
     if (!settings.colors.gradientPresets && !colorSettings.gradientPresets) {
       colorSettings.gradientPresets = DEFAULT_GRADIENT_PRESETS;
     }
@@ -185,10 +285,10 @@ export const useSiteSettings = () => {
         ...colorSettings,
       },
     };
-    updateSettings(updatedSettings);
+    await updateSettings(updatedSettings);
   };
 
-  const updateGeneralSettings = (generalSettings: Partial<SiteSettings['general']>) => {
+  const updateGeneralSettings = async (generalSettings: Partial<SiteSettings['general']>) => {
     const updatedSettings = {
       ...settings,
       general: {
@@ -196,10 +296,10 @@ export const useSiteSettings = () => {
         ...generalSettings,
       },
     };
-    updateSettings(updatedSettings);
+    await updateSettings(updatedSettings);
   };
 
-  const updateSeoSettings = (seoSettings: Partial<SiteSettings['seo']>) => {
+  const updateSeoSettings = async (seoSettings: Partial<SiteSettings['seo']>) => {
     const updatedSettings = {
       ...settings,
       seo: {
@@ -207,10 +307,10 @@ export const useSiteSettings = () => {
         ...seoSettings,
       },
     };
-    updateSettings(updatedSettings);
+    await updateSettings(updatedSettings);
   };
 
-  const updateTextContent = (textContent: Partial<SiteSettings['textContent']>) => {
+  const updateTextContent = async (textContent: Partial<SiteSettings['textContent']>) => {
     const updatedSettings = {
       ...settings,
       textContent: {
@@ -218,10 +318,36 @@ export const useSiteSettings = () => {
         ...textContent,
       },
     };
-    updateSettings(updatedSettings);
+    await updateSettings(updatedSettings);
   };
 
-  const uploadLogo = (file: File): Promise<string> => {
+  const uploadLogo = async (file: File): Promise<string> => {
+    try {
+      const base64Image = await readFileAsDataURL(file);
+      
+      await updateNavBarSettings({ logoUrl: base64Image });
+      
+      return base64Image;
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      throw error;
+    }
+  };
+
+  const uploadFavicon = async (file: File): Promise<string> => {
+    try {
+      const base64Image = await readFileAsDataURL(file);
+      
+      await updateSeoSettings({ favicon: base64Image });
+      
+      return base64Image;
+    } catch (error) {
+      console.error('Error uploading favicon:', error);
+      throw error;
+    }
+  };
+
+  const readFileAsDataURL = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       if (!file) {
         reject(new Error('No file selected'));
@@ -242,46 +368,7 @@ export const useSiteSettings = () => {
       
       reader.onload = (e) => {
         if (e.target && e.target.result) {
-          const base64Image = e.target.result.toString();
-          updateNavBarSettings({ logoUrl: base64Image });
-          resolve(base64Image);
-        } else {
-          reject(new Error('Error reading file'));
-        }
-      };
-      
-      reader.onerror = () => {
-        reject(new Error('Error reading file'));
-      };
-      
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const uploadFavicon = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      if (!file) {
-        reject(new Error('No file selected'));
-        return;
-      }
-      
-      if (!file.type.match('image.*')) {
-        reject(new Error('File is not an image'));
-        return;
-      }
-      
-      if (file.size > 1 * 1024 * 1024) {
-        reject(new Error('File is too large (max 1MB)'));
-        return;
-      }
-      
-      const reader = new FileReader();
-      
-      reader.onload = (e) => {
-        if (e.target && e.target.result) {
-          const base64Image = e.target.result.toString();
-          updateSeoSettings({ favicon: base64Image });
-          resolve(base64Image);
+          resolve(e.target.result.toString());
         } else {
           reject(new Error('Error reading file'));
         }
@@ -335,7 +422,7 @@ export const useSiteSettings = () => {
     return hslValue;
   };
 
-  const applyUIGradient = (preset: GradientPreset) => {
+  const applyUIGradient = async (preset: GradientPreset) => {
     const updatedSettings = {
       ...settings,
       colors: {
@@ -343,7 +430,7 @@ export const useSiteSettings = () => {
         uiGradient: preset.value,
       },
     };
-    updateSettings(updatedSettings);
+    await updateSettings(updatedSettings);
   };
 
   return {
