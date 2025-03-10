@@ -176,7 +176,13 @@ const AdminPanel = () => {
     
     try {
       if (bulkActionType === 'delete') {
-        await bulkDeleteCoupons(selectedCoupons);
+        const result = await bulkDeleteCoupons(selectedCoupons);
+        if (result) {
+          setSelectedCoupons([]);
+          setIsBulkActionDialogOpen(false);
+          setBulkActionType(null);
+          setBulkActionValue('');
+        }
       } else {
         let updates: Partial<Coupon> = {};
         
@@ -190,15 +196,22 @@ const AdminPanel = () => {
           updates.contentLockerLinkId = bulkActionValue === 'none' ? undefined : bulkActionValue;
         }
         
-        await bulkUpdateCoupons(selectedCoupons, updates);
+        const result = await bulkUpdateCoupons(selectedCoupons, updates);
+        if (result) {
+          setSelectedCoupons([]);
+          setIsBulkActionDialogOpen(false);
+          setBulkActionType(null);
+          setBulkActionValue('');
+        }
       }
-      
-      setSelectedCoupons([]);
-      setIsBulkActionDialogOpen(false);
-      setBulkActionType(null);
-      setBulkActionValue('');
     } catch (error) {
       console.error('Error performing bulk action:', error);
+      toast({
+        title: "Error",
+        description: "An error occurred during the bulk operation.",
+        variant: "destructive",
+      });
+      setIsBulkActionDialogOpen(false);
     }
   };
   
@@ -696,7 +709,10 @@ const AdminPanel = () => {
         </div>
       )}
       
-      <Dialog open={deletingCouponId !== null} onOpenChange={() => setDeletingCouponId(null)}>
+      <Dialog 
+        open={deletingCouponId !== null} 
+        onOpenChange={() => setDeletingCouponId(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <div className="flex items-center gap-2 text-destructive mb-2">
@@ -718,113 +734,8 @@ const AdminPanel = () => {
         </DialogContent>
       </Dialog>
       
-      <Dialog open={isBulkActionDialogOpen} onOpenChange={setIsBulkActionDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {bulkActionType === 'delete' 
-                ? 'Confirm Bulk Delete' 
-                : `Bulk Update Coupons`}
-            </DialogTitle>
-            <DialogDescription>
-              {bulkActionType === 'delete'
-                ? `Are you sure you want to delete ${selectedCoupons.length} coupons? This action cannot be undone.`
-                : `Update ${selectedCoupons.length} coupons at once.`}
-            </DialogDescription>
-          </DialogHeader>
-          
-          {bulkActionType && bulkActionType !== 'delete' && (
-            <div className="py-4">
-              {bulkActionType === 'status' && (
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium">Status</label>
-                  <Select value={bulkActionValue} onValueChange={setBulkActionValue}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="expired">Expired</SelectItem>
-                      <SelectItem value="upcoming">Upcoming</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              
-              {bulkActionType === 'category' && (
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium">Category</label>
-                  <Select value={bulkActionValue} onValueChange={setBulkActionValue}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="GAME CODE">GAME CODE</SelectItem>
-                      <SelectItem value="DISCOUNT CODE">DISCOUNT CODE</SelectItem>
-                      <SelectItem value="COUPON CODE">COUPON CODE</SelectItem>
-                      <SelectItem value="FREE CODE">FREE CODE</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              
-              {bulkActionType === 'featured' && (
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium">Featured</label>
-                  <Select value={bulkActionValue} onValueChange={setBulkActionValue}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Set featured status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="true">Yes</SelectItem>
-                      <SelectItem value="false">No</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              
-              {bulkActionType === 'contentLocker' && (
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium">Content Locker Link</label>
-                  <Select value={bulkActionValue} onValueChange={setBulkActionValue}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select content locker link" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">None (Remove Link)</SelectItem>
-                      {links.filter(link => link.active).map(link => (
-                        <SelectItem key={link.id} value={link.id}>
-                          {link.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-          )}
-          
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setIsBulkActionDialogOpen(false);
-                setBulkActionType(null);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button 
-              variant={bulkActionType === 'delete' ? 'destructive' : 'default'}
-              onClick={handleBulkAction}
-            >
-              {bulkActionType === 'delete' ? 'Delete Coupons' : 'Update Coupons'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
+      <Dialog 
+        open={isBulkActionDialogOpen} 
+        onOpenChange={(open) => {
+         
 
-export default AdminPanel;
