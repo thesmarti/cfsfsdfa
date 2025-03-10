@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
@@ -101,6 +102,10 @@ const CouponDetail = () => {
   const halfLength = Math.ceil(codeLength / 2);
   const visiblePart = couponCode.substring(0, halfLength);
   const blurredPart = couponCode.substring(halfLength);
+  
+  // Extract rating and usedCount from coupon or use defaults
+  const rating = coupon?.rating || 4.0;
+  const usedCount = coupon?.usedCount || 0;
   
   const renderStars = (rating: number) => {
     const stars = [];
