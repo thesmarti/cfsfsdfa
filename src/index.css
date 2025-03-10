@@ -97,10 +97,15 @@
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+  
+  /* Added smooth theme transition */
+  html, body {
+    @apply transition-colors duration-300;
+  }
 }
 
 .glass-morphism {
-  @apply bg-white/70 backdrop-blur-md border border-white/20;
+  @apply bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border border-white/20 dark:border-white/10;
 }
 
 .glass-card {
@@ -134,11 +139,11 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded-full transition-colors;
+  @apply bg-gray-300 dark:bg-gray-700 rounded-full transition-colors;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400;
+  @apply bg-gray-400 dark:bg-gray-600;
 }
 
 /* Custom animations */
@@ -180,4 +185,43 @@
   100% {
     background-position: 200% 0;
   }
+}
+
+/* Enhanced gradients */
+.bg-gradient-primary {
+  @apply bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500;
+}
+
+.bg-gradient-secondary {
+  @apply bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-500 dark:to-pink-500;
+}
+
+.bg-gradient-success {
+  @apply bg-gradient-to-r from-green-500 to-emerald-500 dark:from-green-400 dark:to-emerald-400;
+}
+
+.bg-gradient-warning {
+  @apply bg-gradient-to-r from-orange-500 to-amber-500 dark:from-orange-400 dark:to-amber-400;
+}
+
+.text-gradient-primary {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400;
+}
+
+.text-gradient-secondary {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400;
+}
+
+/* Added card styles */
+.cool-card {
+  @apply relative overflow-hidden rounded-xl bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-all duration-300;
+}
+
+.cool-card::before {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20 opacity-0 transition-opacity duration-300;
+}
+
+.cool-card:hover::before {
+  @apply opacity-100;
 }
