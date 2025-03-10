@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
-import { Navbar } from '@/components/Navbar';
+import { Navbar } from '@/components/CustomNavbar';
 import { LoginForm } from '@/components/LoginForm';
 import { AdminCouponForm } from '@/components/AdminCouponForm';
 import { ContentLockerLinksPanel } from '@/components/ContentLockerLinksPanel';
 import { SiteSettingsPanel } from '@/components/SiteSettingsPanel';
+import { ThemeSettingsTab } from '@/components/ThemeSettingsTab';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +30,8 @@ import {
   Star, 
   Link,
   ChevronDown,
-  Settings
+  Settings,
+  Palette
 } from 'lucide-react';
 
 const AdminPanel = () => {
@@ -56,15 +58,13 @@ const AdminPanel = () => {
   const [filteredCoupons, setFilteredCoupons] = useState(coupons);
   const [deletingCouponId, setDeletingCouponId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
-  const [adminSection, setAdminSection] = useState<'coupons' | 'links' | 'settings'>('coupons');
+  const [adminSection, setAdminSection] = useState<'coupons' | 'links' | 'settings' | 'theme'>('coupons');
   
-  // Bulk action states
   const [selectedCoupons, setSelectedCoupons] = useState<string[]>([]);
   const [bulkActionType, setBulkActionType] = useState<'status' | 'category' | 'featured' | 'delete' | null>(null);
   const [bulkActionValue, setBulkActionValue] = useState<string>('');
   const [isBulkActionDialogOpen, setIsBulkActionDialogOpen] = useState(false);
   
-  // Check if user is already logged in
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -77,7 +77,6 @@ const AdminPanel = () => {
     }
   }, []);
   
-  // Apply search filter on coupons
   useEffect(() => {
     if (searchTerm.trim() === '') {
       setFilteredCoupons(coupons);
@@ -94,7 +93,6 @@ const AdminPanel = () => {
     }
   }, [searchTerm, coupons]);
   
-  // Filter coupons based on active tab
   useEffect(() => {
     if (activeTab === "all") {
       setFilteredCoupons(coupons);
@@ -107,7 +105,6 @@ const AdminPanel = () => {
     }
   }, [activeTab, coupons]);
   
-  // Clear selected coupons when filtered list changes
   useEffect(() => {
     setSelectedCoupons([]);
   }, [filteredCoupons]);
@@ -214,7 +211,6 @@ const AdminPanel = () => {
     });
   };
   
-  // If not logged in, show login form
   if (!user) {
     return <LoginForm onLoginSuccess={setUser} />;
   }
@@ -314,11 +310,19 @@ const AdminPanel = () => {
                 <Settings size={16} />
                 Site Settings
               </Button>
+              <Button 
+                variant={adminSection === 'theme' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setAdminSection('theme')}
+                className="gap-1"
+              >
+                <Palette size={16} />
+                Theme
+              </Button>
             </div>
           </div>
           
           <div className="space-y-6">
-            {/* Coupons section */}
             {adminSection === 'coupons' && (
               <div>
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
@@ -520,7 +524,6 @@ const AdminPanel = () => {
               </div>
             )}
             
-            {/* Content Locker Links section */}
             {adminSection === 'links' && (
               <ContentLockerLinksPanel
                 links={links}
@@ -530,15 +533,17 @@ const AdminPanel = () => {
               />
             )}
             
-            {/* Site Settings section */}
             {adminSection === 'settings' && (
               <SiteSettingsPanel />
+            )}
+            
+            {adminSection === 'theme' && (
+              <ThemeSettingsTab />
             )}
           </div>
         </div>
       </main>
       
-      {/* Add/Edit Coupon Dialog */}
       {(isAddingCoupon || editingCoupon) && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <AdminCouponForm
@@ -552,7 +557,6 @@ const AdminPanel = () => {
         </div>
       )}
       
-      {/* Delete Confirmation Dialog */}
       <Dialog open={deletingCouponId !== null} onOpenChange={() => setDeletingCouponId(null)}>
         <DialogContent>
           <DialogHeader>
@@ -575,7 +579,6 @@ const AdminPanel = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Bulk Action Dialog */}
       <Dialog open={isBulkActionDialogOpen} onOpenChange={setIsBulkActionDialogOpen}>
         <DialogContent>
           <DialogHeader>
