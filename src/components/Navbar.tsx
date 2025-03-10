@@ -92,11 +92,11 @@ export const Navbar = () => {
               {settings.navBar.buttons.filter(btn => btn.enabled).map(button => (
                 <Link key={button.id} to={button.path}>
                   <Button 
-                    variant={location.pathname === button.path ? 'default' : 'ghost'} 
+                    variant={location.pathname === button.path ? 'gradient' : 'ghost'} 
                     className={`${
                       location.pathname === button.path 
-                        ? buttonGradientClass + ' text-white border-none' 
-                        : 'hover:text-transparent hover:bg-clip-text hover:' + buttonGradientClass
+                        ? buttonGradientClass
+                        : `hover:text-transparent hover:bg-clip-text hover:${buttonGradientClass}`
                     }`}
                   >
                     {button.label}
@@ -104,15 +104,15 @@ export const Navbar = () => {
                 </Link>
               ))}
               
-              {/* Admin button - only visible if settings allow it */}
+              {/* Admin button */}
               {settings.navBar.showAdminButton && (
                 <Link to="/admin">
                   <Button 
-                    variant={location.pathname === '/admin' ? 'default' : 'ghost'} 
+                    variant={location.pathname === '/admin' ? 'gradient' : 'ghost'} 
                     className={`${
                       location.pathname === '/admin' 
-                        ? buttonGradientClass + ' border-none text-white dark:text-white' 
-                        : 'hover:text-transparent hover:bg-clip-text hover:' + buttonGradientClass
+                        ? buttonGradientClass
+                        : `hover:text-transparent hover:bg-clip-text hover:${buttonGradientClass}`
                     }`}
                   >
                     Admin
@@ -141,6 +141,7 @@ export const Navbar = () => {
                 size="icon"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 aria-label="Toggle menu"
+                className={`hover:text-transparent hover:bg-clip-text hover:${buttonGradientClass}`}
               >
                 {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </Button>
@@ -165,11 +166,11 @@ export const Navbar = () => {
               {settings.navBar.buttons.filter(btn => btn.enabled).map(button => (
                 <Link key={button.id} to={button.path}>
                   <Button 
-                    variant={location.pathname === button.path ? 'default' : 'ghost'} 
+                    variant={location.pathname === button.path ? 'gradient' : 'ghost'} 
                     className={`w-full justify-start ${
                       location.pathname === button.path 
-                        ? buttonGradientClass + ' border-none text-white dark:text-white' 
-                        : ''
+                        ? buttonGradientClass
+                        : `hover:text-transparent hover:bg-clip-text hover:${buttonGradientClass}`
                     }`}
                   >
                     {button.label}
@@ -177,15 +178,15 @@ export const Navbar = () => {
                 </Link>
               ))}
               
-              {/* Admin button - only visible if settings allow it */}
+              {/* Admin button - mobile */}
               {settings.navBar.showAdminButton && (
                 <Link to="/admin">
                   <Button 
-                    variant={location.pathname === '/admin' ? 'default' : 'ghost'} 
+                    variant={location.pathname === '/admin' ? 'gradient' : 'ghost'} 
                     className={`w-full justify-start ${
                       location.pathname === '/admin' 
-                        ? buttonGradientClass + ' border-none text-white dark:text-white' 
-                        : ''
+                        ? buttonGradientClass
+                        : `hover:text-transparent hover:bg-clip-text hover:${buttonGradientClass}`
                     }`}
                   >
                     Admin
@@ -199,3 +200,4 @@ export const Navbar = () => {
     </header>
   );
 };
+
