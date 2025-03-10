@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,7 +27,6 @@ export const CouponCard = ({ coupon, className = '' }: CouponCardProps) => {
     });
   };
 
-  // Determine if coupon is expired
   const isExpired = new Date(coupon.expiryDate) < new Date();
   const daysLeft = Math.ceil((new Date(coupon.expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
 
@@ -36,35 +34,41 @@ export const CouponCard = ({ coupon, className = '' }: CouponCardProps) => {
     navigate(`/coupon/${coupon.id}`);
   };
 
-  // Default image if none is provided
   const imageUrl = coupon.image || 'https://via.placeholder.com/300x150?text=No+Image';
   
-  // Always use the UI gradient from site settings if available
   const getGradient = () => {
     return settings.colors.uiGradient || 'bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-400 dark:to-purple-500';
   };
 
-  // Default rating and used count if not provided
-  const rating = coupon.rating || Math.floor(Math.random() * 2) + 3; // Random between 3-5 if not set
-  const usedCount = coupon.usedCount || Math.floor(Math.random() * 900) + 100; // Random between 100-999 if not set
+  const extractColorsFromGradient = (gradientClass: string) => {
+    const fromMatch = gradientClass.match(/from-([a-z]+-[0-9]+)/);
+    const toMatch = gradientClass.match(/to-([a-z]+-[0-9]+)/);
+    
+    return {
+      from: fromMatch ? fromMatch[1] : 'indigo-500',
+      to: toMatch ? toMatch[1] : 'purple-600',
+    };
+  };
 
-  // Generate star rating UI
+  const gradientColors = extractColorsFromGradient(getGradient());
+  const cardAccentClass = `bg-gradient-to-r from-${gradientColors.from} to-${gradientColors.to}`;
+
+  const rating = coupon.rating || Math.floor(Math.random() * 2) + 3;
+  const usedCount = coupon.usedCount || Math.floor(Math.random() * 900) + 100;
+
   const renderStars = (rating: number) => {
     const stars = [];
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 >= 0.5;
     
-    // Add full stars
     for (let i = 0; i < fullStars; i++) {
       stars.push(<Star key={`star-${i}`} size={14} className="fill-yellow-400 text-yellow-400" />);
     }
     
-    // Add half star if needed
     if (hasHalfStar) {
       stars.push(<StarHalf key="half-star" size={14} className="fill-yellow-400 text-yellow-400" />);
     }
     
-    // Add empty stars
     const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
     for (let i = 0; i < emptyStars; i++) {
       stars.push(<StarOff key={`empty-${i}`} size={14} className="text-gray-300" />);
@@ -75,10 +79,8 @@ export const CouponCard = ({ coupon, className = '' }: CouponCardProps) => {
 
   return (
     <Card className={`hover-lift overflow-hidden ${className} ${isExpired ? 'opacity-75' : ''}`}>
-      {/* Category indicator strip */}
-      <div className={`h-1 w-full ${getGradient()}`}></div>
+      <div className={`h-1 w-full ${cardAccentClass}`}></div>
       
-      {/* Coupon Image */}
       <div className="w-full h-36 overflow-hidden bg-gray-100 dark:bg-gray-800 relative">
         <img 
           src={imageUrl} 
@@ -117,7 +119,6 @@ export const CouponCard = ({ coupon, className = '' }: CouponCardProps) => {
             {coupon.description}
           </div>
           
-          {/* Star rating and users count */}
           <div className="flex items-center justify-between mt-3 mb-1">
             <div className="flex items-center">
               {renderStars(rating)}
