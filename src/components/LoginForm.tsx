@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { User } from '@/types';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Settings } from 'lucide-react';
 
 interface LoginFormProps {
   onLoginSuccess: (user: User) => void;
@@ -16,6 +18,30 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Get stored admin credentials on component mount
+  useState(() => {
+    const storedAdminEmail = localStorage.getItem('adminEmail');
+    const storedAdminPassword = localStorage.getItem('adminPassword');
+    
+    if (storedAdminEmail) setAdminEmail(storedAdminEmail);
+    else {
+      // Set default admin credentials if none exist
+      setAdminEmail('admin@example.com');
+      localStorage.setItem('adminEmail', 'admin@example.com');
+    }
+    
+    if (storedAdminPassword) setAdminPassword(storedAdminPassword);
+    else {
+      // Set default admin password if none exists
+      setAdminPassword('admin123');
+      localStorage.setItem('adminPassword', 'admin123');
+    }
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,8 +51,12 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
       // In a real app, this would be an API call to your auth endpoint
       await new Promise(resolve => setTimeout(resolve, 800));
 
-      // For demo purposes, we just check for the admin credentials
-      if (email === 'admin@example.com' && password === 'admin123') {
+      // Get the current admin credentials from localStorage
+      const currentAdminEmail = localStorage.getItem('adminEmail') || 'admin@example.com';
+      const currentAdminPassword = localStorage.getItem('adminPassword') || 'admin123';
+
+      // Check against the stored admin credentials
+      if (email === currentAdminEmail && password === currentAdminPassword) {
         // Simulate successful login
         const user: User = {
           id: '1',
@@ -62,12 +92,56 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
     }
   };
 
+  const handleSaveSettings = () => {
+    // Validate passwords match
+    if (adminPassword !== confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords don't match.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Save the new admin credentials
+    localStorage.setItem('adminEmail', adminEmail);
+    localStorage.setItem('adminPassword', adminPassword);
+
+    toast({
+      title: "Success",
+      description: "Admin credentials updated.",
+    });
+
+    setIsSettingsOpen(false);
+  };
+
+  const openSettings = () => {
+    // Get current admin credentials before opening settings
+    const currentAdminEmail = localStorage.getItem('adminEmail') || 'admin@example.com';
+    const currentAdminPassword = localStorage.getItem('adminPassword') || 'admin123';
+    
+    setAdminEmail(currentAdminEmail);
+    setAdminPassword(currentAdminPassword);
+    setConfirmPassword(currentAdminPassword);
+    setIsSettingsOpen(true);
+  };
+
   return (
     <div className="flex justify-center items-center min-h-screen">
       <Card className="w-full max-w-md glass-card animate-scale-in">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-display text-center">Admin Login</CardTitle>
-          <CardDescription className="text-center">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-2xl font-display">Admin Login</CardTitle>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={openSettings}
+              title="Change Admin Credentials"
+            >
+              <Settings size={18} />
+            </Button>
+          </div>
+          <CardDescription>
             Enter your credentials to access the admin panel
           </CardDescription>
         </CardHeader>
@@ -105,9 +179,9 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
               />
             </div>
             <div className="text-xs text-muted-foreground">
-              <p>Demo credentials:</p>
-              <p>Email: admin@example.com</p>
-              <p>Password: admin123</p>
+              <p>Default credentials:</p>
+              <p>Email: {localStorage.getItem('adminEmail') || 'admin@example.com'}</p>
+              <p>Password: {localStorage.getItem('adminPassword') ? '••••••••' : 'admin123'}</p>
             </div>
           </CardContent>
           <CardFooter>
@@ -121,6 +195,61 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
           </CardFooter>
         </form>
       </Card>
+
+      {/* Admin Settings Dialog */}
+      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Admin Credentials</DialogTitle>
+            <DialogDescription>
+              Update your admin email and password
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="admin-email">Admin Email</Label>
+              <Input
+                id="admin-email"
+                type="email"
+                value={adminEmail}
+                onChange={(e) => setAdminEmail(e.target.value)}
+                placeholder="admin@example.com"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="admin-password">New Password</Label>
+              <Input
+                id="admin-password"
+                type="password"
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                placeholder="New password"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm password"
+                required
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsSettingsOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveSettings}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
