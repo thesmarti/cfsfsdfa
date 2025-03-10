@@ -31,24 +31,34 @@ export const TextContentTab = () => {
     const loadSettingsFromSupabase = async () => {
       setIsSyncing(true);
       try {
+        console.log('Loading settings from Supabase');
         const { data, error } = await supabase
           .from('site_settings')
           .select('text_content')
-          .single();
+          .maybeSingle();
         
-        if (error) {
+        if (error && error.code !== 'PGRST116') {
           console.error('Error fetching settings:', error);
-          // If no settings exist yet, create a default one
-          if (error.code === 'PGRST116') {
-            await saveSettingsToSupabase(textContent);
-          }
-        } else if (data?.text_content) {
+          throw error;
+        }
+        
+        if (data?.text_content) {
+          console.log('Loaded text content:', data.text_content);
           // Update local state with the settings from Supabase
           setTextContent(data.text_content);
           updateTextContent(data.text_content);
+        } else if (error && error.code === 'PGRST116') {
+          // If no settings exist yet, create a default one
+          console.log('No settings found, creating default');
+          await saveSettingsToSupabase(textContent);
         }
       } catch (error) {
         console.error('Error loading settings:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load settings from Supabase.',
+          variant: 'destructive',
+        });
       } finally {
         setIsSyncing(false);
       }
@@ -67,30 +77,49 @@ export const TextContentTab = () => {
   const saveSettingsToSupabase = async (content: Partial<SiteSettings['textContent']>) => {
     setIsSyncing(true);
     try {
+      console.log('Saving settings to Supabase:', content);
+      
       // Check if settings record exists
-      const { data } = await supabase
+      const { data, error: fetchError } = await supabase
         .from('site_settings')
         .select('id')
-        .single();
+        .maybeSingle();
+      
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('Error fetching settings:', fetchError);
+        throw fetchError;
+      }
       
       if (data?.id) {
+        console.log('Updating existing record with ID:', data.id);
         // Update existing record
-        await supabase
+        const { error } = await supabase
           .from('site_settings')
           .update({ 
             text_content: content,
             updated_at: new Date().toISOString()
           })
           .eq('id', data.id);
+          
+        if (error) {
+          console.error('Error updating settings:', error);
+          throw error;
+        }
       } else {
+        console.log('Creating new settings record');
         // Insert new record
-        await supabase
+        const { error } = await supabase
           .from('site_settings')
           .insert({ 
             text_content: content,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           });
+          
+        if (error) {
+          console.error('Error inserting settings:', error);
+          throw error;
+        }
       }
       
       updateTextContent(content as SiteSettings['textContent']);

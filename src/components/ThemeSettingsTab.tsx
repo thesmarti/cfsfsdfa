@@ -76,13 +76,21 @@ export const ThemeSettingsTab = () => {
   const saveThemeToSupabase = async (theme: ThemeOption) => {
     setIsSyncing(true);
     try {
+      console.log('Saving theme to Supabase:', theme);
+      
       // Check if settings record exists
-      const { data } = await supabase
+      const { data, error: fetchError } = await supabase
         .from('site_settings')
         .select('id')
-        .single();
+        .maybeSingle();
+      
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('Error fetching settings:', fetchError);
+        throw fetchError;
+      }
       
       if (data?.id) {
+        console.log('Updating existing record with ID:', data.id);
         // Update existing record
         const { error } = await supabase
           .from('site_settings')
@@ -93,9 +101,11 @@ export const ThemeSettingsTab = () => {
           .eq('id', data.id);
           
         if (error) {
+          console.error('Error updating theme:', error);
           throw error;
         }
       } else {
+        console.log('Creating new settings record');
         // Insert new record
         const { error } = await supabase
           .from('site_settings')
@@ -106,6 +116,7 @@ export const ThemeSettingsTab = () => {
           });
           
         if (error) {
+          console.error('Error inserting theme:', error);
           throw error;
         }
       }
