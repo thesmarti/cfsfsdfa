@@ -1,5 +1,5 @@
-<lov-code>
-import { useState, useEffect, useRef, useCallback } from 'react';
+
+import { useState, useEffect, useRef } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-import { Settings, Palette, Type, Image, User, Upload, Menu, Plus, Trash2, Paintbrush } from 'lucide-react';
+import { Settings, Palette, Type, Image, User, Upload, Menu, Plus, Trash2 } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Progress } from "@/components/ui/progress";
@@ -91,7 +91,7 @@ export const SiteSettingsPanel = () => {
       useCustomGradients: settings.colors.useCustomGradients || false,
       defaultGradient: settings.colors.defaultGradient || 'bg-gradient-to-br from-violet-500 to-purple-600',
       fashionGradient: settings.colors.fashionGradient || 'bg-gradient-to-br from-pink-500 to-purple-600',
-      foodGradient: settings.colors.fashionGradient || 'bg-gradient-to-br from-orange-400 to-red-500',
+      foodGradient: settings.colors.foodGradient || 'bg-gradient-to-br from-orange-400 to-red-500',
       electronicsGradient: settings.colors.electronicsGradient || 'bg-gradient-to-br from-blue-400 to-indigo-600',
       travelGradient: settings.colors.travelGradient || 'bg-gradient-to-br from-teal-400 to-emerald-500',
       beautyGradient: settings.colors.beautyGradient || 'bg-gradient-to-br from-fuchsia-400 to-pink-500',
@@ -320,7 +320,7 @@ export const SiteSettingsPanel = () => {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="navbar">
-          <TabsList className="grid grid-cols-4 mb-6">
+          <TabsList className="grid grid-cols-3 mb-6">
             <TabsTrigger value="navbar" className="flex items-center gap-1">
               <Image size={14} />
               <span>Navigation</span>
@@ -332,10 +332,6 @@ export const SiteSettingsPanel = () => {
             <TabsTrigger value="general" className="flex items-center gap-1">
               <Type size={14} />
               <span>Content</span>
-            </TabsTrigger>
-            <TabsTrigger value="admin" className="flex items-center gap-1">
-              <User size={14} />
-              <span>Admin</span>
             </TabsTrigger>
           </TabsList>
           
@@ -863,4 +859,41 @@ export const SiteSettingsPanel = () => {
                     <Input 
                       id="currentPassword"
                       type="password"
-                      placeholder
+                      placeholder="Enter current password"
+                      value={adminForm.currentPassword}
+                      onChange={(e) => setAdminForm({...adminForm, currentPassword: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <Input 
+                      id="newPassword"
+                      type="password"
+                      placeholder="Enter new password"
+                      value={adminForm.newPassword}
+                      onChange={(e) => setAdminForm({...adminForm, newPassword: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <Input 
+                      id="confirmPassword"
+                      type="password"
+                      placeholder="Confirm your new password"
+                      value={adminForm.confirmPassword}
+                      onChange={(e) => setAdminForm({...adminForm, confirmPassword: e.target.value})}
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <Button type="submit" className="w-full">Update Admin Credentials</Button>
+            </form>
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
+  );
+};
