@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -60,16 +59,16 @@ export const Navbar = () => {
       
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 z-10">
+          <Link to="/" className="flex items-center gap-3 z-10">
             {settings.navBar.showLogo && settings.navBar.logoUrl && (
               <img
                 src={settings.navBar.logoUrl}
                 alt="Logo"
-                className="h-10 w-auto transition-transform duration-300 hover:scale-110"
+                className="h-14 w-auto transition-transform duration-300 hover:scale-110"
               />
             )}
             {settings.navBar.showText && settings.navBar.siteTitle && (
-              <span className="text-xl font-bold">{settings.navBar.siteTitle}</span>
+              <span className="text-2xl font-bold">{settings.navBar.siteTitle}</span>
             )}
           </Link>
           
