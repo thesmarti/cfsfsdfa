@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { SiteSettings } from '@/types';
 
@@ -38,7 +37,6 @@ export const useSiteSettings = () => {
       if (savedSettings) {
         try {
           const parsedSettings = JSON.parse(savedSettings);
-          // Ensure all default settings exist
           const mergedSettings = {
             ...DEFAULT_SETTINGS,
             ...parsedSettings,
@@ -73,14 +71,11 @@ export const useSiteSettings = () => {
     applySettings(newSettings);
   };
 
-  // Apply settings to the DOM
   const applySettings = (appliedSettings: SiteSettings) => {
-    // Apply colors as CSS variables
     document.documentElement.style.setProperty('--custom-primary', appliedSettings.colors.primary);
     document.documentElement.style.setProperty('--custom-secondary', appliedSettings.colors.secondary);
     document.documentElement.style.setProperty('--custom-accent', appliedSettings.colors.accent);
     
-    // Convert hex to HSL for Tailwind
     try {
       document.documentElement.style.setProperty('--primary', hexToHsl(appliedSettings.colors.primary));
       document.documentElement.style.setProperty('--secondary', hexToHsl(appliedSettings.colors.secondary));
@@ -90,7 +85,6 @@ export const useSiteSettings = () => {
     }
   };
 
-  // Apply settings on component mount
   useEffect(() => {
     if (!loading) {
       applySettings(settings);
@@ -130,33 +124,62 @@ export const useSiteSettings = () => {
     updateSettings(updatedSettings);
   };
 
-  // Basic conversion from hex to HSL
+  const uploadLogo = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      if (!file) {
+        reject(new Error('No file selected'));
+        return;
+      }
+      
+      if (!file.type.match('image.*')) {
+        reject(new Error('File is not an image'));
+        return;
+      }
+      
+      if (file.size > 2 * 1024 * 1024) {
+        reject(new Error('File is too large (max 2MB)'));
+        return;
+      }
+      
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        if (e.target && e.target.result) {
+          const base64Image = e.target.result.toString();
+          updateNavBarSettings({ logoUrl: base64Image });
+          resolve(base64Image);
+        } else {
+          reject(new Error('Error reading file'));
+        }
+      };
+      
+      reader.onerror = () => {
+        reject(new Error('Error reading file'));
+      };
+      
+      reader.readAsDataURL(file);
+    });
+  };
+
   const hexToHsl = (hex: string): string => {
-    // Remove the hash if it exists
     hex = hex.replace(/^#/, '');
     
-    // Parse the hex values
     let r = parseInt(hex.substring(0, 2), 16) / 255;
     let g = parseInt(hex.substring(2, 4), 16) / 255;
     let b = parseInt(hex.substring(4, 6), 16) / 255;
     
-    // Find the minimum and maximum values to calculate the lightness
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
     
-    // Calculate the lightness
     const l = (max + min) / 2;
     
     let h, s;
     
     if (max === min) {
-      // Achromatic
       h = s = 0;
     } else {
-      // Calculate the saturation
       s = l > 0.5 ? (max - min) / (2 - max - min) : (max - min) / (max + min);
       
-      // Calculate the hue
       switch (max) {
         case r:
           h = (g - b) / (max - min) + (g < b ? 6 : 0);
@@ -174,7 +197,6 @@ export const useSiteSettings = () => {
       h = Math.round(h * 60);
     }
     
-    // Format the values for CSS
     const hslValue = `${h} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
     return hslValue;
   };
@@ -186,5 +208,6 @@ export const useSiteSettings = () => {
     updateNavBarSettings,
     updateColorSettings,
     updateGeneralSettings,
+    uploadLogo,
   };
 };

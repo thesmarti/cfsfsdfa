@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,13 +8,15 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-import { Settings, Palette, Type, Image, Paintbrush, User } from 'lucide-react';
+import { Settings, Palette, Type, Image, Paintbrush, User, Upload } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Progress } from "@/components/ui/progress";
 
 export const SiteSettingsPanel = () => {
   const { toast } = useToast();
-  const { settings, updateNavBarSettings, updateColorSettings, updateGeneralSettings } = useSiteSettings();
+  const { settings, updateNavBarSettings, updateColorSettings, updateGeneralSettings, uploadLogo } = useSiteSettings();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [navBarForm, setNavBarForm] = useState({
     showLogo: settings.navBar.showLogo,
@@ -48,6 +50,9 @@ export const SiteSettingsPanel = () => {
     newPassword: '',
     confirmPassword: '',
   });
+
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
     const storedEmail = localStorage.getItem('adminEmail');
@@ -161,6 +166,56 @@ export const SiteSettingsPanel = () => {
     });
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    const file = files[0];
+    setIsUploading(true);
+    setUploadProgress(10);
+    
+    try {
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          const next = prev + 20;
+          return next > 90 ? 90 : next;
+        });
+      }, 200);
+      
+      const logoUrl = await uploadLogo(file);
+      
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      
+      setNavBarForm(prev => ({
+        ...prev,
+        logoUrl
+      }));
+      
+      toast({
+        title: "Success",
+        description: "Logo uploaded successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to upload logo",
+        variant: "destructive",
+      });
+    } finally {
+      setTimeout(() => {
+        setIsUploading(false);
+        setUploadProgress(0);
+      }, 500);
+    }
+  };
+
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
   const gradientOptions = [
     { value: 'bg-gradient-to-r from-blue-500 to-indigo-600', label: 'Blue to Indigo' },
     { value: 'bg-gradient-to-r from-purple-500 to-pink-500', label: 'Purple to Pink' },
@@ -249,7 +304,7 @@ export const SiteSettingsPanel = () => {
                         alt="Logo Preview" 
                         className="h-10 w-auto object-contain"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://via.placeholder.com/50x50?text=Logo';
+                          (e.target as HTMLImageElement).src = 'https://static.vecteezy.com/system/resources/thumbnails/012/872/334/small_2x/discount-coupon-3d-png.png';
                         }}
                       />
                     )}
@@ -269,7 +324,55 @@ export const SiteSettingsPanel = () => {
               
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <Label htmlFor="logoUrl">Logo URL</Label>
+                  <Label>Logo Image</Label>
+                  <div className="flex flex-col gap-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      onChange={handleLogoUpload}
+                      accept="image/*"
+                      className="hidden"
+                      disabled={isUploading || !navBarForm.showLogo}
+                    />
+                    
+                    <div className="flex gap-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={triggerFileInput}
+                        disabled={isUploading || !navBarForm.showLogo}
+                        className="gap-2"
+                      >
+                        <Upload size={16} />
+                        Upload Logo
+                      </Button>
+                      
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        onClick={() => setNavBarForm({...navBarForm, logoUrl: 'https://static.vecteezy.com/system/resources/thumbnails/012/872/334/small_2x/discount-coupon-3d-png.png'})}
+                        disabled={isUploading || !navBarForm.showLogo}
+                        className="text-sm"
+                      >
+                        Reset to Default
+                      </Button>
+                    </div>
+                    
+                    {isUploading && (
+                      <div className="space-y-1">
+                        <Progress value={uploadProgress} className="h-2 w-full" />
+                        <p className="text-xs text-muted-foreground">Uploading... {uploadProgress}%</p>
+                      </div>
+                    )}
+                    
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Accepted formats: PNG, JPG, GIF, SVG. Max size: 2MB
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-1">
+                  <Label htmlFor="logoUrl">Logo URL (or use upload above)</Label>
                   <Input 
                     id="logoUrl"
                     placeholder="Enter logo URL"
@@ -653,4 +756,3 @@ export const SiteSettingsPanel = () => {
     </Card>
   );
 };
-
