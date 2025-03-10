@@ -3,16 +3,16 @@ import { useState, useEffect } from 'react';
 import { ThemeSelector } from './ThemeSelector';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CloudUpload } from 'lucide-react';
+import { CloudUpload, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Json } from '@/integrations/supabase/types';
 
 type ThemeOption = "light" | "dark" | "system";
 
 export const ThemeSettingsTab = () => {
   const [currentTheme, setCurrentTheme] = useState<ThemeOption>('system');
   const [isSyncing, setIsSyncing] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Load theme from Supabase on mount
@@ -32,12 +32,16 @@ export const ThemeSettingsTab = () => {
         }
         
         if (data?.theme) {
-          // Parse the theme from Json type to string
-          const themeValue = typeof data.theme === 'string' 
-            ? data.theme as ThemeOption
-            : (typeof data.theme === 'object' 
-                ? JSON.stringify(data.theme) 
-                : String(data.theme));
+          // Parse the theme safely
+          let themeValue: string;
+          
+          if (typeof data.theme === 'string') {
+            themeValue = data.theme;
+          } else if (typeof data.theme === 'object') {
+            themeValue = JSON.stringify(data.theme);
+          } else {
+            themeValue = String(data.theme);
+          }
             
           // Make sure it's a valid theme option
           const validTheme = ['light', 'dark', 'system'].includes(themeValue) 
@@ -59,6 +63,7 @@ export const ThemeSettingsTab = () => {
           setCurrentTheme(initialTheme);
           applyThemeToDocument(initialTheme);
         }
+        setSaveError(null);
       } catch (error) {
         console.error('Error loading theme:', error);
         toast({
@@ -95,6 +100,7 @@ export const ThemeSettingsTab = () => {
 
   const saveThemeToSupabase = async (theme: ThemeOption) => {
     setIsSyncing(true);
+    setSaveError(null);
     try {
       console.log('Saving theme to Supabase:', theme);
       
@@ -114,9 +120,8 @@ export const ThemeSettingsTab = () => {
         // Update existing record
         const { error } = await supabase
           .from('site_settings')
-          .update({ 
-            // Store theme as a string directly, not as JSON
-            theme: theme,
+          .update({
+            theme: theme, // pass the theme directly as a string
             updated_at: new Date().toISOString()
           })
           .eq('id', data.id);
@@ -130,9 +135,8 @@ export const ThemeSettingsTab = () => {
         // Insert new record
         const { error } = await supabase
           .from('site_settings')
-          .insert({ 
-            // Store theme as a string directly, not as JSON
-            theme: theme,
+          .insert({
+            theme: theme, // pass the theme directly as a string
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           });
@@ -145,13 +149,15 @@ export const ThemeSettingsTab = () => {
       
       toast({
         title: 'Success',
-        description: 'Theme setting saved to Supabase and synced across all devices.',
+        description: 'Theme setting saved and synced across all devices.',
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving theme:', error);
+      const errorMessage = error?.message || 'Failed to save theme setting';
+      setSaveError(errorMessage);
       toast({
         title: 'Error',
-        description: 'Failed to save theme setting. Please try again.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -180,6 +186,15 @@ export const ThemeSettingsTab = () => {
             Theme settings are now saved to Supabase and will be synced across all devices.
           </AlertDescription>
         </Alert>
+        
+        {saveError && (
+          <Alert className="mb-4 bg-red-50 border-red-200 text-red-800">
+            <AlertDescription className="flex items-center gap-2">
+              <Info size={18} />
+              {saveError} - Theme changes applied locally only.
+            </AlertDescription>
+          </Alert>
+        )}
         
         <ThemeSelector 
           currentTheme={currentTheme} 
